@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "PdfViewer"
 include(":app")
 include(":pdfviewer")
-include(":pdfviewer:ui")
+include(":ui")

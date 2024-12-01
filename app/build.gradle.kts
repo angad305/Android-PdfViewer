@@ -44,7 +44,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
 
-    implementation(project(":pdfviewer:ui"))
+    implementation(project(":ui"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

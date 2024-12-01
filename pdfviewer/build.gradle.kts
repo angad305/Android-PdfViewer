@@ -39,7 +39,7 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
                 groupId = "com.acutecoder"
-                artifactId = "pdfviewer-ui"
+                artifactId = "core"
             }
         }
     }
