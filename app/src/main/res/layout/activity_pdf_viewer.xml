@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.acutecoder.pdf.ui.PdfContainer xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    tools:ignore="HardcodedText">
+
+    <com.acutecoder.pdf.ui.PdfToolBar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:contentColor="@color/md_theme_onBackground" />
+
+    <com.acutecoder.pdf.PdfViewer
+        android:id="@+id/pdf_viewer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/gradient_bg"
+        app:containerBackgroundColor="@android:color/transparent" />
+
+    <com.acutecoder.pdf.ui.PdfScrollBar
+        android:id="@+id/pdf_scroll_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:contentColor="@color/md_theme_onBackground"
+        app:handleColor="@color/md_theme_background" />
+
+    <LinearLayout
+        android:id="@+id/loader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar"
+        android:background="@color/md_theme_background"
+        android:gravity="center">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+</com.acutecoder.pdf.ui.PdfContainer>

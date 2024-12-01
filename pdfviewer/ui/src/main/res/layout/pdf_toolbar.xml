@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/actionBarSize"
+    android:orientation="horizontal"
+    tools:ignore="HardcodedText">
+
+    <ImageView
+        android:id="@+id/back"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_marginVertical="8dp"
+        android:layout_marginStart="8dp"
+        android:background="?android:actionBarItemBackground"
+        android:contentDescription="back"
+        android:padding="8dp"
+        android:src="@drawable/outline_arrow_back_24" />
+
+    <LinearLayout
+        android:id="@+id/findBar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/findEditText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="4dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:hint="Find..."
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:padding="8dp"
+            tools:ignore="LabelFor" />
+
+        <ProgressBar
+            android:id="@+id/findProgressBar"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:padding="4dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/findInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="0 of 0" />
+
+        <ImageView
+            android:id="@+id/findPrevious"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="8dp"
+            android:background="?android:actionBarItemBackground"
+            android:contentDescription="find previous"
+            android:paddingVertical="12dp"
+            android:paddingStart="8dp"
+            android:src="@drawable/baseline_find_previous_24" />
+
+        <ImageView
+            android:id="@+id/findNext"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:actionBarItemBackground"
+            android:contentDescription="find next"
+            android:padding="12dp"
+            android:src="@drawable/baseline_find_next_24" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:actionBarSize"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <HorizontalScrollView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:scrollbars="none">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="Pdf Viewer"
+                android:textSize="18sp" />
+
+        </HorizontalScrollView>
+
+        <ImageView
+            android:id="@+id/find"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="8dp"
+            android:background="?android:actionBarItemBackground"
+            android:contentDescription="find"
+            android:padding="8dp"
+            android:src="@drawable/baseline_search_24" />
+
+        <ImageView
+            android:id="@+id/more"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:actionBarItemBackground"
+            android:contentDescription="more"
+            android:padding="8dp"
+            android:src="@drawable/baseline_more_vert_24" />
+
+    </LinearLayout>
+
+</LinearLayout>
