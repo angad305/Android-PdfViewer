@@ -18,7 +18,7 @@
         android:id="@+id/pdf_viewer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/gradient_bg"
+        android:background="@color/md_theme_primaryContainer"
         app:containerBackgroundColor="@android:color/transparent" />
 
     <com.acutecoder.pdf.ui.PdfScrollBar
@@ -34,7 +34,8 @@
         android:layout_height="match_parent"
         android:layout_below="@id/toolbar"
         android:background="@color/md_theme_background"
-        android:gravity="center">
+        android:gravity="center"
+        android:visibility="gone">
 
         <ProgressBar
             android:layout_width="wrap_content"

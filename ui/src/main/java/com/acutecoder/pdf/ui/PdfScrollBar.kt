@@ -39,7 +39,6 @@ class PdfScrollBar @JvmOverloads constructor(
 
     init {
         addView(root)
-        visibility = GONE
 
         attrs?.let {
             val typedArray =
@@ -55,6 +54,8 @@ class PdfScrollBar @JvmOverloads constructor(
             setContentColor(contentColor, handleColor)
             typedArray.recycle()
         }
+
+        if (isInEditMode) pageNumberInfo.text = "1/3"
     }
 
     @SuppressLint("SetTextI18n", "ClickableViewAccessibility")

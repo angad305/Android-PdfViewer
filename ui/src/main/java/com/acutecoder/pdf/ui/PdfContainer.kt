@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.RelativeLayout
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfViewer
+import kotlin.random.Random
 
 class PdfContainer : RelativeLayout {
     constructor(context: Context) : super(context)
@@ -41,12 +42,16 @@ class PdfContainer : RelativeLayout {
                 super.addView(child, index, params.apply {
                     if (this is LayoutParams) {
                         addRule(ALIGN_PARENT_END)
+                        if (isInEditMode)
+                            pdfToolBar?.id?.let { addRule(BELOW, it) }
                     }
                 })
             }
 
             is PdfToolBar -> {
-                this.pdfToolBar = child
+                this.pdfToolBar = child.apply {
+                    if (id == NO_ID) id = Random.nextInt()
+                }
                 super.addView(child, index, params)
                 setup()
 

@@ -9,12 +9,15 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.util.Base64
+import android.view.Gravity
+import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.LinearLayout
+import android.widget.TextView
 import com.acutecoder.pdf.js.Body
 import com.acutecoder.pdf.js.call
 import com.acutecoder.pdf.js.callDirectly
@@ -48,6 +51,8 @@ class PdfViewer @JvmOverloads constructor(
     @SuppressLint("SetJavaScriptEnabled")
     private val webView: WebView = WebView(context).apply {
         setBackgroundColor(Color.TRANSPARENT)
+
+        if (isInEditMode) return@apply
 
         settings.run {
             javaScriptEnabled = true
@@ -127,18 +132,53 @@ class PdfViewer @JvmOverloads constructor(
         }
 
     init {
-        addView(webView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-        webView.addJavascriptInterface(webInterface, "JWI")
-        loadPage()
-
-        attrs?.let {
+        val containerBgColor = attrs?.let {
             val typedArray =
                 context.obtainStyledAttributes(it, R.styleable.PdfViewer, defStyleAttr, 0)
-            val containerBgColor =
-                typedArray.getColor(R.styleable.PdfViewer_containerBackgroundColor, 11)
-            if (containerBgColor != 11)
-                setContainerBackgroundColor(containerBgColor)
+            val color =
+                typedArray.getColor(R.styleable.PdfViewer_containerBackgroundColor, COLOR_NOT_FOUND)
             typedArray.recycle()
+            color
+        } ?: COLOR_NOT_FOUND
+
+        if (!isInEditMode) {
+            addView(webView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+            webView.addJavascriptInterface(webInterface, "JWI")
+            loadPage()
+
+            if (containerBgColor != COLOR_NOT_FOUND)
+                setContainerBackgroundColor(containerBgColor)
+        } else setPreviews(context, containerBgColor)
+    }
+
+    private fun setPreviews(context: Context, containerBgColor: Int) {
+        addView(
+            LinearLayout(context).apply {
+                orientation = VERTICAL
+                if (containerBgColor == COLOR_NOT_FOUND) {
+                    if (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES)
+                        setBackgroundColor(Color.parseColor("#2A2A2E"))
+                    else setBackgroundColor(Color.parseColor("#d4d4d7"))
+                } else setBackgroundColor(containerBgColor)
+                addView(createPageView(context, 1))
+                addView(createPageView(context, 2))
+                addView(createPageView(context, 3))
+            },
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        )
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun createPageView(context: Context, pageNo: Int): View {
+        return TextView(context).apply {
+            setBackgroundColor(Color.WHITE)
+            layoutParams =
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1f).apply {
+                    setMargins(24, 24, 24, 0)
+                }
+            gravity = Gravity.CENTER
+            text = "Page $pageNo"
+            setTextColor(Color.BLACK)
         }
     }
 
@@ -281,6 +321,10 @@ class PdfViewer @JvmOverloads constructor(
         NONE("selectSpreadNone"),
         ODD("selectSpreadOdd"),
         EVEN("selectSpreadEven")
+    }
+
+    companion object {
+        private const val COLOR_NOT_FOUND = 11
     }
 
     private inner class WebInterface {
