@@ -32,6 +32,9 @@ android {
         jvmTarget = "17"
     }
 }
+dependencies {
+    implementation(libs.androidx.annotation.jvm)
+}
 
 afterEvaluate {
     publishing {

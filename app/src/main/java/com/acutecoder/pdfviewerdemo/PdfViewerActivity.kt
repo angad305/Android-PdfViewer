@@ -65,15 +65,15 @@ class PdfViewerActivity : AppCompatActivity() {
         view.pdfViewer.onReady {
             load(filePath)
             if (filePath.isNotBlank())
-                view.toolbar.setFileName(fileName)
+                view.pdfToolBar.setFileName(fileName)
         }
 
-        view.toolbar.alertDialogBuilder = { MaterialAlertDialogBuilder(this) }
+        view.pdfToolBar.alertDialogBuilder = { MaterialAlertDialogBuilder(this) }
         view.pdfViewer.addListener(DownloadPdfListener(fileName))
         view.container.setAsLoader(view.loader)
 
         onBackPressedDispatcher.addCallback(this) {
-            if (view.toolbar.isFindBarVisible()) view.toolbar.setFindBarVisible(false)
+            if (view.pdfToolBar.isFindBarVisible()) view.pdfToolBar.setFindBarVisible(false)
             else finish()
         }
 

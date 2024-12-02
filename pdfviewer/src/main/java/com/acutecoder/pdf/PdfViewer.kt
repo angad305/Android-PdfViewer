@@ -18,6 +18,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.ColorInt
+import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
 import com.acutecoder.pdf.js.Body
 import com.acutecoder.pdf.js.call
 import com.acutecoder.pdf.js.callDirectly
@@ -151,37 +154,7 @@ class PdfViewer @JvmOverloads constructor(
         } else setPreviews(context, containerBgColor)
     }
 
-    private fun setPreviews(context: Context, containerBgColor: Int) {
-        addView(
-            LinearLayout(context).apply {
-                orientation = VERTICAL
-                if (containerBgColor == COLOR_NOT_FOUND) {
-                    if (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES)
-                        setBackgroundColor(Color.parseColor("#2A2A2E"))
-                    else setBackgroundColor(Color.parseColor("#d4d4d7"))
-                } else setBackgroundColor(containerBgColor)
-                addView(createPageView(context, 1))
-                addView(createPageView(context, 2))
-                addView(createPageView(context, 3))
-            },
-            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        )
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun createPageView(context: Context, pageNo: Int): View {
-        return TextView(context).apply {
-            setBackgroundColor(Color.WHITE)
-            layoutParams =
-                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1f).apply {
-                    setMargins(24, 24, 24, 0)
-                }
-            gravity = Gravity.CENTER
-            text = "Page $pageNo"
-            setTextColor(Color.BLACK)
-        }
-    }
-
+    @JvmOverloads
     fun load(url: String, originalUrl: String = url) {
         checkViewer()
         currentPage = 1
@@ -207,11 +180,11 @@ class PdfViewer @JvmOverloads constructor(
         listeners.remove(listener)
     }
 
-    fun goToPage(pageNumber: Int) {
+    fun goToPage(@IntRange(from = 1) pageNumber: Int) {
         webView set "page"(pageNumber)
     }
 
-    fun scrollToRatio(ratio: Float) {
+    fun scrollToRatio(@FloatRange(from = 0.0, to = 1.0) ratio: Float) {
         webView callDirectly "scrollToRatio"(ratio)
     }
 
@@ -255,10 +228,12 @@ class PdfViewer @JvmOverloads constructor(
         webView callDirectly "downloadFile"()
     }
 
+    @PdfUnstableApi
     fun printFile() {
         webView callDirectly "printFile"()
     }
 
+    @PdfUnstableApi
     fun startPresentationMode() {
         webView callDirectly "startPresentationMode"()
     }
@@ -280,7 +255,7 @@ class PdfViewer @JvmOverloads constructor(
         webView.reload()
     }
 
-    fun setContainerBackgroundColor(color: Int) {
+    fun setContainerBackgroundColor(@ColorInt color: Int) {
         if (!isInitialized) {
             tempBackgroundColor = color
             return
@@ -455,6 +430,37 @@ class PdfViewer @JvmOverloads constructor(
             mainHandler.post {
                 if (condition()) runnable.run()
             }
+        }
+    }
+
+    private fun setPreviews(context: Context, containerBgColor: Int) {
+        addView(
+            LinearLayout(context).apply {
+                orientation = VERTICAL
+                if (containerBgColor == COLOR_NOT_FOUND) {
+                    if (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES)
+                        setBackgroundColor(Color.parseColor("#2A2A2E"))
+                    else setBackgroundColor(Color.parseColor("#d4d4d7"))
+                } else setBackgroundColor(containerBgColor)
+                addView(createPageView(context, 1))
+                addView(createPageView(context, 2))
+                addView(createPageView(context, 3))
+            },
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        )
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun createPageView(context: Context, pageNo: Int): View {
+        return TextView(context).apply {
+            setBackgroundColor(Color.WHITE)
+            layoutParams =
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1f).apply {
+                    setMargins(24, 24, 24, 0)
+                }
+            gravity = Gravity.CENTER
+            text = "Page $pageNo"
+            setTextColor(Color.BLACK)
         }
     }
 
