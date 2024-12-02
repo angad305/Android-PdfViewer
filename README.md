@@ -1,6 +1,6 @@
 
 # PdfViewer
-A lightweight Android PDF viewer library powered by Mozilla's PDF.js, offering seamless PDF rendering and interactive features.
+A lightweight Android PDF viewer library powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features.
 
 ## Demo
 You can download apk from [here](/app/release/app-release.apk)
@@ -331,3 +331,21 @@ Re-initializes the PDF viewer, reloading the webview.
 
 `setContainerBackgroundColor(color: Int)`
 Sets the background color of the PDF viewer container.
+
+## License
+[PDF.js License](LICENSE_PDF_JS)
+```
+Copyright 2025 Bhuvaneshwaran
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
