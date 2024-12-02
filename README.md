@@ -80,7 +80,7 @@ Then call load function
   }
 
   // Java
-  pdfViewer.onReady(v->{
+  PdfUtil.onReady(pdfViewer, () -> {
     pdfViewer.load(filePath);
   });
 </pre>
