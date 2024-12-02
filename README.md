@@ -333,7 +333,7 @@ Re-initializes the PDF viewer, reloading the webview.
 Sets the background color of the PDF viewer container.
 
 ## License
-[PDF.js License](LICENSE_PDF_JS)
+[PDF.js License](LICENSE_PDF_JS.md)
 ```
 Copyright 2025 Bhuvaneshwaran
 
