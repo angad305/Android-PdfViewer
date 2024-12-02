@@ -34,8 +34,8 @@ class PdfScrollBar @JvmOverloads constructor(
     var animationDuration = 250L
     var interactiveScrolling = true
 
-    private val pageNumberInfo: TextView = root.findViewById(R.id.pageNumberInfo)
-    private val dragHandle: ImageView = root.findViewById(R.id.drag_handle)
+    val pageNumberInfo: TextView = root.findViewById(R.id.pageNumberInfo)
+    val dragHandle: ImageView = root.findViewById(R.id.drag_handle)
 
     init {
         addView(root)
