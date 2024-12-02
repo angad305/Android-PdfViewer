@@ -17,7 +17,7 @@ interface PdfListener {
 }
 
 @Suppress("FunctionName")
-inline fun PdfOnPageLoadStart(crossinline callback: () -> Unit) =
+fun PdfOnPageLoadStart(callback: () -> Unit) =
     object : PdfListener {
         override fun onPageLoadStart() {
             callback()
@@ -25,7 +25,7 @@ inline fun PdfOnPageLoadStart(crossinline callback: () -> Unit) =
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnPageLoadSuccess(crossinline callback: (pageCount: Int) -> Unit) =
+fun PdfOnPageLoadSuccess(callback: (pageCount: Int) -> Unit) =
     object : PdfListener {
         override fun onPageLoadSuccess(pagesCount: Int) {
             callback(pagesCount)
@@ -33,7 +33,7 @@ inline fun PdfOnPageLoadSuccess(crossinline callback: (pageCount: Int) -> Unit) 
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnPageLoadFailed(crossinline callback: (errorMessage: String) -> Unit) =
+fun PdfOnPageLoadFailed(callback: (errorMessage: String) -> Unit) =
     object : PdfListener {
         override fun onPageLoadFailed(errorMessage: String) {
             callback(errorMessage)
@@ -41,7 +41,7 @@ inline fun PdfOnPageLoadFailed(crossinline callback: (errorMessage: String) -> U
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnPageChange(crossinline callback: (pageNumber: Int) -> Unit) =
+fun PdfOnPageChange(callback: (pageNumber: Int) -> Unit) =
     object : PdfListener {
         override fun onPageChange(pageNumber: Int) {
             callback(pageNumber)
@@ -49,7 +49,7 @@ inline fun PdfOnPageChange(crossinline callback: (pageNumber: Int) -> Unit) =
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnScaleChange(crossinline callback: (scale: Float) -> Unit) =
+fun PdfOnScaleChange(callback: (scale: Float) -> Unit) =
     object : PdfListener {
         override fun onScaleChange(scale: Float) {
             callback(scale)
@@ -57,7 +57,7 @@ inline fun PdfOnScaleChange(crossinline callback: (scale: Float) -> Unit) =
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnDownload(crossinline callback: (pdfAsBytes: ByteArray) -> Unit) =
+fun PdfOnDownload(callback: (pdfAsBytes: ByteArray) -> Unit) =
     object : PdfListener {
         override fun onSavePdf(pdfAsBytes: ByteArray) {
             callback(pdfAsBytes)
@@ -65,7 +65,7 @@ inline fun PdfOnDownload(crossinline callback: (pdfAsBytes: ByteArray) -> Unit) 
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnFindMatchChange(crossinline callback: (current: Int, total: Int) -> Unit) =
+fun PdfOnFindMatchChange(callback: (current: Int, total: Int) -> Unit) =
     object : PdfListener {
         override fun onFindMatchChange(current: Int, total: Int) {
             callback(current, total)
@@ -73,7 +73,7 @@ inline fun PdfOnFindMatchChange(crossinline callback: (current: Int, total: Int)
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnFindMatchStart(crossinline callback: () -> Unit) =
+fun PdfOnFindMatchStart(callback: () -> Unit) =
     object : PdfListener {
         override fun onFindMatchStart() {
             callback()
@@ -81,7 +81,7 @@ inline fun PdfOnFindMatchStart(crossinline callback: () -> Unit) =
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnFindMatchComplete(crossinline callback: () -> Unit) =
+fun PdfOnFindMatchComplete(callback: () -> Unit) =
     object : PdfListener {
         override fun onFindMatchComplete(found: Boolean) {
             callback()
@@ -89,7 +89,7 @@ inline fun PdfOnFindMatchComplete(crossinline callback: () -> Unit) =
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnScrollChange(crossinline callback: (currentOffset: Int, totalOffset: Int) -> Unit) =
+fun PdfOnScrollChange(callback: (currentOffset: Int, totalOffset: Int) -> Unit) =
     object : PdfListener {
         override fun onScrollChange(currentOffset: Int, totalOffset: Int) {
             callback(currentOffset, totalOffset)
@@ -97,7 +97,7 @@ inline fun PdfOnScrollChange(crossinline callback: (currentOffset: Int, totalOff
     }
 
 @Suppress("FunctionName")
-inline fun PdfOnLoadProperties(crossinline callback: (properties: PdfDocumentProperties) -> Unit) =
+fun PdfOnLoadProperties(callback: (properties: PdfDocumentProperties) -> Unit) =
     object : PdfListener {
         override fun onLoadProperties(properties: PdfDocumentProperties) {
             callback(properties)
