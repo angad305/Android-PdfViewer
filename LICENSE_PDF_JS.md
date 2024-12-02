@@ -1,4 +1,4 @@
-[PDF.js LICENSE](https://github.com/mozilla/pdf.js/blob/master/LICENSE)
+[View PDF.js LICENSE](https://github.com/mozilla/pdf.js/blob/master/LICENSE)
 
 ```
 Copyright Mozilla
