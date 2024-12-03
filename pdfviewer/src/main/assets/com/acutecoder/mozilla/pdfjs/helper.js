@@ -11,6 +11,21 @@ function openFile(args) {
     PDFViewerApplication.eventBus.on("pagerendered", callback);
 }
 
+function doOnLast() {
+    const observerTarget = document.querySelector("#passwordDialog");
+
+    observerTarget.style.margin = "24px auto";
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === "attributes" && mutation.attributeName === "open") {
+                JWI.onPasswordDialogChange(observerTarget.getAttribute("open") !== null);
+            }
+        });
+    });
+    observer.observe(observerTarget, { attributes: true });
+}
+
 function setupHelper() {
     PDFViewerApplication.findBar.highlightAll.click();
 
@@ -366,6 +381,19 @@ function sendDocumentProperties() {
             JSON.stringify(info.info.Custom || "{}")
         );
     });
+}
+
+function getLabelText() {
+    return $("#passwordText").innerText;
+}
+
+function submitPassword(password) {
+    $("#password").value = password;
+    $("#passwordSubmit").click();
+}
+
+function cancelPasswordDialog() {
+    $("#passwordCancel").click()
 }
 
 function $(query) {

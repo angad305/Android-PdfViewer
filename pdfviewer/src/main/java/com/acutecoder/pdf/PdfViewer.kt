@@ -349,6 +349,11 @@ class PdfViewer @JvmOverloads constructor(
         }
 
         @JavascriptInterface
+        fun onPasswordDialogChange(isOpen: Boolean) = post {
+            listeners.forEach { it.onPasswordDialogChange(isOpen) }
+        }
+
+        @JavascriptInterface
         fun onLoadProperties(
             title: String,
             subject: String,

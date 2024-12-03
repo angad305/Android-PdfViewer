@@ -1,16 +1,23 @@
 package com.acutecoder.pdf.ui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
+import android.text.InputType
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.RelativeLayout
+import androidx.appcompat.app.AlertDialog
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfViewer
 import kotlin.random.Random
 
-class PdfContainer : RelativeLayout {
+class PdfContainer : RelativeLayout, PdfListener {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
@@ -19,11 +26,13 @@ class PdfContainer : RelativeLayout {
     var pdfViewer: PdfViewer? = null; private set
     var pdfToolBar: PdfToolBar? = null; private set
     var pdfScrollBar: PdfScrollBar? = null; private set
+    var alertDialogBuilder: () -> AlertDialog.Builder = { AlertDialog.Builder(context) }
 
     override fun addView(child: View?, index: Int, params: ViewGroup.LayoutParams?) {
         when (child) {
             is PdfViewer -> {
                 this.pdfViewer = child
+                child.addListener(this)
                 setup()
 
                 pdfToolBar?.let { toolBar ->
@@ -68,11 +77,11 @@ class PdfContainer : RelativeLayout {
     fun setAsLoader(loader: View) {
         pdfViewer?.addListener(object : PdfListener {
             override fun onPageLoadStart() {
-                loader.visibility = View.VISIBLE
+                loader.visibility = VISIBLE
             }
 
             override fun onPageLoadSuccess(pagesCount: Int) {
-                loader.visibility = View.GONE
+                loader.visibility = GONE
             }
         })
     }
@@ -84,4 +93,48 @@ class PdfContainer : RelativeLayout {
         }
     }
 
+    override fun onPasswordDialogChange(isOpen: Boolean) {
+        if (!isOpen) return
+
+        pdfViewer?.let { pdfViewer ->
+            pdfViewer.ui.passwordDialog.getLabelText { title ->
+                @SuppressLint("InflateParams")
+                val root =
+                    LayoutInflater.from(context).inflate(R.layout.pdf_go_to_page_dialog, null)
+                val field: EditText = root.findViewById<EditText?>(R.id.goToPageField).apply {
+                    inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                    imeOptions = EditorInfo.IME_ACTION_DONE
+                    hint = "Password"
+                }
+
+                val submitPassword: (String, DialogInterface) -> Unit = { password, dialog ->
+                    if (password.isEmpty()) onPasswordDialogChange(true)
+                    else pdfViewer.ui.passwordDialog.submitPassword(password)
+                    dialog.dismiss()
+                }
+
+                val dialog = alertDialogBuilder()
+                    .setTitle(title.replace("\"", ""))
+                    .setView(root)
+                    .setPositiveButton("Done") { dialog, _ ->
+                        submitPassword(field.text.toString(), dialog)
+                    }
+                    .setNegativeButton("Cancel") { dialog, _ ->
+                        pdfViewer.ui.passwordDialog.cancel()
+                        dialog.dismiss()
+                    }
+                    .create()
+
+                field.setOnEditorActionListener { _, actionId, _ ->
+                    if (actionId == EditorInfo.IME_ACTION_DONE) {
+                        submitPassword(field.text.toString(), dialog)
+                        true
+                    } else {
+                        false
+                    }
+                }
+                dialog.show()
+            }
+        }
+    }
 }

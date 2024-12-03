@@ -7,6 +7,7 @@ import com.acutecoder.pdf.js.PdfSideBar
 import com.acutecoder.pdf.js.call
 import com.acutecoder.pdf.js.callDirectly
 import com.acutecoder.pdf.js.invoke
+import com.acutecoder.pdf.js.toJsString
 import com.acutecoder.pdf.js.with
 
 class UiSettings internal constructor(private val webView: WebView) {
@@ -190,10 +191,25 @@ class UiSettings internal constructor(private val webView: WebView) {
             }
     }
 
+    inner class PasswordDialog internal constructor() {
+        fun getLabelText(callback: (String) -> Unit) {
+            webView callDirectly "getLabelText"(callback = callback)
+        }
+
+        fun submitPassword(password: String) {
+            webView callDirectly "submitPassword"(password.toJsString())
+        }
+
+        fun cancel() {
+            webView callDirectly "cancelPasswordDialog"()
+        }
+    }
+
     val toolbarLeft = ToolbarLeft()
     val toolbarMiddle = ToolbarMiddle()
     val toolbarRight = ToolbarRight()
     val toolBarSecondary = ToolbarSecondary()
+    val passwordDialog = PasswordDialog()
 
     var toolbarEnabled: Boolean = false
         set(value) {

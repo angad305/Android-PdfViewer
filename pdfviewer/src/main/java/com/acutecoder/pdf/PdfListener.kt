@@ -13,6 +13,7 @@ interface PdfListener {
     fun onFindMatchComplete(found: Boolean) {}
     fun onScrollChange(currentOffset: Int, totalOffset: Int) {}
     fun onLoadProperties(properties: PdfDocumentProperties) {}
+    fun onPasswordDialogChange(isOpen: Boolean) {}
 
 }
 

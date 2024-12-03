@@ -69,6 +69,7 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
         view.pdfToolBar.alertDialogBuilder = { MaterialAlertDialogBuilder(this) }
+        view.container.alertDialogBuilder = view.pdfToolBar.alertDialogBuilder
         view.pdfViewer.addListener(DownloadPdfListener(fileName))
         view.container.setAsLoader(view.loader)
 

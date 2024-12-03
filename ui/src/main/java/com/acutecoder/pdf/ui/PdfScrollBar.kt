@@ -56,6 +56,7 @@ class PdfScrollBar @JvmOverloads constructor(
         }
 
         if (isInEditMode) pageNumberInfo.text = "1/3"
+        else visibility = GONE
     }
 
     @SuppressLint("SetTextI18n", "ClickableViewAccessibility")
@@ -90,6 +91,10 @@ class PdfScrollBar @JvmOverloads constructor(
             pdfViewer.addListener(object : PdfListener {
                 override fun onPageChange(pageNumber: Int) {
                     pageNumberInfo.text = "$pageNumber/${pdfViewer.pagesCount}"
+                }
+
+                override fun onPageLoadStart() {
+                    visibility = GONE
                 }
 
                 override fun onPageLoadSuccess(pagesCount: Int) {
