@@ -40,7 +40,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 <pre>
 dependencies {
-    implementation("com.github.bhuvaneshw:pdfviewer:$module:$version")
+    implementation("com.github.bhuvaneshw.pdfviewer:$module:$version")
 }
 </pre>
 Replace <b>$module</b> with <b>core</b> or <b>ui</b>
@@ -53,11 +53,11 @@ Example:
 
 Only core functionalities
 <pre>
-implementation("com.github.bhuvaneshw:pdfviewer:core:1.0.0")
+implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
 </pre>
 With UI
 <pre>
-implementation("com.github.bhuvaneshw:pdfviewer:ui:1.0.0")
+implementation("com.github.bhuvaneshw.pdfviewer:ui:1.0.0")
 </pre>
 
 ## 1.2. Groovy DSL
@@ -76,7 +76,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 <pre>
 dependencies {
-    implementation 'com.github.bhuvaneshw:pdfviewer:$module:$version'
+    implementation 'com.github.bhuvaneshw.pdfviewer:$module:$version'
 }
 </pre>
 
