@@ -17,7 +17,7 @@ import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfViewer
 import kotlin.random.Random
 
-class PdfContainer : RelativeLayout, PdfListener {
+class PdfContainer : RelativeLayout {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
@@ -32,7 +32,7 @@ class PdfContainer : RelativeLayout, PdfListener {
         when (child) {
             is PdfViewer -> {
                 this.pdfViewer = child
-                child.addListener(this)
+                child.addListener(PasswordDialogListener())
                 setup()
 
                 pdfToolBar?.let { toolBar ->
@@ -93,47 +93,57 @@ class PdfContainer : RelativeLayout, PdfListener {
         }
     }
 
-    override fun onPasswordDialogChange(isOpen: Boolean) {
-        if (!isOpen) return
+    @Suppress("NOTHING_TO_INLINE", "FunctionName")
+    private inline fun PasswordDialogListener() = object : PdfListener {
+        var dialog: AlertDialog? = null
 
-        pdfViewer?.let { pdfViewer ->
-            pdfViewer.ui.passwordDialog.getLabelText { title ->
-                @SuppressLint("InflateParams")
-                val root =
-                    LayoutInflater.from(context).inflate(R.layout.pdf_go_to_page_dialog, null)
-                val field: EditText = root.findViewById<EditText?>(R.id.goToPageField).apply {
-                    inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                    imeOptions = EditorInfo.IME_ACTION_DONE
-                    hint = "Password"
-                }
+        override fun onPasswordDialogChange(isOpen: Boolean) {
+            if (!isOpen) {
+                dialog?.dismiss()
+                dialog = null
+                return
+            }
 
-                val submitPassword: (String, DialogInterface) -> Unit = { password, dialog ->
-                    if (password.isEmpty()) onPasswordDialogChange(true)
-                    else pdfViewer.ui.passwordDialog.submitPassword(password)
-                    dialog.dismiss()
-                }
-
-                val dialog = alertDialogBuilder()
-                    .setTitle(title.replace("\"", ""))
-                    .setView(root)
-                    .setPositiveButton("Done") { dialog, _ ->
-                        submitPassword(field.text.toString(), dialog)
+            pdfViewer?.let { pdfViewer ->
+                pdfViewer.ui.passwordDialog.getLabelText { title ->
+                    @SuppressLint("InflateParams")
+                    val root =
+                        LayoutInflater.from(context).inflate(R.layout.pdf_go_to_page_dialog, null)
+                    val field: EditText = root.findViewById<EditText?>(R.id.goToPageField).apply {
+                        inputType =
+                            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                        imeOptions = EditorInfo.IME_ACTION_DONE
+                        hint = "Password"
                     }
-                    .setNegativeButton("Cancel") { dialog, _ ->
-                        pdfViewer.ui.passwordDialog.cancel()
+
+                    val submitPassword: (String, DialogInterface) -> Unit = { password, dialog ->
+                        if (password.isEmpty()) onPasswordDialogChange(true)
+                        else pdfViewer.ui.passwordDialog.submitPassword(password)
                         dialog.dismiss()
                     }
-                    .create()
 
-                field.setOnEditorActionListener { _, actionId, _ ->
-                    if (actionId == EditorInfo.IME_ACTION_DONE) {
-                        submitPassword(field.text.toString(), dialog)
-                        true
-                    } else {
-                        false
+                    dialog = alertDialogBuilder()
+                        .setTitle(title.replace("\"", ""))
+                        .setView(root)
+                        .setPositiveButton("Done") { dialog, _ ->
+                            submitPassword(field.text.toString(), dialog)
+                        }
+                        .setNegativeButton("Cancel") { dialog, _ ->
+                            pdfViewer.ui.passwordDialog.cancel()
+                            dialog.dismiss()
+                        }
+                        .create()
+
+                    field.setOnEditorActionListener { _, actionId, _ ->
+                        if (actionId == EditorInfo.IME_ACTION_DONE) {
+                            dialog?.let { submitPassword(field.text.toString(), it) }
+                            true
+                        } else {
+                            false
+                        }
                     }
+                    dialog?.show()
                 }
-                dialog.show()
             }
         }
     }
