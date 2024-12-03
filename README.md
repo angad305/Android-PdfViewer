@@ -1,11 +1,30 @@
 
 # PdfViewer
-A lightweight Android PDF viewer library powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features.
+A lightweight **Android PDF viewer library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features.
+
+## Screenshots
+<img src="screenshots/1.png" width="190" alt="ScreenShot1"/> <img src="screenshots/2.png" width="190" alt="ScreenShot2"/>
+<img src="screenshots/3.png" width="190" alt="ScreenShot3"/> <img src="screenshots/4.png" width="190" alt="ScreenShot4"/> <img src="screenshots/5.png" width="190" alt="ScreenShot5"/>
 
 ## Demo
 You can download apk from [here](/app/release/app-release.apk)
 
-## Setup - Kotlin DSL
+## Contents
+1. [Setup](#1-setup)<br>
+   1.1. [Setup - Kotlin DSL](#11-kotlin-dsl)<br>
+   1.2. [Setup - Groovy DSL](#12-groovy-dsl)<br>
+2. [Usage](#2-usage)<br>
+   2.1. [Core PdfViewer](#21-core-pdfviewer)<br>
+   2.2. [Full UI](#22-full-ui)<br>
+   2.3. [Without PdfContainer](#23-without-pdfcontainer)<br>
+   2.4. [Listener](#24-listener)<br>
+   2.5. [Adding extra menu to PdfToolBar](#25-adding-extra-menu-to-pdftoolbar)<br>
+3. [See also](#3-see-also)<br>
+4. [Public Members](#4-public-members)<br>
+5. [License](#5-license)
+
+## 1. Setup
+### 1.1. Kotlin DSL
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle.kts or settings.gradle.kts at the end of repositories:
@@ -41,7 +60,7 @@ With UI
 implementation("com.github.bhuvaneshw:pdfviewer:ui:1.0.0")
 </pre>
 
-## Setup - Groovy DSL
+## 1.2. Groovy DSL
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle or settings.gradle at the end of repositories:
@@ -61,8 +80,8 @@ dependencies {
 }
 </pre>
 
-## Usage
-### Core PdfViewer
+## 2. Usage
+### 2.1 Core PdfViewer
 Include PdfViewer in your xml
 <pre>
 &lt;com.acutecoder.pdf.PdfViewer
@@ -101,7 +120,7 @@ filePath can be
 > 6. PdfViewer.cursorToolMode or getCursorToolMode()
 
 
-### Full UI
+### 2.2 Full UI
 Include ui dependency
 
 <pre>
@@ -161,7 +180,7 @@ pdfViewer.onReady {
 container.setAsLoader(loaderView)
 </pre>
 
-Without PdfContainer
+### 2.3 Without PdfContainer
 <pre>
 &lt;RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -208,7 +227,7 @@ pdfViewer.onReady {
 }
 </pre>
 
-### Listener
+### 2.4 Listener
 You can add listener like
 <pre>
 pdfViewer.addListener(PdfOnPageLoadFailed {  // Specific listener (Extension functions)
@@ -223,10 +242,18 @@ pdfViewer.addListener(object: PdfListener {
 > [!NOTE]
 > For Download listener see implementation in [PdfViewerActivity.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/PdfViewerActivity.kt)
 
-### Adding extra menu to PdfToolBar
- See [ExtendedToolBar](/app/src/main/java/com/acutecoder/pdfviewerdemo/ExtendedToolBar.kt)
+### 2.5 Adding extra menu to PdfToolBar
+ See [ExtendedToolBar.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/ExtendedToolBar.kt)
 
-### Public Members
+## 3. See also
+> [!NOTE]
+> [PdfViewerActivity.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/PdfViewerActivity.kt) <br>
+> [PdfContainer.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfContainer.kt)<br>
+> [PdfScrollBar.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfScrollBar.kt)<br>
+> [PdfToolBar.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfToolBar.kt)<br>
+> [ExtendedToolBar.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/ExtendedToolBar.kt)<br>
+
+## 4. Public Members
 `isInitialized: Boolean`
 Indicates whether the PDF viewer has been initialized.
 
@@ -332,7 +359,7 @@ Re-initializes the PDF viewer, reloading the webview.
 `setContainerBackgroundColor(color: Int)`
 Sets the background color of the PDF viewer container.
 
-## License
+## 5. License
 [PDF.js License](LICENSE_PDF_JS.md)
 ```
 Copyright 2025 Bhuvaneshwaran
