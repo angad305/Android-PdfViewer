@@ -17,7 +17,7 @@
         android:id="@+id/pdf_viewer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/md_theme_primaryContainer"
+        android:background="@color/md_theme_surfaceContainer"
         app:containerBackgroundColor="@android:color/transparent" />
 
     <com.acutecoder.pdf.ui.PdfScrollBar
