@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
@@ -263,6 +264,14 @@ class PdfViewer @JvmOverloads constructor(
         if (tempBackgroundColor != null) tempBackgroundColor = null
 
         webView with Body set "style.backgroundColor"(color.toRgba().toJsString())
+    }
+
+    fun saveState(outState: Bundle) {
+        webView.saveState(outState)
+    }
+
+    fun restoreState(inState: Bundle) {
+        webView.restoreState(inState)
     }
 
     private fun loadPage() {
