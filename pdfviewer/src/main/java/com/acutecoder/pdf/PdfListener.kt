@@ -82,10 +82,10 @@ fun PdfOnFindMatchStart(callback: () -> Unit) =
     }
 
 @Suppress("FunctionName")
-fun PdfOnFindMatchComplete(callback: () -> Unit) =
+fun PdfOnFindMatchComplete(callback: (found: Boolean) -> Unit) =
     object : PdfListener {
         override fun onFindMatchComplete(found: Boolean) {
-            callback()
+            callback(found)
         }
     }
 

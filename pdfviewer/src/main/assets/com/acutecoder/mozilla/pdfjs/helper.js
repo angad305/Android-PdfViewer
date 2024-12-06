@@ -65,7 +65,7 @@ function setupHelper() {
                     case "pending":
                         JWI.onFindMatchStart();
                         break;
-                    case "not-found":
+                    case "notFound":
                         JWI.onFindMatchComplete(false);
                         break;
                     default:
