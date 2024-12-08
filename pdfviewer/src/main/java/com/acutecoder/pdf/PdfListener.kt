@@ -14,6 +14,9 @@ interface PdfListener {
     fun onScrollChange(currentOffset: Int, totalOffset: Int) {}
     fun onLoadProperties(properties: PdfDocumentProperties) {}
     fun onPasswordDialogChange(isOpen: Boolean) {}
+    fun onScrollModeChange(scrollMode: PdfViewer.PageScrollMode) {}
+    fun onSpreadModeChange(spreadMode: PdfViewer.PageSpreadMode) {}
+    fun onRotationChange(rotation: PdfViewer.PageRotation) {}
 
 }
 
@@ -102,5 +105,37 @@ fun PdfOnLoadProperties(callback: (properties: PdfDocumentProperties) -> Unit) =
     object : PdfListener {
         override fun onLoadProperties(properties: PdfDocumentProperties) {
             callback(properties)
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnPasswordDialogChange(callback: (isOpen: Boolean) -> Unit) =
+    object : PdfListener {
+        override fun onPasswordDialogChange(isOpen: Boolean) {
+            callback(isOpen)
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnScrollModeChange(callback: (scrollMode: PdfViewer.PageScrollMode) -> Unit) =
+    object : PdfListener {
+        override fun onScrollModeChange(scrollMode: PdfViewer.PageScrollMode) {
+            callback(scrollMode)
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnSpreadModeChange(callback: (spreadMode: PdfViewer.PageSpreadMode) -> Unit) =
+    object : PdfListener {
+        override fun onSpreadModeChange(spreadMode: PdfViewer.PageSpreadMode) {
+            callback(spreadMode)
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnRotationChange(callback: (rotation: PdfViewer.PageRotation) -> Unit) =
+    object : PdfListener {
+        override fun onRotationChange(rotation: PdfViewer.PageRotation) {
+            callback(rotation)
         }
     }

@@ -47,6 +47,14 @@ function setupHelper() {
         JWI.onFindMatchChange(event.matchesCount?.current || 0, event.matchesCount?.total || 0);
     });
 
+    PDFViewerApplication.eventBus.on("spreadmodechanged", (event) => {
+        JWI.onSpreadModeChange(event.mode);
+    });
+
+    PDFViewerApplication.eventBus.on("scrollmodechanged", (event) => {
+        JWI.onScrollModeChange(event.mode);
+    });
+
     const viewerContainer = $("#viewerContainer");
     viewerContainer.addEventListener("scroll", () => {
         let currentOffset = viewerContainer.scrollTop;
@@ -233,14 +241,6 @@ function goToLastPage() {
     $("#lastPage").click();
 }
 
-function rotateClockWise() {
-    $("#pageRotateCw").click();
-}
-
-function rotateCounterClockWise() {
-    $("#pageRotateCcw").click();
-}
-
 function selectCursorSelectTool() {
     $("#cursorSelectTool").click();
 }
@@ -393,7 +393,7 @@ function submitPassword(password) {
 }
 
 function cancelPasswordDialog() {
-    $("#passwordCancel").click()
+    $("#passwordCancel").click();
 }
 
 function $(query) {

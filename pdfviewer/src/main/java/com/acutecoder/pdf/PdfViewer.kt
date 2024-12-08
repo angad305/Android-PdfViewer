@@ -135,6 +135,14 @@ class PdfViewer @JvmOverloads constructor(
             webView callDirectly value.function()
         }
 
+    var pageRotation: PageRotation = PageRotation.R_0
+        set(value) {
+            checkViewer()
+            field = value
+            webView set "pdfViewer.pagesRotation"(value.degree)
+            dispatchRotationChange(value)
+        }
+
     init {
         val containerBgColor = attrs?.let {
             val typedArray =
@@ -240,11 +248,15 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun rotateClockWise() {
-        webView callDirectly "rotateClockWise"()
+        pageRotation = PageRotation.entries.let { it[(it.indexOf(pageRotation) + 1) % it.size] }
     }
 
     fun rotateCounterClockWise() {
-        webView callDirectly "rotateCounterClockWise"()
+        pageRotation = PageRotation.entries.let {
+            it[(it.indexOf(pageRotation) - 1).let { index ->
+                if (index < 0) index + it.size else index
+            }]
+        }
     }
 
     fun showDocumentProperties() {
@@ -272,6 +284,10 @@ class PdfViewer @JvmOverloads constructor(
 
     fun restoreState(inState: Bundle) {
         webView.restoreState(inState)
+    }
+
+    private fun dispatchRotationChange(pageRotation: PageRotation) {
+        listeners.forEach { it.onRotationChange(pageRotation) }
     }
 
     private fun loadPage() {
@@ -305,6 +321,13 @@ class PdfViewer @JvmOverloads constructor(
         NONE("selectSpreadNone"),
         ODD("selectSpreadOdd"),
         EVEN("selectSpreadEven")
+    }
+
+    enum class PageRotation(internal val degree: Int) {
+        R_0(0),
+        R_90(90),
+        R_180(180),
+        R_270(270),
     }
 
     companion object {
@@ -360,6 +383,16 @@ class PdfViewer @JvmOverloads constructor(
         @JavascriptInterface
         fun onPasswordDialogChange(isOpen: Boolean) = post {
             listeners.forEach { it.onPasswordDialogChange(isOpen) }
+        }
+
+        @JavascriptInterface
+        fun onSpreadModeChange(ordinal: Int) = post {
+            listeners.forEach { it.onSpreadModeChange(PageSpreadMode.entries[ordinal]) }
+        }
+
+        @JavascriptInterface
+        fun onScrollModeChange(ordinal: Int) = post {
+            listeners.forEach { it.onScrollModeChange(PageScrollMode.entries[ordinal]) }
         }
 
         @JavascriptInterface
