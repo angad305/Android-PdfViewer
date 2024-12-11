@@ -1,5 +1,6 @@
 
 # PdfViewer
+**Early stage**
 A lightweight **Android PDF viewer library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features.
 
 ## Screenshots
