@@ -27,10 +27,12 @@ import com.acutecoder.pdf.js.call
 import com.acutecoder.pdf.js.callDirectly
 import com.acutecoder.pdf.js.invoke
 import com.acutecoder.pdf.js.set
+import com.acutecoder.pdf.js.setDirectly
 import com.acutecoder.pdf.js.toJsString
 import com.acutecoder.pdf.js.toRgba
 import com.acutecoder.pdf.js.with
 import com.acutecoder.pdf.ui.UiSettings
+import kotlin.math.abs
 
 class PdfViewer @JvmOverloads constructor(
     context: Context,
@@ -143,6 +145,41 @@ class PdfViewer @JvmOverloads constructor(
             dispatchRotationChange(value)
         }
 
+    var doubleClickThreshold: Long = 300
+        set(value) {
+            checkViewer()
+            field = value
+            webView setDirectly "DOUBLE_CLICK_THRESHOLD"(value)
+        }
+
+    var longClickThreshold: Long = 500
+        set(value) {
+            checkViewer()
+            field = value
+            webView setDirectly "LONG_CLICK_THRESHOLD"(value)
+        }
+
+    @FloatRange(-4.0, 10.0)
+    var minPageScale = 0.1f
+
+    @FloatRange(-4.0, 10.0)
+    var maxPageScale = 10f
+
+    @FloatRange(-4.0, 10.0)
+    var defaultPageScale = Zoom.AUTOMATIC.floatValue
+
+    private var actualMinPageScale = 0f
+        set(value) {
+            field = value
+            if (value > 0) webView setDirectly "MIN_SCALE"(value)
+        }
+    private var actualMaxPageScale = 0f
+        set(value) {
+            field = value
+            if (value > 0) webView setDirectly "MAX_SCALE"(value)
+        }
+    private var actualDefaultPageScale = 0f
+
     init {
         val containerBgColor = attrs?.let {
             val typedArray =
@@ -217,8 +254,12 @@ class PdfViewer @JvmOverloads constructor(
         webView callDirectly "goToLastPage"()
     }
 
-    fun scalePageTo(scale: Float) {
-        webView set "pdfViewer.currentScale"(scale)
+    fun scalePageTo(@FloatRange(-4.0, 10.0) scale: Float) {
+        if (scale in Zoom_SCALE_RANGE)
+            zoomTo(Zoom.entries[abs(scale.toInt()) - 1])
+        else webView set "pdfViewer.currentScale"(
+            scale.coerceIn(actualMinPageScale, actualMaxPageScale)
+        )
     }
 
     fun zoomIn() {
@@ -230,7 +271,30 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun zoomTo(zoom: Zoom) {
-        webView set "pdfViewer.currentScaleValue"(zoom.value.toJsString())
+        getActualScaleFor(zoom) { scale ->
+            if (scale != null && scale in actualMinPageScale..actualMaxPageScale)
+                webView set "pdfViewer.currentScaleValue"(zoom.value.toJsString())
+        }
+    }
+
+    fun zoomToMaximum() {
+        scalePageTo(maxPageScale)
+    }
+
+    fun zoomToMinimum() {
+        scalePageTo(minPageScale)
+    }
+
+    fun isZoomInMaxScale(): Boolean {
+        return if (maxPageScale in Zoom_SCALE_RANGE)
+            currentPageScaleValue == Zoom.entries[abs(maxPageScale.toInt()) - 1].value
+        else currentPageScale == maxPageScale
+    }
+
+    fun isZoomInMinScale(): Boolean {
+        return if (minPageScale in Zoom_SCALE_RANGE)
+            currentPageScaleValue == Zoom.entries[abs(maxPageScale.toInt()) - 1].value
+        else currentPageScale == minPageScale
     }
 
     fun downloadFile() {
@@ -286,6 +350,12 @@ class PdfViewer @JvmOverloads constructor(
         webView.restoreState(inState)
     }
 
+    fun getActualScaleFor(zoom: Zoom, callback: (Float?) -> Unit) {
+        webView callDirectly "getActualScaleFor"(zoom.value.toJsString()) {
+            callback(it?.toFloatOrNull())
+        }
+    }
+
     private fun dispatchRotationChange(pageRotation: PageRotation) {
         listeners.forEach { it.onRotationChange(pageRotation) }
     }
@@ -298,11 +368,56 @@ class PdfViewer @JvmOverloads constructor(
         if (!isInitialized) throw PdfViewNotInitializedException()
     }
 
-    enum class Zoom(internal val value: String) {
-        AUTOMATIC("auto"),
-        PAGE_FIT("page-fit"),
-        PAGE_WIDTH("page-width"),
-        ACTUAL_SIZE("page-actual")
+    private fun setUpActualScaleValues(callback: () -> Unit) {
+        var isMinSet = false
+        var isMaxSet = false
+        var isDefaultSet = false
+        fun checkAndCall() {
+            if (isMinSet && isMaxSet && isDefaultSet) callback()
+        }
+
+        if (minPageScale in Zoom_SCALE_RANGE)
+            getActualScaleFor(Zoom.entries[abs(minPageScale.toInt()) - 1]) {
+                actualMinPageScale = it ?: actualMinPageScale
+                isMinSet = true
+                checkAndCall()
+            }
+        else {
+            actualMinPageScale = minPageScale
+            isMinSet = true
+            checkAndCall()
+        }
+
+        if (maxPageScale in Zoom_SCALE_RANGE)
+            getActualScaleFor(Zoom.entries[abs(maxPageScale.toInt()) - 1]) {
+                actualMaxPageScale = it ?: actualMaxPageScale
+                isMaxSet = true
+                checkAndCall()
+            }
+        else {
+            actualMaxPageScale = maxPageScale
+            isMaxSet = true
+            checkAndCall()
+        }
+
+        if (defaultPageScale in Zoom_SCALE_RANGE)
+            getActualScaleFor(Zoom.entries[abs(defaultPageScale.toInt()) - 1]) {
+                actualDefaultPageScale = it ?: actualDefaultPageScale
+                isDefaultSet = true
+                checkAndCall()
+            }
+        else {
+            actualDefaultPageScale = defaultPageScale
+            isDefaultSet = true
+            checkAndCall()
+        }
+    }
+
+    enum class Zoom(internal val value: String, val floatValue: Float) {
+        AUTOMATIC("auto", -1f),
+        PAGE_FIT("page-fit", -2f),
+        PAGE_WIDTH("page-width", -3f),
+        ACTUAL_SIZE("page-actual", -4f)
     }
 
     enum class CursorToolMode(internal val function: String) {
@@ -332,12 +447,16 @@ class PdfViewer @JvmOverloads constructor(
 
     companion object {
         private const val COLOR_NOT_FOUND = 11
+        private val Zoom_SCALE_RANGE = -4f..-1f
     }
 
     private inner class WebInterface {
         @JavascriptInterface
         fun onLoadSuccess(count: Int) = post {
             pagesCount = count
+            setUpActualScaleValues {
+                scalePageTo(actualDefaultPageScale)
+            }
             listeners.forEach { it.onPageLoadSuccess(count) }
         }
 
@@ -393,6 +512,26 @@ class PdfViewer @JvmOverloads constructor(
         @JavascriptInterface
         fun onScrollModeChange(ordinal: Int) = post {
             listeners.forEach { it.onScrollModeChange(PageScrollMode.entries[ordinal]) }
+        }
+
+        @JavascriptInterface
+        fun onSingleClick() = post {
+            listeners.forEach { it.onSingleClick() }
+        }
+
+        @JavascriptInterface
+        fun onDoubleClick() = post {
+            listeners.forEach { it.onDoubleClick() }
+        }
+
+        @JavascriptInterface
+        fun onLongClick() = post {
+            listeners.forEach { it.onLongClick() }
+        }
+
+        @JavascriptInterface
+        fun onLinkClick(link: String) = post {
+            listeners.forEach { it.onLinkClick(link) }
         }
 
         @JavascriptInterface

@@ -8,24 +8,28 @@ internal infix fun WebView.with(jsObject: JsObject): Pair<WebView, JsObject> {
 
 internal operator fun String.invoke(
     vararg args: Any,
-    callback: ((String) -> Unit)? = null
-): Triple<String, String, ((String) -> Unit)?> {
+    callback: ((String?) -> Unit)? = null
+): Triple<String, String, ((String?) -> Unit)?> {
     return Triple(this, args.joinToString(separator = ", ") { "$it" }, callback)
 }
 
-internal infix fun WebView.callDirectly(function: Triple<String, String, ((String) -> Unit)?>) {
+internal infix fun WebView.callDirectly(function: Triple<String, String, ((String?) -> Unit)?>) {
     evaluateJavascript("${function.first}(${function.second});", function.third)
 }
 
-internal infix fun WebView.call(function: Triple<String, String, ((String) -> Unit)?>) {
+internal infix fun WebView.call(function: Triple<String, String, ((String?) -> Unit)?>) {
     execute(jsCode = "${function.first}(${function.second});", callback = function.third)
 }
 
-internal infix fun WebView.set(property: Triple<String, String, ((String) -> Unit)?>) {
+internal infix fun WebView.set(property: Triple<String, String, ((String?) -> Unit)?>) {
     execute(jsCode = "${property.first} = ${property.second};", callback = property.third)
 }
 
-internal infix fun Pair<WebView, JsObject>.call(function: Triple<String, String, ((String) -> Unit)?>) {
+internal infix fun WebView.setDirectly(property: Triple<String, String, ((String?) -> Unit)?>) {
+    evaluateJavascript("${property.first} = ${property.second};", property.third)
+}
+
+internal infix fun Pair<WebView, JsObject>.call(function: Triple<String, String, ((String?) -> Unit)?>) {
     first.execute(
         jsCode = "${function.first}(${function.second});",
         jsObject = second,
@@ -33,7 +37,7 @@ internal infix fun Pair<WebView, JsObject>.call(function: Triple<String, String,
     )
 }
 
-internal infix fun Pair<WebView, JsObject>.set(property: Triple<String, String, ((String) -> Unit)?>) {
+internal infix fun Pair<WebView, JsObject>.set(property: Triple<String, String, ((String?) -> Unit)?>) {
     first.execute(
         jsCode = "${property.first} = ${property.second};",
         jsObject = second,
@@ -44,7 +48,7 @@ internal infix fun Pair<WebView, JsObject>.set(property: Triple<String, String, 
 internal fun WebView.execute(
     jsCode: String,
     jsObject: JsObject = PdfViewerApplication,
-    callback: ((String) -> Unit)?,
+    callback: ((String?) -> Unit)?,
 ) {
     evaluateJavascript("${jsObject.objectName}.$jsCode", callback)
 }

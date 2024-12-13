@@ -1,5 +1,7 @@
 package com.acutecoder.pdf.ui
 
+import android.animation.Animator
+import android.animation.Animator.AnimatorListener
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -9,6 +11,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewPropertyAnimator
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.RelativeLayout
@@ -123,7 +126,7 @@ class PdfContainer : RelativeLayout {
                     }
 
                     dialog = alertDialogBuilder()
-                        .setTitle(title.replace("\"", ""))
+                        .setTitle(title?.replace("\"", ""))
                         .setView(root)
                         .setPositiveButton("Done") { dialog, _ ->
                             submitPassword(field.text.toString(), dialog)
@@ -147,4 +150,81 @@ class PdfContainer : RelativeLayout {
             }
         }
     }
+
+    fun showToolBar() {
+        pdfToolBar?.let {
+            pdfViewer?.let { viewer ->
+                pdfScrollBar?.setupWith(viewer, pdfToolBar, true)
+            }
+
+            it.translationY = 0f
+            pdfViewer?.layoutParams.let { params ->
+                if (params is LayoutParams) {
+                    params.addRule(BELOW, it.id)
+                    pdfViewer?.requestLayout()
+                }
+            }
+        }
+    }
+
+    fun hideToolBar() {
+        pdfToolBar?.let {
+            pdfViewer?.let { viewer ->
+                pdfScrollBar?.setupWith(viewer, null, true)
+            }
+
+            it.translationY = -it.height.toFloat()
+            pdfViewer?.layoutParams.let { params ->
+                if (params is LayoutParams) {
+                    params.removeRule(BELOW)
+                    pdfViewer?.requestLayout()
+                }
+            }
+        }
+    }
+
+    fun animateToolBar(
+        show: Boolean,
+        animDuration: Long = 150L,
+        onEnd: (() -> Unit)? = null
+    ) {
+        pdfToolBar?.let { toolBar ->
+            pdfViewer?.let { viewer ->
+                pdfScrollBar?.setupWith(viewer, if (show) pdfToolBar else null, true)
+            }
+
+            toolBar.animate()
+                .translationY(if (show) 0f else -height.toFloat())
+                .setDuration(animDuration)
+                .start()
+
+            pdfViewer?.layoutParams.let { params ->
+                if (params is LayoutParams) {
+                    pdfViewer?.animate()
+                        ?.translationY(if (show) toolBar.height.toFloat() else -toolBar.height.toFloat())
+                        ?.setDuration(animDuration)
+                        ?.onAnimateEnd {
+                            if (show) params.addRule(BELOW, toolBar.id)
+                            else params.removeRule(BELOW)
+                            pdfViewer?.requestLayout()
+                            pdfViewer?.translationY = 0f
+                            onEnd?.invoke()
+                        }
+                        ?.start()
+                }
+            }
+        }
+    }
+
+}
+
+private fun ViewPropertyAnimator.onAnimateEnd(onEnd: () -> Unit): ViewPropertyAnimator {
+    return this.setListener(object : AnimatorListener {
+        override fun onAnimationStart(animation: Animator) {}
+        override fun onAnimationCancel(animation: Animator) {}
+        override fun onAnimationRepeat(animation: Animator) {}
+        override fun onAnimationEnd(animation: Animator) {
+            onEnd()
+        }
+    })
 }

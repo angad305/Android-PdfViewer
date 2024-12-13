@@ -192,7 +192,7 @@ class UiSettings internal constructor(private val webView: WebView) {
     }
 
     inner class PasswordDialog internal constructor() {
-        fun getLabelText(callback: (String) -> Unit) {
+        fun getLabelText(callback: (String?) -> Unit) {
             webView callDirectly "getLabelText"(callback = callback)
         }
 

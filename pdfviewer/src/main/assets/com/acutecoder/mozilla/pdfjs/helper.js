@@ -11,11 +11,11 @@ function openFile(args) {
     PDFViewerApplication.eventBus.on("pagerendered", callback);
 }
 
+let DOUBLE_CLICK_THRESHOLD = 300;
+let LONG_CLICK_THRESHOLD = 500;
 function doOnLast() {
     const observerTarget = document.querySelector("#passwordDialog");
-
     observerTarget.style.margin = "24px auto";
-
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === "attributes" && mutation.attributeName === "open") {
@@ -24,6 +24,44 @@ function doOnLast() {
         });
     });
     observer.observe(observerTarget, { attributes: true });
+
+    const viewerContainer = $('#viewerContainer');
+    let singleClickTimer;
+    let longClickTimer;
+    let isLongClick = false;
+
+    viewerContainer.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (e.detail === 1) {
+            singleClickTimer = setTimeout(() => {
+                if (e.target.tagName === 'A') JWI.onLinkClick(e.target.href);
+                else JWI.onSingleClick()
+            }, DOUBLE_CLICK_THRESHOLD);
+        }
+    });
+
+    viewerContainer.addEventListener('dblclick', (e) => {
+        clearTimeout(singleClickTimer);
+        JWI.onDoubleClick();
+    });
+
+    viewerContainer.addEventListener('touchstart', (e) => {
+        isLongClick = false;
+        if (e.touches.length === 1) {
+            longClickTimer = setTimeout(() => {
+                isLongClick = true;
+                JWI.onLongClick();
+            }, LONG_CLICK_THRESHOLD);
+        }
+    });
+
+    viewerContainer.addEventListener('touchend', (e) => {
+        clearTimeout(longClickTimer);
+    });
+
+    viewerContainer.addEventListener('touchmove', (e) => {
+        clearTimeout(longClickTimer);
+    });
 }
 
 function setupHelper() {
@@ -394,6 +432,66 @@ function submitPassword(password) {
 
 function cancelPasswordDialog() {
     $("#passwordCancel").click();
+}
+
+function getActualScaleFor(value) {
+    const SCROLLBAR_PADDING = 40;
+    const VERTICAL_PADDING = 5;
+    const MAX_AUTO_SCALE = 1.25;
+    const ScrollMode = {
+        UNKNOWN: -1,
+        VERTICAL: 0,
+        HORIZONTAL: 1,
+        WRAPPED: 2,
+        PAGE: 3
+    };
+    const SpreadMode = {
+        UNKNOWN: -1,
+        NONE: 0,
+        ODD: 1,
+        EVEN: 2
+    };
+    const currentPage = PDFViewerApplication.pdfViewer._pages[PDFViewerApplication.pdfViewer._currentPageNumber - 1];
+    if (!currentPage) return -1;
+    let hPadding = SCROLLBAR_PADDING,
+        vPadding = VERTICAL_PADDING;
+    if (this.isInPresentationMode) {
+        hPadding = vPadding = 4;
+        if (this._spreadMode !== SpreadMode.NONE) {
+            hPadding *= 2;
+        }
+    } else if (this.removePageBorders) {
+        hPadding = vPadding = 0;
+    } else if (this._scrollMode === ScrollMode.HORIZONTAL) {
+        [hPadding, vPadding] = [vPadding, hPadding];
+    }
+    const pageWidthScale = (PDFViewerApplication.pdfViewer.container.clientWidth - hPadding) / currentPage.width * currentPage.scale / PDFViewerApplication.pdfViewer.pageWidthScaleFactor();
+    const pageHeightScale = (PDFViewerApplication.pdfViewer.container.clientHeight - vPadding) / currentPage.height * currentPage.scale;
+    let scale = -3;
+    function isPortraitOrientation(size) {
+        return size.width <= size.height;
+    }
+    switch (value) {
+        case "page-actual":
+            scale = 1;
+            break;
+        case "page-width":
+            scale = pageWidthScale;
+            break;
+        case "page-height":
+            scale = pageHeightScale;
+            break;
+        case "page-fit":
+            scale = Math.min(pageWidthScale, pageHeightScale);
+            break;
+        case "auto":
+            const horizontalScale = isPortraitOrientation(currentPage) ? pageWidthScale : Math.min(pageHeightScale, pageWidthScale);
+            scale = Math.min(MAX_AUTO_SCALE, horizontalScale);
+            break;
+        default:
+            scale = -2;
+    }
+    return scale;
 }
 
 function $(query) {

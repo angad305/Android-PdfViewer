@@ -12,8 +12,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.acutecoder.pdf.PdfListener
+import com.acutecoder.pdf.PdfOnLinkClick
 import com.acutecoder.pdf.PdfOnPageLoadFailed
 import com.acutecoder.pdfviewerdemo.databinding.ActivityPdfViewerBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -25,6 +28,7 @@ import kotlinx.coroutines.launch
 class PdfViewerActivity : AppCompatActivity() {
 
     private lateinit var view: ActivityPdfViewerBinding
+    private var fullscreen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +67,9 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
         view.pdfViewer.onReady {
+//            minPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
+//            maxPageScale = 5f
+//            defaultPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
             load(filePath)
             if (filePath.isNotBlank())
                 view.pdfToolBar.setFileName(fileName)
@@ -78,9 +85,29 @@ class PdfViewerActivity : AppCompatActivity() {
             else finish()
         }
 
-        view.pdfViewer.addListener(PdfOnPageLoadFailed {
-            toast(it)
-            finish()
+        view.pdfViewer.run {
+            addListener(PdfOnPageLoadFailed {
+                toast(it)
+                finish()
+            })
+            addListener(PdfOnLinkClick { link ->
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
+            })
+        }
+
+        view.pdfViewer.addListener(object : PdfListener {
+            override fun onSingleClick() {
+                fullscreen = !fullscreen
+                setFullscreen(fullscreen)
+                view.container.animateToolBar(!fullscreen)
+            }
+
+            override fun onDoubleClick() {
+                view.pdfViewer.run {
+                    if (!isZoomInMinScale()) zoomToMinimum()
+                    else zoomToMaximum()
+                }
+            }
         })
     }
 
@@ -113,6 +140,24 @@ class PdfViewerActivity : AppCompatActivity() {
                 putExtra(Intent.EXTRA_TITLE, pdfTitle)
             })
         }
+    }
+
+    private fun setFullscreen(fullscreen: Boolean) {
+        val window = window ?: return
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+
+        insetsController.apply {
+            systemBarsBehavior = if (fullscreen) {
+                hide(WindowInsetsCompat.Type.statusBars())
+                hide(WindowInsetsCompat.Type.navigationBars())
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            } else {
+                show(WindowInsetsCompat.Type.statusBars())
+                show(WindowInsetsCompat.Type.navigationBars())
+                WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+            }
+        }
+
     }
 }
 

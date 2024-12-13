@@ -17,6 +17,10 @@ interface PdfListener {
     fun onScrollModeChange(scrollMode: PdfViewer.PageScrollMode) {}
     fun onSpreadModeChange(spreadMode: PdfViewer.PageSpreadMode) {}
     fun onRotationChange(rotation: PdfViewer.PageRotation) {}
+    fun onSingleClick() {}
+    fun onDoubleClick() {}
+    fun onLongClick() {}
+    fun onLinkClick(link: String) {}
 
 }
 
@@ -137,5 +141,37 @@ fun PdfOnRotationChange(callback: (rotation: PdfViewer.PageRotation) -> Unit) =
     object : PdfListener {
         override fun onRotationChange(rotation: PdfViewer.PageRotation) {
             callback(rotation)
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnSingleClick(callback: () -> Unit) =
+    object : PdfListener {
+        override fun onSingleClick() {
+            callback()
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnDoubleClick(callback: () -> Unit) =
+    object : PdfListener {
+        override fun onDoubleClick() {
+            callback()
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnLongClick(callback: () -> Unit) =
+    object : PdfListener {
+        override fun onLongClick() {
+            callback()
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnLinkClick(callback: (link: String) -> Unit) =
+    object : PdfListener {
+        override fun onLinkClick(link: String) {
+            callback(link)
         }
     }

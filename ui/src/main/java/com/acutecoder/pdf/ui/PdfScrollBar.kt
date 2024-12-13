@@ -55,6 +55,7 @@ class PdfScrollBar @JvmOverloads constructor(
             typedArray.recycle()
         }
 
+        @SuppressLint("SetTextI18n")
         if (isInEditMode) pageNumberInfo.text = "1/3"
         else visibility = GONE
     }
