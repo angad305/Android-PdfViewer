@@ -161,24 +161,52 @@ class PdfViewer @JvmOverloads constructor(
 
     @FloatRange(-4.0, 10.0)
     var minPageScale = 0.1f
+        set(value) {
+            field = value
+            if (isInitialized) {
+                if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
+                    actualMinPageScale = it ?: actualMinPageScale
+                } else actualMinPageScale = value
+            }
+        }
 
     @FloatRange(-4.0, 10.0)
     var maxPageScale = 10f
+        set(value) {
+            field = value
+            if (isInitialized) {
+                if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
+                    actualMaxPageScale = it ?: actualMaxPageScale
+                } else actualMaxPageScale = value
+            }
+        }
 
     @FloatRange(-4.0, 10.0)
     var defaultPageScale = Zoom.AUTOMATIC.floatValue
-
-    private var actualMinPageScale = 0f
         set(value) {
+            field = value
+            if (isInitialized) {
+                if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
+                    actualDefaultPageScale = it ?: actualDefaultPageScale
+                    scalePageTo(actualDefaultPageScale)
+                } else {
+                    actualDefaultPageScale = value
+                    scalePageTo(value)
+                }
+            }
+        }
+
+    var actualMinPageScale = 0f
+        private set(value) {
             field = value
             if (value > 0) webView setDirectly "MIN_SCALE"(value)
         }
-    private var actualMaxPageScale = 0f
-        set(value) {
+    var actualMaxPageScale = 0f
+        private set(value) {
             field = value
             if (value > 0) webView setDirectly "MAX_SCALE"(value)
         }
-    private var actualDefaultPageScale = 0f
+    var actualDefaultPageScale = 0f; private set
 
     init {
         val containerBgColor = attrs?.let {
@@ -257,9 +285,13 @@ class PdfViewer @JvmOverloads constructor(
     fun scalePageTo(@FloatRange(-4.0, 10.0) scale: Float) {
         if (scale in Zoom_SCALE_RANGE)
             zoomTo(Zoom.entries[abs(scale.toInt()) - 1])
-        else webView set "pdfViewer.currentScale"(
-            scale.coerceIn(actualMinPageScale, actualMaxPageScale)
-        )
+        else {
+            if (actualMaxPageScale < actualMinPageScale)
+                throw RuntimeException("Max Page Scale($actualMaxPageScale) is less than Min Page Scale($actualMinPageScale)")
+            webView set "pdfViewer.currentScale"(
+                scale.coerceIn(actualMinPageScale, actualMaxPageScale)
+            )
+        }
     }
 
     fun zoomIn() {
@@ -278,23 +310,19 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun zoomToMaximum() {
-        scalePageTo(maxPageScale)
+        scalePageTo(actualMaxPageScale)
     }
 
     fun zoomToMinimum() {
-        scalePageTo(minPageScale)
+        scalePageTo(actualMinPageScale)
     }
 
     fun isZoomInMaxScale(): Boolean {
-        return if (maxPageScale in Zoom_SCALE_RANGE)
-            currentPageScaleValue == Zoom.entries[abs(maxPageScale.toInt()) - 1].value
-        else currentPageScale == maxPageScale
+        return currentPageScale == actualMaxPageScale
     }
 
     fun isZoomInMinScale(): Boolean {
-        return if (minPageScale in Zoom_SCALE_RANGE)
-            currentPageScaleValue == Zoom.entries[abs(maxPageScale.toInt()) - 1].value
-        else currentPageScale == minPageScale
+        return currentPageScale == actualMinPageScale
     }
 
     fun downloadFile() {
@@ -450,6 +478,7 @@ class PdfViewer @JvmOverloads constructor(
         private val Zoom_SCALE_RANGE = -4f..-1f
     }
 
+    @Suppress("Unused")
     private inner class WebInterface {
         @JavascriptInterface
         fun onLoadSuccess(count: Int) = post {
