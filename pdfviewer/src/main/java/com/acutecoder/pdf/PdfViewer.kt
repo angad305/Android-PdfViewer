@@ -378,7 +378,7 @@ class PdfViewer @JvmOverloads constructor(
         webView.restoreState(inState)
     }
 
-    fun getActualScaleFor(zoom: Zoom, callback: (Float?) -> Unit) {
+    fun getActualScaleFor(zoom: Zoom, callback: (scale: Float?) -> Unit) {
         webView callDirectly "getActualScaleFor"(zoom.value.toJsString()) {
             callback(it?.toFloatOrNull())
         }
