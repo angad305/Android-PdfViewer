@@ -33,7 +33,7 @@ fun PdfOnPageLoadStart(callback: () -> Unit) =
     }
 
 @Suppress("FunctionName")
-fun PdfOnPageLoadSuccess(callback: (pageCount: Int) -> Unit) =
+fun PdfOnPageLoadSuccess(callback: (pagesCount: Int) -> Unit) =
     object : PdfListener {
         override fun onPageLoadSuccess(pagesCount: Int) {
             callback(pagesCount)

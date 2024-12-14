@@ -18,6 +18,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfOnLinkClick
 import com.acutecoder.pdf.PdfOnPageLoadFailed
+import com.acutecoder.pdf.setting.PdfSettingsManager
+import com.acutecoder.pdf.setting.sharedPdfSettingsManager
 import com.acutecoder.pdfviewerdemo.databinding.ActivityPdfViewerBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +31,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
     private lateinit var view: ActivityPdfViewerBinding
     private var fullscreen = false
+    private lateinit var pdfSettingsManager: PdfSettingsManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,10 +69,12 @@ class PdfViewerActivity : AppCompatActivity() {
                 ?: intent.extras?.getString("fileName") ?: ""
         }
 
+        pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
         view.pdfViewer.onReady {
 //            minPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
 //            maxPageScale = 5f
 //            defaultPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
+            pdfSettingsManager.restore(this)
             load(filePath)
             if (filePath.isNotBlank())
                 view.pdfToolBar.setFileName(fileName)
@@ -109,6 +114,16 @@ class PdfViewerActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onPause() {
+        pdfSettingsManager.save(view.pdfViewer, savePageNumber = true)
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        pdfSettingsManager.save(view.pdfViewer, savePageNumber = true)
+        super.onDestroy()
     }
 
     inner class DownloadPdfListener(private val pdfTitle: String) : PdfListener {

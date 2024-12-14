@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.acutecoder.pdf.ui.PdfToolBar
+    <com.acutecoder.pdfviewerdemo.ExtendedToolBar
         android:id="@+id/pdf_tool_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

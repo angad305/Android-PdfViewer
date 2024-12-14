@@ -1,4 +1,4 @@
-package com.acutecoder.pdf.ui
+package com.acutecoder.pdf.setting
 
 import android.webkit.WebView
 import com.acutecoder.pdf.PdfEditorModeApi

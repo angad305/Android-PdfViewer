@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.androidx.activity)
 
     implementation(project(":ui"))
+    implementation(libs.rangeseekbar)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -31,7 +31,7 @@ import com.acutecoder.pdf.js.setDirectly
 import com.acutecoder.pdf.js.toJsString
 import com.acutecoder.pdf.js.toRgba
 import com.acutecoder.pdf.js.with
-import com.acutecoder.pdf.ui.UiSettings
+import com.acutecoder.pdf.setting.UiSettings
 import kotlin.math.abs
 
 class PdfViewer @JvmOverloads constructor(
@@ -254,8 +254,13 @@ class PdfViewer @JvmOverloads constructor(
         listeners.remove(listener)
     }
 
-    fun goToPage(@IntRange(from = 1) pageNumber: Int) {
-        webView set "page"(pageNumber)
+    fun goToPage(@IntRange(from = 1) pageNumber: Int): Boolean {
+        if (pageNumber in 1..pagesCount) {
+            webView set "page"(pageNumber)
+            return true
+        }
+
+        return false
     }
 
     fun scrollToRatio(@FloatRange(from = 0.0, to = 1.0) ratio: Float) {
@@ -266,13 +271,9 @@ class PdfViewer @JvmOverloads constructor(
         webView callDirectly "scrollTo"(offset)
     }
 
-    fun goToNextPage() {
-        goToPage(currentPage + 1)
-    }
+    fun goToNextPage() = goToPage(currentPage + 1)
 
-    fun goToPreviousPage() {
-        goToPage(currentPage - 1)
-    }
+    fun goToPreviousPage() = goToPage(currentPage - 1)
 
     fun goToFirstPage() {
         webView callDirectly "goToFirstPage"()
@@ -389,7 +390,7 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     private fun loadPage() {
-        webView.loadUrl("file:///android_asset/com/acutecoder/mozilla/pdfjs/pdf_viewer.html")
+        webView.loadUrl(PDF_VIEWER_URL)
     }
 
     private fun checkViewer() {
@@ -474,6 +475,8 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     companion object {
+        private const val PDF_VIEWER_URL =
+            "file:///android_asset/com/acutecoder/mozilla/pdfjs/pdf_viewer.html"
         private const val COLOR_NOT_FOUND = 11
         private val Zoom_SCALE_RANGE = -4f..-1f
     }
@@ -486,6 +489,7 @@ class PdfViewer @JvmOverloads constructor(
             setUpActualScaleValues {
                 scalePageTo(actualDefaultPageScale)
             }
+            pageRotation = pageRotation
             listeners.forEach { it.onPageLoadSuccess(count) }
         }
 
@@ -560,7 +564,8 @@ class PdfViewer @JvmOverloads constructor(
 
         @JavascriptInterface
         fun onLinkClick(link: String) = post {
-            listeners.forEach { it.onLinkClick(link) }
+            if (!link.startsWith(PDF_VIEWER_URL))
+                listeners.forEach { it.onLinkClick(link) }
         }
 
         @JavascriptInterface
