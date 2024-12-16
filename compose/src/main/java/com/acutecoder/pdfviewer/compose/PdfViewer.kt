@@ -14,7 +14,7 @@ fun PdfViewer(
     state: PdfState,
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
-    onReady: ((PdfViewer) -> Unit)? = null,
+    onReady: (PdfViewer.() -> Unit)? = null,
 ) {
     LaunchedEffect(state.url) {
         state.pdfViewer?.run {

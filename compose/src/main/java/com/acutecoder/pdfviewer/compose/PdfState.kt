@@ -1,5 +1,6 @@
 package com.acutecoder.pdfviewer.compose
 
+import androidx.annotation.FloatRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -10,6 +11,7 @@ import androidx.compose.runtime.setValue
 import com.acutecoder.pdf.PdfDocumentProperties
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdf.PdfViewer.Zoom
 
 @Composable
 fun rememberPdfState(url: String): PdfState = remember { PdfState(url = url) }
@@ -33,6 +35,8 @@ class PdfState(url: String) {
     var scrollMode by mutableStateOf(PdfViewer.PageScrollMode.SINGLE_PAGE); internal set
     var spreadMode by mutableStateOf(PdfViewer.PageSpreadMode.NONE); internal set
     var rotation by mutableStateOf(PdfViewer.PageRotation.R_0); internal set
+    var scaleLimit by mutableStateOf(ScaleLimit()); internal set
+    var actualScaleLimit by mutableStateOf(ActualScaleLimit()); internal set
 
     fun load(url: String) {
         this.url = url
@@ -103,6 +107,22 @@ class PdfState(url: String) {
         override fun onRotationChange(rotation: PdfViewer.PageRotation) {
             this@PdfState.rotation = rotation
         }
+
+        override fun onScaleLimitChange(
+            minPageScale: Float,
+            maxPageScale: Float,
+            defaultPageScale: Float
+        ) {
+            scaleLimit = ScaleLimit(minPageScale, maxPageScale, defaultPageScale)
+        }
+
+        override fun onActualScaleLimitChange(
+            minPageScale: Float,
+            maxPageScale: Float,
+            defaultPageScale: Float
+        ) {
+            actualScaleLimit = ActualScaleLimit(minPageScale, maxPageScale, defaultPageScale)
+        }
     }
 }
 
@@ -119,3 +139,15 @@ sealed class MatchState(val current: Int = 0, val total: Int = 0) {
     class Progress(current: Int, total: Int) : MatchState(current, total)
     class Completed(val found: Boolean, current: Int, total: Int) : MatchState(current, total)
 }
+
+data class ScaleLimit(
+    @FloatRange(-4.0, 10.0) val minPageScale: Float = 0.1f,
+    @FloatRange(-4.0, 10.0) val maxPageScale: Float = 10f,
+    @FloatRange(-4.0, 10.0) val defaultPageScale: Float = Zoom.AUTOMATIC.floatValue,
+)
+
+data class ActualScaleLimit(
+    @FloatRange(0.0, 10.0) val minPageScale: Float = 0.1f,
+    @FloatRange(0.0, 10.0) val maxPageScale: Float = 10f,
+    @FloatRange(0.0, 10.0) val defaultPageScale: Float = 0f,
+)

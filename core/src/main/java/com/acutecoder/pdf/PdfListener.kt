@@ -1,5 +1,7 @@
 package com.acutecoder.pdf
 
+import androidx.annotation.FloatRange
+
 interface PdfListener {
 
     fun onPageLoadStart() {}
@@ -21,6 +23,19 @@ interface PdfListener {
     fun onDoubleClick() {}
     fun onLongClick() {}
     fun onLinkClick(link: String) {}
+    fun onScaleLimitChange(
+        @FloatRange(-4.0, 10.0) minPageScale: Float,
+        @FloatRange(-4.0, 10.0) maxPageScale: Float,
+        @FloatRange(-4.0, 10.0) defaultPageScale: Float
+    ) {
+    }
+
+    fun onActualScaleLimitChange(
+        @FloatRange(0.0, 10.0) minPageScale: Float,
+        @FloatRange(0.0, 10.0) maxPageScale: Float,
+        @FloatRange(0.0, 10.0) defaultPageScale: Float
+    ) {
+    }
 
 }
 
@@ -173,5 +188,29 @@ fun PdfOnLinkClick(callback: (link: String) -> Unit) =
     object : PdfListener {
         override fun onLinkClick(link: String) {
             callback(link)
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnScaleLimitChange(callback: (minPageScale: Float, maxPageScale: Float, defaultPageScale: Float) -> Unit) =
+    object : PdfListener {
+        override fun onScaleLimitChange(
+            minPageScale: Float,
+            maxPageScale: Float,
+            defaultPageScale: Float
+        ) {
+            callback(minPageScale, maxPageScale, defaultPageScale)
+        }
+    }
+
+@Suppress("FunctionName")
+fun PdfOnActualScaleLimitChange(callback: (minPageScale: Float, maxPageScale: Float, defaultPageScale: Float) -> Unit) =
+    object : PdfListener {
+        override fun onActualScaleLimitChange(
+            minPageScale: Float,
+            maxPageScale: Float,
+            defaultPageScale: Float
+        ) {
+            callback(minPageScale, maxPageScale, defaultPageScale)
         }
     }

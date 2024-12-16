@@ -168,11 +168,15 @@ class PdfViewer @JvmOverloads constructor(
                     actualMinPageScale = it ?: actualMinPageScale
                 } else actualMinPageScale = value
             }
+            if (field != value)
+                listeners.forEach { it.onScaleLimitChange(value, maxPageScale, defaultPageScale) }
         }
 
     @FloatRange(-4.0, 10.0)
     var maxPageScale = 10f
         set(value) {
+            if (field != value)
+                listeners.forEach { it.onScaleLimitChange(minPageScale, value, defaultPageScale) }
             field = value
             if (isInitialized) {
                 if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
@@ -184,6 +188,8 @@ class PdfViewer @JvmOverloads constructor(
     @FloatRange(-4.0, 10.0)
     var defaultPageScale = Zoom.AUTOMATIC.floatValue
         set(value) {
+            if (field != value)
+                listeners.forEach { it.onScaleLimitChange(minPageScale, maxPageScale, value) }
             field = value
             if (isInitialized) {
                 if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
@@ -198,15 +204,30 @@ class PdfViewer @JvmOverloads constructor(
 
     var actualMinPageScale = 0f
         private set(value) {
+            if (field != value)
+                listeners.forEach {
+                    it.onActualScaleLimitChange(value, actualMaxPageScale, actualDefaultPageScale)
+                }
             field = value
             if (value > 0) webView setDirectly "MIN_SCALE"(value)
         }
     var actualMaxPageScale = 0f
         private set(value) {
+            if (field != value)
+                listeners.forEach {
+                    it.onActualScaleLimitChange(actualMinPageScale, value, actualDefaultPageScale)
+                }
             field = value
             if (value > 0) webView setDirectly "MAX_SCALE"(value)
         }
-    var actualDefaultPageScale = 0f; private set
+    var actualDefaultPageScale = 0f
+        private set(value) {
+            if (field != value)
+                listeners.forEach {
+                    it.onActualScaleLimitChange(actualMinPageScale, actualMaxPageScale, value)
+                }
+            field = value
+        }
 
     init {
         val containerBgColor = attrs?.let {
