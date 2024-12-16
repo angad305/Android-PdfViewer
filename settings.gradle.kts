@@ -22,5 +22,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "PdfViewer"
 include(":app")
-include(":pdfviewer")
+include(":core")
 include(":ui")
+include(":compose")
+include(":compose-ui")

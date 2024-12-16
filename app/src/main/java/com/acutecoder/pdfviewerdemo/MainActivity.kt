@@ -1,11 +1,9 @@
 package com.acutecoder.pdfviewerdemo
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.URLUtil
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -32,9 +30,17 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        view.useCompose.run {
+            val pref = getSharedPreferences("pref", MODE_PRIVATE)
+            isChecked = pref.getBoolean("use_compose", false)
+            setOnCheckedChangeListener { _, isChecked ->
+                pref.edit().putBoolean("use_compose", isChecked).apply()
+            }
+        }
+
         view.fromAsset.setOnClickListener {
             startActivity(
-                Intent(this, PdfViewerActivity::class.java).apply {
+                Intent(this, getViewerActivityClass()).apply {
                     putExtra("fileName", "sample.pdf")
                     putExtra("fileSize", 271804L)
                     putExtra("filePath", "file:///android_asset/sample.pdf")
@@ -50,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         ) { result ->
             result?.data?.data?.let { uri ->
                 startActivity(
-                    Intent(this, PdfViewerActivity::class.java).apply {
+                    Intent(this, getViewerActivityClass()).apply {
                         putExtra("fileUri", uri.toString())
                     }
                 )
@@ -68,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         view.fromUrl.setOnClickListener {
             promptUrl { url ->
                 startActivity(
-                    Intent(this, PdfViewerActivity::class.java).apply {
+                    Intent(this, getViewerActivityClass()).apply {
                         putExtra("fileUrl", url)
                     }
                 )
@@ -78,6 +84,11 @@ class MainActivity : AppCompatActivity() {
         view.link.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(view.link.text.toString())))
         }
+    }
+
+    private fun getViewerActivityClass(): Class<*> {
+        return if (view.useCompose.isChecked) ComposePdfViewerActivity::class.java
+        else PdfViewerActivity::class.java
     }
 
     private fun promptUrl(callback: (String) -> Unit) {
@@ -99,8 +110,4 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-}
-
-fun Context.toast(msg: String) {
-    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 }

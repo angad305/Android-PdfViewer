@@ -1,20 +1,15 @@
 package com.acutecoder.pdfviewerdemo
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfOnLinkClick
 import com.acutecoder.pdf.PdfOnPageLoadFailed
@@ -48,6 +43,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
         val filePath: String
         val fileName: String
+        pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
 
         // View from other apps (from intent filter)
         if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
@@ -69,7 +65,6 @@ class PdfViewerActivity : AppCompatActivity() {
                 ?: intent.extras?.getString("fileName") ?: ""
         }
 
-        pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
         view.pdfViewer.onReady {
 //            minPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
 //            maxPageScale = 5f
@@ -157,43 +152,4 @@ class PdfViewerActivity : AppCompatActivity() {
         }
     }
 
-    private fun setFullscreen(fullscreen: Boolean) {
-        val window = window ?: return
-        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-
-        insetsController.apply {
-            systemBarsBehavior = if (fullscreen) {
-                hide(WindowInsetsCompat.Type.statusBars())
-                hide(WindowInsetsCompat.Type.navigationBars())
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            } else {
-                show(WindowInsetsCompat.Type.statusBars())
-                show(WindowInsetsCompat.Type.navigationBars())
-                WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-            }
-        }
-
-    }
-}
-
-private fun Uri.getFileName(context: Context): String {
-    var name = "UNKNOWN"
-    val cursor: Cursor? = context.contentResolver.query(
-        this,
-        arrayOf(OpenableColumns.DISPLAY_NAME),
-        null,
-        null,
-        null
-    )
-
-    cursor?.use {
-        if (it.moveToFirst()) {
-            val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (nameIndex != -1) {
-                name = it.getString(nameIndex)
-            }
-        }
-    }
-
-    return name
 }

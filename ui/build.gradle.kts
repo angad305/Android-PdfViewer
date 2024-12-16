@@ -33,6 +33,13 @@ android {
     }
 }
 
+dependencies {
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+
+    implementation(project(":core"))
+}
+
 afterEvaluate {
     publishing {
         publications {
@@ -43,11 +50,4 @@ afterEvaluate {
             }
         }
     }
-}
-
-dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-
-    api(project(":pdfviewer"))
 }
