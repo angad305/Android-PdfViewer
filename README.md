@@ -1,4 +1,6 @@
 
+
+
 # PdfViewer
 **Early stage**
 
@@ -45,7 +47,7 @@ dependencies {
     implementation("com.github.bhuvaneshw.pdfviewer:$module:$version")
 }
 </pre>
-Replace <b>$module</b> with <b>core</b> or <b>ui</b>
+Replace <b>$module</b> with <b>core</b>, <b>ui</b>, <b>compose</b> and  <b>compose-ui</b>
 Replace <b>$version</b> with latest version<br> 
 Latest Version: <br>
 [![](https://jitpack.io/v/bhuvaneshw/pdfviewer.svg)](https://jitpack.io/#bhuvaneshw/pdfviewer)
@@ -53,13 +55,24 @@ Latest Version: <br>
 
 Example:
 
-Only core functionalities
+Only core PdfViewer
 <pre>
 implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
 </pre>
 With UI
 <pre>
+implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
 implementation("com.github.bhuvaneshw.pdfviewer:ui:1.0.0")
+</pre>
+
+Only core Compose PdfViewer
+<pre>
+implementation("com.github.bhuvaneshw.pdfviewer:compose:1.0.0")
+</pre>
+With Compose UI
+<pre>
+implementation("com.github.bhuvaneshw.pdfviewer:compose:1.0.0")
+implementation("com.github.bhuvaneshw.pdfviewer:compose-ui:1.0.0")
 </pre>
 
 ## 1.2. Groovy DSL
@@ -110,7 +123,7 @@ filePath can be
  1. Asset Path like "file:///android_asset/sample.pdf"
  2. Android Uri
  3. Network url like "https://example.com/sample.pdf"
- 4. Direct file path (not recommended) like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf"
+ 4. ~~Direct file path  like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf"(not recommended)~~
 
 > [!WARNING]
 > You should not call below members before the PdfViewer is initialized!
@@ -121,9 +134,22 @@ filePath can be
 > 5. PdfViewer.pageSpreadMode or getPageSpreadMode()
 > 6. PdfViewer.cursorToolMode or getCursorToolMode()
 
+**With Compose**
+Include compose dependency
+<pre>
+val state = rememberPdfState(url = filePath)
+PdfViewer(  
+    state = state,  
+    modifier = Modifier,  
+    containerColor = Color.Transparent,  
+    onReady = {
+      // Optional work
+  }  
+)
+</pre>
 
 ### 2.2 Full UI
-Include ui dependency
+Include core and ui dependencies
 
 <pre>
 &lt;com.acutecoder.pdf.ui.PdfContainer xmlns:android="http://schemas.android.com/apk/res/android"
@@ -180,6 +206,47 @@ pdfViewer.onReady {
     toolbar.setFileName(fileName) // or toolbar.setTitle(title)
 }
 container.setAsLoader(loaderView)
+</pre>
+
+**With Compose**
+Include compose and compose-ui dependencies
+<pre>
+val state = rememberPdfState(url = filePath)  
+
+PdfContainer(  
+   state = state,  
+   pdfViewer = {  
+      PdfViewer(  
+         modifier = Modifier.fillMaxSize(),  
+         containerColor = Color.Transparent, 
+      )  
+   },  
+   pdfToolBar = {  
+      PdfToolBar(  
+         title = title,  
+         onBack = { finish() },  
+         contentColor = MaterialTheme.colorScheme.onBackground
+      )  
+   },  
+   pdfScrollBar = { parentHeight ->  
+      PdfScrollBar(  
+         parentHeight = parentHeight,  
+         contentColor = MaterialTheme.colorScheme.onBackground,  
+         handleColor = MaterialTheme.colorScheme.background  
+      )  
+   },  
+   loader = {  
+      Column(  
+         modifier = Modifier  
+            .fillMaxSize()  
+            .background(MaterialTheme.colorScheme.background),  
+         verticalArrangement = Arrangement.Center,  
+         horizontalAlignment = Alignment.CenterHorizontally,  
+      ) { 
+         CircularProgressIndicator()  
+         Text(text = "Loading...")  
+      }  
+ })
 </pre>
 
 ### 2.3 Without PdfContainer
