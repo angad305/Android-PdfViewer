@@ -135,7 +135,9 @@ filePath can be
 > 6. PdfViewer.cursorToolMode or getCursorToolMode()
 
 **With Compose**
+
 Include compose dependency
+
 <pre>
 val state = rememberPdfState(url = filePath)
 PdfViewer(  
@@ -209,7 +211,9 @@ container.setAsLoader(loaderView)
 </pre>
 
 **With Compose**
+
 Include compose and compose-ui dependencies
+
 <pre>
 val state = rememberPdfState(url = filePath)  
 
