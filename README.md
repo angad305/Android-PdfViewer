@@ -321,6 +321,7 @@ pdfViewer.addListener(object: PdfListener {
 ## 3. See also
 > [!NOTE]
 > [PdfViewerActivity.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/PdfViewerActivity.kt) <br>
+> [ComposePdfViewerActivity.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/ComposePdfViewerActivity.kt)<br>
 > [PdfContainer.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfContainer.kt)<br>
 > [PdfScrollBar.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfScrollBar.kt)<br>
 > [PdfToolBar.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfToolBar.kt)<br>
