@@ -46,12 +46,12 @@ open class PdfToolBar @JvmOverloads constructor(
     val title: TextView = root.findViewById(R.id.title)
     val find: ImageView = root.findViewById(R.id.find)
     val more: ImageView = root.findViewById(R.id.more)
-    val findBar: LinearLayout = root.findViewById(R.id.findBar)
-    val findEditText: EditText = root.findViewById(R.id.findEditText)
-    val findProgressBar: ProgressBar = root.findViewById(R.id.findProgressBar)
-    val findInfo: TextView = root.findViewById(R.id.findInfo)
-    val findPrevious: ImageView = root.findViewById(R.id.findPrevious)
-    val findNext: ImageView = root.findViewById(R.id.findNext)
+    val findBar: LinearLayout = root.findViewById(R.id.find_bar)
+    val findEditText: EditText = root.findViewById(R.id.find_edit_text)
+    val findProgressBar: ProgressBar = root.findViewById(R.id.find_progress_bar)
+    val findInfo: TextView = root.findViewById(R.id.find_info)
+    val findPrevious: ImageView = root.findViewById(R.id.find_previous)
+    val findNext: ImageView = root.findViewById(R.id.find_next)
 
     init {
         initListeners()
@@ -136,7 +136,10 @@ open class PdfToolBar @JvmOverloads constructor(
         findInfo.text = ""
 
         if (visible) findEditText.requestKeyboard()
-        else findEditText.hideKeyboard()
+        else {
+            pdfViewer.findController.stopFind()
+            findEditText.hideKeyboard()
+        }
     }
 
     fun setContentColor(@ColorInt contentColor: Int) {
@@ -168,8 +171,10 @@ open class PdfToolBar @JvmOverloads constructor(
         findEditText.setOnEditorActionListener { textView, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 val query = textView.text.toString()
-                pdfViewer.findController.startFind(query)
-                findEditText.hideKeyboard()
+                if (query.isNotEmpty()) {
+                    pdfViewer.findController.startFind(query)
+                    findEditText.hideKeyboard()
+                }
                 true
             } else false
         }
@@ -258,7 +263,7 @@ open class PdfToolBar @JvmOverloads constructor(
     private fun showGoToPageDialog() {
         @SuppressLint("InflateParams")
         val root = layoutInflater.inflate(R.layout.pdf_go_to_page_dialog, null)
-        val field: EditText = root.findViewById(R.id.goToPageField)
+        val field: EditText = root.findViewById(R.id.go_to_page_field)
 
         val gotTo: (String, DialogInterface) -> Unit = { pageNumber, dialog ->
             pdfViewer.goToPage(pageNumber.toIntOrNull() ?: pdfViewer.currentPage)
@@ -420,19 +425,19 @@ open class PdfToolBar @JvmOverloads constructor(
         @SuppressLint("InflateParams")
         val root = layoutInflater.inflate(R.layout.pdf_properties_dialog, null)
 
-        root.find(R.id.fileName).text = this@PdfToolBar.fileName?.ifBlank { "-" } ?: "-"
-        root.find(R.id.fileSize).text = properties.fileSize.formatToSize()
+        root.find(R.id.file_name).text = this@PdfToolBar.fileName?.ifBlank { "-" } ?: "-"
+        root.find(R.id.file_size).text = properties.fileSize.formatToSize()
         root.find(R.id.title).text = properties.title
         root.find(R.id.subject).text = properties.subject
         root.find(R.id.author).text = properties.author
         root.find(R.id.creator).text = properties.creator
         root.find(R.id.producer).text = properties.producer
-        root.find(R.id.creationDate).text = properties.creationDate.formatToDate()
-        root.find(R.id.modifiedDate).text = properties.modifiedDate.formatToDate()
+        root.find(R.id.creation_date).text = properties.creationDate.formatToDate()
+        root.find(R.id.modified_date).text = properties.modifiedDate.formatToDate()
         root.find(R.id.keywords).text = properties.keywords
         root.find(R.id.language).text = properties.language
-        root.find(R.id.pdfFormatVersion).text = properties.pdfFormatVersion
-        root.find(R.id.isLinearized).text = properties.isLinearized.toString()
+        root.find(R.id.pdf_format_version).text = properties.pdfFormatVersion
+        root.find(R.id.is_linearized).text = properties.isLinearized.toString()
 
         return setView(root)
     }

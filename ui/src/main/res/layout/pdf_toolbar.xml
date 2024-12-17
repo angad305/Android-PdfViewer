@@ -18,7 +18,7 @@
         android:src="@drawable/outline_arrow_back_24" />
 
     <LinearLayout
-        android:id="@+id/findBar"
+        android:id="@+id/find_bar"
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
         android:gravity="center_vertical"
@@ -26,7 +26,7 @@
         android:visibility="gone">
 
         <EditText
-            android:id="@+id/findEditText"
+            android:id="@+id/find_edit_text"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginVertical="4dp"
@@ -39,21 +39,21 @@
             tools:ignore="LabelFor" />
 
         <ProgressBar
-            android:id="@+id/findProgressBar"
+            android:id="@+id/find_progress_bar"
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:padding="4dp"
             android:visibility="gone" />
 
         <TextView
-            android:id="@+id/findInfo"
+            android:id="@+id/find_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
             android:text="0 of 0" />
 
         <ImageView
-            android:id="@+id/findPrevious"
+            android:id="@+id/find_previous"
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:layout_marginVertical="8dp"
@@ -64,7 +64,7 @@
             android:src="@drawable/baseline_find_previous_24" />
 
         <ImageView
-            android:id="@+id/findNext"
+            android:id="@+id/find_next"
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:layout_marginVertical="8dp"

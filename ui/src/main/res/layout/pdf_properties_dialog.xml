@@ -20,7 +20,7 @@
             android:text="File name" />
 
         <TextView
-            android:id="@+id/fileName"
+            android:id="@+id/file_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2" />
@@ -39,7 +39,7 @@
             android:text="File size" />
 
         <TextView
-            android:id="@+id/fileSize"
+            android:id="@+id/file_size"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2" />
@@ -153,7 +153,7 @@
             android:text="Creation Date" />
 
         <TextView
-            android:id="@+id/creationDate"
+            android:id="@+id/creation_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2" />
@@ -169,10 +169,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="3"
-            android:text="Modifier Date" />
+            android:text="Modified Date" />
 
         <TextView
-            android:id="@+id/modifiedDate"
+            android:id="@+id/modified_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2" />
@@ -229,7 +229,7 @@
             android:text="Pdf Version" />
 
         <TextView
-            android:id="@+id/pdfFormatVersion"
+            android:id="@+id/pdf_format_version"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2" />
@@ -248,7 +248,7 @@
             android:text="Fast Webview" />
 
         <TextView
-            android:id="@+id/isLinearized"
+            android:id="@+id/is_linearized"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="2" />

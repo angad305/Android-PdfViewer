@@ -112,7 +112,7 @@ class PdfContainer : RelativeLayout {
                     @SuppressLint("InflateParams")
                     val root =
                         LayoutInflater.from(context).inflate(R.layout.pdf_go_to_page_dialog, null)
-                    val field: EditText = root.findViewById<EditText?>(R.id.goToPageField).apply {
+                    val field: EditText = root.findViewById<EditText?>(R.id.go_to_page_field).apply {
                         inputType =
                             InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                         imeOptions = EditorInfo.IME_ACTION_DONE

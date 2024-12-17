@@ -8,7 +8,7 @@
     android:paddingTop="12dp">
 
     <EditText
-        android:id="@+id/goToPageField"
+        android:id="@+id/go_to_page_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
