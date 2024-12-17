@@ -8,5 +8,7 @@ internal enum class PdfMenuItem(internal val id: Int) {
     ROTATE_ANTI_CLOCK_WISE(4),
     SCROLL_MODE(5),
     SPREAD_MODE(6),
-    PROPERTIES(7)
+    ALIGN_MODE(7),
+    SNAP_PAGE(8),
+    PROPERTIES(9)
 }

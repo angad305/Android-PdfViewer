@@ -1,19 +1,18 @@
 package com.acutecoder.pdfviewer.compose
 
 import androidx.compose.foundation.layout.BoxScope
-import com.acutecoder.pdf.setting.PdfSettingsManager
 
 open class PdfContainerScope internal constructor(
-    internal val state: PdfState
+    internal val pdfState: PdfState
 )
 
 class PdfContainerBoxScope internal constructor(
-    state: PdfState,
+    pdfState: PdfState,
     private val boxScope: BoxScope
-) : PdfContainerScope(state), BoxScope by boxScope
+) : PdfContainerScope(pdfState), BoxScope by boxScope
 
 class PdfToolBarScope internal constructor(
-    val state: PdfState,
+    val pdfState: PdfState,
     val isFindBarOpen: () -> Boolean,
     val closeFindBar: () -> Unit
 )

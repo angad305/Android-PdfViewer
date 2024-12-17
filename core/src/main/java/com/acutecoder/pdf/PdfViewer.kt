@@ -121,6 +121,8 @@ class PdfViewer @JvmOverloads constructor(
             checkViewer()
             field = value
             webView callDirectly value.function()
+            adjustAlignMode(value)
+            setSnapPageTo(snapPage)
         }
 
     var pageSpreadMode: PageSpreadMode = PageSpreadMode.NONE
@@ -227,6 +229,20 @@ class PdfViewer @JvmOverloads constructor(
                     it.onActualScaleLimitChange(actualMinPageScale, actualMaxPageScale, value)
                 }
             field = value
+        }
+
+    @PdfUnstableApi
+    var pageAlignMode = PageAlignMode.DEFAULT
+        set(value) {
+            checkViewer()
+            field = value
+            webView callDirectly value.function()
+        }
+    var snapPage = false
+        set(value) {
+            checkViewer()
+            field = value
+            setSnapPageTo(value)
         }
 
     init {
@@ -418,6 +434,33 @@ class PdfViewer @JvmOverloads constructor(
         if (!isInitialized) throw PdfViewNotInitializedException()
     }
 
+    @OptIn(PdfUnstableApi::class)
+    private fun adjustAlignMode(scrollMode: PageScrollMode) {
+        when (scrollMode) {
+            PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> {
+                if (pageAlignMode == PageAlignMode.CENTER_VERTICAL || pageAlignMode == PageAlignMode.CENTER_BOTH)
+                    pageAlignMode = PageAlignMode.DEFAULT
+            }
+
+            PageScrollMode.HORIZONTAL -> {
+                if (pageAlignMode == PageAlignMode.CENTER_HORIZONTAL || pageAlignMode == PageAlignMode.CENTER_BOTH)
+                    pageAlignMode = PageAlignMode.DEFAULT
+            }
+
+            PageScrollMode.SINGLE_PAGE -> {}
+        }
+    }
+
+    private fun setSnapPageTo(value: Boolean) {
+        if (value) {
+            when (pageScrollMode) {
+                PageScrollMode.HORIZONTAL -> webView callDirectly "enableHorizontalViewPagerBehavior"()
+                PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> webView callDirectly "enableVerticalViewPagerBehavior"()
+                else -> {}
+            }
+        } else webView callDirectly "removeViewPagerBehavior"()
+    }
+
     private fun setUpActualScaleValues(callback: () -> Unit) {
         var isMinSet = false
         var isMaxSet = false
@@ -495,6 +538,13 @@ class PdfViewer @JvmOverloads constructor(
         R_270(270),
     }
 
+    enum class PageAlignMode(internal val function: () -> Triple<String, String, ((String?) -> Unit)?>) {
+        DEFAULT({ "centerPage"() }),
+        CENTER_VERTICAL({ "centerPage"(true) }),
+        CENTER_HORIZONTAL({ "centerPage"(false, true) }),
+        CENTER_BOTH({ "centerPage"(true, true) }),
+    }
+
     companion object {
         private const val PDF_VIEWER_URL =
             "file:///android_asset/com/acutecoder/mozilla/pdfjs/pdf_viewer.html"
@@ -511,6 +561,9 @@ class PdfViewer @JvmOverloads constructor(
                 scalePageTo(actualDefaultPageScale)
             }
             pageRotation = pageRotation
+            @OptIn(PdfUnstableApi::class)
+            pageAlignMode = pageAlignMode
+            snapPage = snapPage
             listeners.forEach { it.onPageLoadSuccess(count) }
         }
 

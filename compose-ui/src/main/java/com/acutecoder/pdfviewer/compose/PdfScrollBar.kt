@@ -37,7 +37,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun PdfScrollBar(
-    state: PdfState,
+    pdfState: PdfState,
     parentHeight: Int,
     modifier: Modifier = Modifier,
     contentColor: Color = Color.Black,
@@ -49,19 +49,19 @@ fun PdfScrollBar(
     var offsetY by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.scrollState) {
+    LaunchedEffect(pdfState.scrollState) {
         visible = true
         if (!isDragging) {
-            offsetY = (state.scrollState.ratio * (parentHeight - myHeight))
+            offsetY = (pdfState.scrollState.ratio * (parentHeight - myHeight))
         }
         delay(1200)
         if (!isDragging)
             visible = false
     }
 
-    LaunchedEffect(state.isInitialized) {
-        if (state.isInitialized) {
-            state.pdfViewer?.ui?.viewerScrollbar = false
+    LaunchedEffect(pdfState.isInitialized) {
+        if (pdfState.isInitialized) {
+            pdfState.pdfViewer?.ui?.viewerScrollbar = false
         }
     }
 
@@ -80,14 +80,14 @@ fun PdfScrollBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val currentPage =
-                if (interactiveScrolling) state.currentPage
+                if (interactiveScrolling) pdfState.currentPage
                 else {
                     val ratio = offsetY / (parentHeight - myHeight)
-                    (ratio * (state.pagesCount - 1)).checkNaN(1f).roundToInt() + 1
+                    (ratio * (pdfState.pagesCount - 1)).checkNaN(1f).roundToInt() + 1
                 }
 
             Text(
-                text = "$currentPage/${state.pagesCount}",
+                text = "$currentPage/${pdfState.pagesCount}",
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(handleColor)
@@ -110,15 +110,15 @@ fun PdfScrollBar(
                             val newRatio = newOffsetY / (parentHeight - myHeight)
 
                             if (interactiveScrolling) {
-                                state.pdfViewer?.scrollToRatio(newRatio)
+                                pdfState.pdfViewer?.scrollToRatio(newRatio)
                             }
                         },
                         onDragStopped = {
                             if (!interactiveScrolling) {
                                 val newRatio = offsetY / (parentHeight - myHeight)
-                                val newCurrentPage = (newRatio * (state.pagesCount - 1)).toInt() + 1
-                                state.pdfViewer?.scrollToRatio(newRatio)
-                                state.pdfViewer?.goToPage(newCurrentPage)
+                                val newCurrentPage = (newRatio * (pdfState.pagesCount - 1)).toInt() + 1
+                                pdfState.pdfViewer?.scrollToRatio(newRatio)
+                                pdfState.pdfViewer?.goToPage(newCurrentPage)
                             }
                             isDragging = false
                         }

@@ -156,7 +156,7 @@ private fun Activity.MainScreen(
     }
 
     PdfContainer(
-        state = pdfState,
+        pdfState = pdfState,
         pdfViewer = {
             PdfViewer(
                 modifier = Modifier.fillMaxSize(),
@@ -353,7 +353,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
     }
 
     PdfContainer(
-        state = state,
+        pdfState = state,
         pdfViewer = {
             var showPageButtons by remember { mutableStateOf(false) }
             var showPageNumber by remember { mutableStateOf(false) }

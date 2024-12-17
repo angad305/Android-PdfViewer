@@ -22,10 +22,10 @@ class ExtendedToolBar : PdfToolBar {
 
     override fun getPopupMenu(anchorView: View): PopupMenu {
         return PopupMenu(context, anchorView).apply {
-            // Item ids 0-7 are already taken
+            // Item ids 0-9 are already taken
             if (pdfViewer.currentUrl?.startsWith("file:///android_asset") == false)
-                menu.add(Menu.NONE, 8, Menu.NONE, "Open in other app")
-            menu.add(Menu.NONE, 9, Menu.NONE, "Zoom Limit")
+                menu.add(Menu.NONE, 10, Menu.NONE, "Open in other app")
+            menu.add(Menu.NONE, 11, Menu.NONE, "Zoom Limit")
             addDefaultMenus(this)
         }
     }
@@ -34,7 +34,7 @@ class ExtendedToolBar : PdfToolBar {
         if (super.handlePopupMenuItemClick(item)) return true
 
         return when (item.itemId) {
-            8 -> {
+            10 -> {
                 val uri = Uri.parse(pdfViewer.currentUrl)
                 context.startActivity(
                     Intent(Intent.ACTION_VIEW, uri).apply {
@@ -45,7 +45,7 @@ class ExtendedToolBar : PdfToolBar {
                 true
             }
 
-            9 -> {
+            11 -> {
                 showZoomLimitDialog()
                 true
             }

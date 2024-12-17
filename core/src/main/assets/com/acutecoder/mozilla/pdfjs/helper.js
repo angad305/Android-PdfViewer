@@ -25,27 +25,27 @@ function doOnLast() {
     });
     observer.observe(observerTarget, { attributes: true });
 
-    const viewerContainer = $('#viewerContainer');
+    const viewerContainer = $("#viewerContainer");
     let singleClickTimer;
     let longClickTimer;
     let isLongClick = false;
 
-    viewerContainer.addEventListener('click', (e) => {
+    viewerContainer.addEventListener("click", (e) => {
         e.preventDefault();
         if (e.detail === 1) {
             singleClickTimer = setTimeout(() => {
-                if (e.target.tagName === 'A') JWI.onLinkClick(e.target.href);
-                else JWI.onSingleClick()
+                if (e.target.tagName === "A") JWI.onLinkClick(e.target.href);
+                else JWI.onSingleClick();
             }, DOUBLE_CLICK_THRESHOLD);
         }
     });
 
-    viewerContainer.addEventListener('dblclick', (e) => {
+    viewerContainer.addEventListener("dblclick", (e) => {
         clearTimeout(singleClickTimer);
         JWI.onDoubleClick();
     });
 
-    viewerContainer.addEventListener('touchstart', (e) => {
+    viewerContainer.addEventListener("touchstart", (e) => {
         isLongClick = false;
         if (e.touches.length === 1) {
             longClickTimer = setTimeout(() => {
@@ -55,11 +55,11 @@ function doOnLast() {
         }
     });
 
-    viewerContainer.addEventListener('touchend', (e) => {
+    viewerContainer.addEventListener("touchend", (e) => {
         clearTimeout(longClickTimer);
     });
 
-    viewerContainer.addEventListener('touchmove', (e) => {
+    viewerContainer.addEventListener("touchmove", (e) => {
         clearTimeout(longClickTimer);
     });
 }
@@ -443,13 +443,13 @@ function getActualScaleFor(value) {
         VERTICAL: 0,
         HORIZONTAL: 1,
         WRAPPED: 2,
-        PAGE: 3
+        PAGE: 3,
     };
     const SpreadMode = {
         UNKNOWN: -1,
         NONE: 0,
         ODD: 1,
-        EVEN: 2
+        EVEN: 2,
     };
     const currentPage = PDFViewerApplication.pdfViewer._pages[PDFViewerApplication.pdfViewer._currentPageNumber - 1];
     if (!currentPage) return -1;
@@ -465,8 +465,11 @@ function getActualScaleFor(value) {
     } else if (this._scrollMode === ScrollMode.HORIZONTAL) {
         [hPadding, vPadding] = [vPadding, hPadding];
     }
-    const pageWidthScale = (PDFViewerApplication.pdfViewer.container.clientWidth - hPadding) / currentPage.width * currentPage.scale / PDFViewerApplication.pdfViewer.pageWidthScaleFactor();
-    const pageHeightScale = (PDFViewerApplication.pdfViewer.container.clientHeight - vPadding) / currentPage.height * currentPage.scale;
+    const pageWidthScale =
+        (((PDFViewerApplication.pdfViewer.container.clientWidth - hPadding) / currentPage.width) * currentPage.scale) /
+        PDFViewerApplication.pdfViewer.pageWidthScaleFactor();
+    const pageHeightScale =
+        ((PDFViewerApplication.pdfViewer.container.clientHeight - vPadding) / currentPage.height) * currentPage.scale;
     let scale = -3;
     function isPortraitOrientation(size) {
         return size.width <= size.height;
@@ -485,13 +488,46 @@ function getActualScaleFor(value) {
             scale = Math.min(pageWidthScale, pageHeightScale);
             break;
         case "auto":
-            const horizontalScale = isPortraitOrientation(currentPage) ? pageWidthScale : Math.min(pageHeightScale, pageWidthScale);
+            const horizontalScale = isPortraitOrientation(currentPage)
+                ? pageWidthScale
+                : Math.min(pageHeightScale, pageWidthScale);
             scale = Math.min(MAX_AUTO_SCALE, horizontalScale);
             break;
         default:
             scale = -2;
     }
     return scale;
+}
+
+function enableVerticalViewPagerBehavior() {
+    let viewerContainer = $("#viewerContainer");
+
+    viewerContainer.classList.remove("horizontal-view-pager");
+    viewerContainer.classList.add("vertical-view-pager");
+}
+
+function enableHorizontalViewPagerBehavior() {
+    let viewerContainer = $("#viewerContainer");
+
+    viewerContainer.classList.remove("vertical-view-pager");
+    viewerContainer.classList.add("horizontal-view-pager");
+}
+
+function removeViewPagerBehavior() {
+    let viewerContainer = $("#viewerContainer");
+
+    viewerContainer.classList.remove("vertical-view-pager");
+    viewerContainer.classList.remove("horizontal-view-pager");
+}
+
+function centerPage(vertical, horizontal) {
+    let viewerContainer = $("#viewerContainer");
+
+    if (vertical) viewerContainer.classList.add("vertical-center");
+    else viewerContainer.classList.remove("vertical-center");
+
+    if (horizontal) viewerContainer.classList.add("horizontal-center");
+    else viewerContainer.classList.remove("horizontal-center");
 }
 
 function $(query) {

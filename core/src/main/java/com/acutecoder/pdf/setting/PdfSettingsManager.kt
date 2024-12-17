@@ -1,6 +1,7 @@
 package com.acutecoder.pdf.setting
 
 import com.acutecoder.pdf.PdfOnPageLoadSuccess
+import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
 
 class PdfSettingsManager(private val saver: PdfSettingsSaver) {
@@ -19,6 +20,10 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
                 save(KEY_SCROLL_MODE, pageScrollMode)
                 save(KEY_SPREAD_MODE, pageSpreadMode)
                 save(KEY_ROTATION, pageRotation)
+
+                @OptIn(PdfUnstableApi::class)
+                save(KEY_ALIGN_MODE, pageAlignMode)
+                save(KEY_SNAP_PAGE, snapPage)
 
                 apply()
             }
@@ -43,6 +48,10 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
                 pageScrollMode = getEnum(KEY_SCROLL_MODE, pageScrollMode)
                 pageSpreadMode = getEnum(KEY_SPREAD_MODE, pageSpreadMode)
                 pageRotation = getEnum(KEY_ROTATION, pageRotation)
+
+                @OptIn(PdfUnstableApi::class)
+                pageAlignMode = getEnum(KEY_ALIGN_MODE, pageAlignMode)
+                snapPage = getBoolean(KEY_SNAP_PAGE, snapPage)
             }
         }
     }
@@ -60,5 +69,7 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         private const val KEY_SCROLL_MODE = "scroll_mode"
         private const val KEY_SPREAD_MODE = "spread_mode"
         private const val KEY_ROTATION = "rotation"
+        private const val KEY_ALIGN_MODE = "center_align"
+        private const val KEY_SNAP_PAGE = "snap_page"
     }
 }

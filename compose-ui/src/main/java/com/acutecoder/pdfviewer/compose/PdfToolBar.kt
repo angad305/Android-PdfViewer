@@ -36,6 +36,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -61,6 +62,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
 import kotlinx.coroutines.delay
 
@@ -78,7 +80,7 @@ fun PdfToolBar(
     dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable () -> Unit) -> Unit = defaultToolBarDropDownMenu(),
 ) {
     val toolBarScope = PdfToolBarScope(
-        state = pdfState,
+        pdfState = pdfState,
         isFindBarOpen = { toolBarState.isFindBarOpen },
         closeFindBar = { toolBarState.isFindBarOpen = false }
     )
@@ -149,14 +151,14 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
     val keyboard = LocalSoftwareKeyboardController.current
     val context = LocalContext.current
 
-    LaunchedEffect(state.matchState) {
-        state.matchState.run {
+    LaunchedEffect(pdfState.matchState) {
+        pdfState.matchState.run {
             if (this is MatchState.Completed && !found && searchTerm.isNotEmpty())
                 Toast.makeText(context, "No match found!", Toast.LENGTH_SHORT).show()
         }
     }
     DisposableEffect(Unit) {
-        onDispose { state.pdfViewer?.findController?.stopFind() }
+        onDispose { pdfState.pdfViewer?.findController?.stopFind() }
     }
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -166,7 +168,7 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = {
                 if (searchTerm.isNotEmpty()) {
-                    state.pdfViewer?.findController?.startFind(searchTerm)
+                    pdfState.pdfViewer?.findController?.startFind(searchTerm)
                     keyboard?.hide()
                 }
             }),
@@ -196,7 +198,7 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
         )
 
         AnimatedVisibility(
-            visible = state.matchState !is MatchState.Completed,
+            visible = pdfState.matchState !is MatchState.Completed,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
@@ -209,7 +211,7 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
         }
 
         Text(
-            text = state.matchState.run { "$current to $total" },
+            text = pdfState.matchState.run { "$current to $total" },
             modifier = Modifier.padding(4.dp),
             fontSize = 14.sp,
             color = contentColor,
@@ -218,13 +220,13 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
         ToolBarIcon(
             icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             isEnabled = true,
-            onClick = { state.pdfViewer?.findController?.findPrevious() },
+            onClick = { pdfState.pdfViewer?.findController?.findPrevious() },
             tint = contentColor,
         )
         ToolBarIcon(
             icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             isEnabled = true,
-            onClick = { state.pdfViewer?.findController?.findNext() },
+            onClick = { pdfState.pdfViewer?.findController?.findNext() },
             tint = contentColor,
         )
     }
@@ -244,6 +246,8 @@ private fun MoreOptions(state: PdfState, fileName: (() -> String)?, onDismiss: (
     var showGoToPage by remember { mutableStateOf(false) }
     var showScrollMode by remember { mutableStateOf(false) }
     var showSplitMode by remember { mutableStateOf(false) }
+    var showAlignMode by remember { mutableStateOf(false) }
+    var showSnapPage by remember { mutableStateOf(false) }
     var showDocumentProperties by remember { mutableStateOf(false) }
     val dropdownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
 
@@ -300,6 +304,18 @@ private fun MoreOptions(state: PdfState, fileName: (() -> String)?, onDismiss: (
         }
     )
     DropdownMenuItem(
+        text = { Text("Align Mode", modifier = dropdownModifier) },
+        onClick = {
+            showAlignMode = true
+        }
+    )
+    DropdownMenuItem(
+        text = { Text("Snap Page", modifier = dropdownModifier) },
+        onClick = {
+            showSnapPage = true
+        }
+    )
+    DropdownMenuItem(
         text = { Text(text = "Properties", modifier = dropdownModifier) },
         onClick = {
             showDocumentProperties = true
@@ -314,6 +330,10 @@ private fun MoreOptions(state: PdfState, fileName: (() -> String)?, onDismiss: (
         ScrollModeDialog(state = state, onDismiss = { showScrollMode = false; onDismiss() })
     if (showSplitMode)
         SplitModeDialog(state = state, onDismiss = { showSplitMode = false; onDismiss() })
+    if (showAlignMode)
+        AlignModeDialog(state = state, onDismiss = { showAlignMode = false; onDismiss() })
+    if (showSnapPage)
+        SnapPageDialog(state = state, onDismiss = { showSnapPage = false; onDismiss() })
     if (showDocumentProperties)
         DocumentPropertiesDialog(
             state = state,
@@ -509,6 +529,98 @@ private fun SplitModeDialog(state: PdfState, onDismiss: () -> Unit) {
     )
 }
 
+@OptIn(PdfUnstableApi::class)
+@Composable
+private fun AlignModeDialog(state: PdfState, onDismiss: () -> Unit) {
+    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+    val displayOptions = buildList {
+        add("Default")
+        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED)
+            add("Center Vertically")
+        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL)
+            add("Center Horizontally")
+        if (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE)
+            add("Center Both")
+    }.toTypedArray()
+    val options = buildList {
+        add(PdfViewer.PageAlignMode.DEFAULT.name)
+        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED)
+            add(PdfViewer.PageAlignMode.CENTER_VERTICAL.name)
+        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL)
+            add(PdfViewer.PageAlignMode.CENTER_HORIZONTAL.name)
+        if (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE)
+            add(PdfViewer.PageAlignMode.CENTER_BOTH.name)
+    }.toTypedArray()
+    val selectedIndex = findSelectedOption(options, pdfViewer.pageAlignMode.name)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Select Page Align Mode",
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(text = "Cancel") } },
+        text = {
+            LazyColumn {
+                itemsIndexed(displayOptions) { index, option ->
+                    RadioButtonItem(
+                        selectedIndex = selectedIndex,
+                        index = index,
+                        text = option,
+                        onSelectIndex = { which ->
+                            pdfViewer.pageAlignMode =
+                                PdfViewer.PageAlignMode.valueOf(options[which])
+                            onDismiss()
+                        },
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun SnapPageDialog(state: PdfState, onDismiss: () -> Unit) {
+    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+    var isChecked by remember { mutableStateOf(pdfViewer.snapPage) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Snap Page",
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                pdfViewer.snapPage = isChecked
+                onDismiss()
+            }) { Text(text = "Done") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(text = "Cancel") } },
+        text = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { isChecked = !isChecked }
+                    .padding(start = 12.dp, end = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Enable", modifier = Modifier.weight(1f))
+
+                Switch(
+                    checked = isChecked,
+                    onCheckedChange = { isChecked = it }
+                )
+            }
+        }
+    )
+}
+
 @Composable
 private fun DocumentPropertiesDialog(
     state: PdfState,
@@ -576,6 +688,7 @@ private fun RadioButtonItem(
     }
 }
 
+@Suppress("UnusedReceiverParameter")
 @Composable
 internal fun PdfToolBarScope.ToolBarIcon(
     icon: ImageVector,
@@ -612,7 +725,7 @@ internal fun defaultToolBarBackIcon(
 }
 
 internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable () -> Unit) -> Unit {
-    return { onDismiss, defaultMenus ->
+    return { _, defaultMenus ->
         defaultMenus()
     }
 }

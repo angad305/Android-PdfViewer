@@ -1,0 +1,21 @@
+.vertical-view-pager {
+    scroll-snap-type: y mandatory;
+}
+.horizontal-view-pager {
+    scroll-snap-type: x mandatory;
+}
+
+.vertical-view-pager .page,
+.horizontal-view-pager .page {
+    scroll-snap-align: start;
+}
+
+.vertical-center {
+    display: flex;
+    align-items: center;
+}
+
+.horizontal-center {
+    display: flex;
+    justify-content: center;
+}

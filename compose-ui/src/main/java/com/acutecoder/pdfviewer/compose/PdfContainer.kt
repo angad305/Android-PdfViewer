@@ -16,7 +16,7 @@ import com.acutecoder.pdf.PdfViewer
 
 @Composable
 fun PdfContainer(
-    state: PdfState,
+    pdfState: PdfState,
     pdfViewer: @Composable PdfContainerBoxScope.() -> Unit,
     pdfToolBar: (@Composable PdfContainerScope.() -> Unit)? = null,
     pdfScrollBar: (@Composable PdfContainerBoxScope.(parentHeight: Int) -> Unit)? = null,
@@ -26,7 +26,7 @@ fun PdfContainer(
     var parentHeight by remember { mutableIntStateOf(0) }
 
     Column(modifier = modifier) {
-        pdfToolBar?.invoke(PdfContainerScope(state))
+        pdfToolBar?.invoke(PdfContainerScope(pdfState))
 
         Box(modifier = Modifier
             .fillMaxSize()
@@ -34,18 +34,18 @@ fun PdfContainer(
                 parentHeight = it.size.height
             }
         ) {
-            pdfViewer(PdfContainerBoxScope(state, this))
+            pdfViewer(PdfContainerBoxScope(pdfState, this))
             pdfScrollBar?.let { scrollBar ->
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.TopEnd
                 ) {
-                    scrollBar(PdfContainerBoxScope(state, this), parentHeight)
+                    scrollBar(PdfContainerBoxScope(pdfState, this), parentHeight)
                 }
             }
 
-            if (state.isLoading || !state.isInitialized) loader?.invoke(
-                PdfContainerBoxScope(state, this)
+            if (pdfState.isLoading || !pdfState.isInitialized) loader?.invoke(
+                PdfContainerBoxScope(pdfState, this)
             )
         }
     }
@@ -99,7 +99,7 @@ fun PdfContainerBoxScope.PdfScrollBar(
     interactiveScrolling: Boolean = true
 ) {
     PdfScrollBar(
-        state = pdfState,
+        pdfState = pdfState,
         parentHeight = parentHeight,
         modifier = modifier,
         contentColor = contentColor,
