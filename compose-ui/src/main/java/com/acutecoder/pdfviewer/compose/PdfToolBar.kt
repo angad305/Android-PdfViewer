@@ -66,9 +66,10 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun PdfToolBar(
-    state: PdfState,
+    pdfState: PdfState,
     title: String,
     modifier: Modifier = Modifier,
+    toolBarState: PdfToolBarState = rememberToolBarState(),
     onBack: (() -> Unit)? = null,
     fileName: (() -> String)? = null,
     contentColor: Color? = null,
@@ -76,11 +77,10 @@ fun PdfToolBar(
     = defaultToolBarBackIcon(contentColor, onBack),
     dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable () -> Unit) -> Unit = defaultToolBarDropDownMenu(),
 ) {
-    var showFindBar by remember { mutableStateOf(false) }
     val toolBarScope = PdfToolBarScope(
-        state = state,
-        isFindBarOpen = { showFindBar },
-        closeFindBar = { showFindBar = false }
+        state = pdfState,
+        isFindBarOpen = { toolBarState.isFindBarOpen },
+        closeFindBar = { toolBarState.isFindBarOpen = false }
     )
 
     Row(
@@ -101,7 +101,7 @@ fun PdfToolBar(
         )
 
         AnimatedVisibility(
-            visible = showFindBar,
+            visible = toolBarState.isFindBarOpen,
             enter = slideIn { IntOffset(it.width / 25, 0) } + fadeIn(),
             exit = slideOut { IntOffset(it.width / 50, 0) } + fadeOut(),
         ) {
@@ -113,15 +113,15 @@ fun PdfToolBar(
 
         toolBarScope.ToolBarIcon(
             icon = Icons.Default.Search,
-            isEnabled = !state.isLoading && state.isInitialized,
-            onClick = { showFindBar = true },
+            isEnabled = !pdfState.isLoading && pdfState.isInitialized,
+            onClick = { toolBarState.isFindBarOpen = true },
             tint = contentColor ?: Color.Unspecified,
         )
         Box {
             var showMoreOptions by remember { mutableStateOf(false) }
             toolBarScope.ToolBarIcon(
                 icon = Icons.Default.MoreVert,
-                isEnabled = !state.isLoading && state.isInitialized,
+                isEnabled = !pdfState.isLoading && pdfState.isInitialized,
                 onClick = { showMoreOptions = true },
                 tint = contentColor ?: Color.Unspecified,
             )
@@ -132,7 +132,7 @@ fun PdfToolBar(
             ) {
                 dropDownMenu({ showMoreOptions = false }) {
                     MoreOptions(
-                        state = state,
+                        state = pdfState,
                         fileName = fileName,
                         onDismiss = { showMoreOptions = false }
                     )

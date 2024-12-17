@@ -58,7 +58,7 @@ fun PdfContainerBoxScope.PdfViewer(
     onReady: (PdfViewer.() -> Unit)? = null,
 ) {
     PdfViewer(
-        state = state,
+        state = pdfState,
         modifier = modifier,
         containerColor = containerColor,
         onReady = onReady,
@@ -69,6 +69,7 @@ fun PdfContainerBoxScope.PdfViewer(
 fun PdfContainerScope.PdfToolBar(
     title: String,
     modifier: Modifier = Modifier,
+    toolBarState: PdfToolBarState = rememberToolBarState(),
     onBack: (() -> Unit)? = null,
     fileName: (() -> String)? = null,
     contentColor: Color? = null,
@@ -77,9 +78,10 @@ fun PdfContainerScope.PdfToolBar(
     dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable () -> Unit) -> Unit = defaultToolBarDropDownMenu(),
 ) {
     PdfToolBar(
-        state = state,
+        pdfState = pdfState,
         title = title,
         modifier = modifier,
+        toolBarState = toolBarState,
         onBack = null,
         backIcon = backIcon,
         fileName = fileName,
@@ -97,7 +99,7 @@ fun PdfContainerBoxScope.PdfScrollBar(
     interactiveScrolling: Boolean = true
 ) {
     PdfScrollBar(
-        state = state,
+        state = pdfState,
         parentHeight = parentHeight,
         modifier = modifier,
         contentColor = contentColor,

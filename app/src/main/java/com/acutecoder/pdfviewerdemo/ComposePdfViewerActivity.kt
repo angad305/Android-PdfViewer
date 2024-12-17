@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -60,6 +61,7 @@ import com.acutecoder.pdfviewer.compose.PdfState
 import com.acutecoder.pdfviewer.compose.PdfToolBar
 import com.acutecoder.pdfviewer.compose.PdfViewer
 import com.acutecoder.pdfviewer.compose.rememberPdfState
+import com.acutecoder.pdfviewer.compose.rememberToolBarState
 import com.acutecoder.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
 
 class ComposePdfViewerActivity : ComponentActivity() {
@@ -130,10 +132,11 @@ private fun Activity.MainScreen(
     pdfSettingsManager: PdfSettingsManager,
     setPdfViewer: (PdfViewer?) -> Unit,
 ) {
-    val state = rememberPdfState(url = url)
+    val pdfState = rememberPdfState(url = url)
+    val toolBarState = rememberToolBarState()
 
-    LaunchedEffect(state.errorMessage) {
-        state.errorMessage?.let {
+    LaunchedEffect(pdfState.errorMessage) {
+        pdfState.errorMessage?.let {
             toast(it)
             finish()
         }
@@ -141,13 +144,19 @@ private fun Activity.MainScreen(
 
     DisposableEffect(Unit) {
         onDispose {
-            state.pdfViewer?.let { pdfSettingsManager.save(it, savePageNumber = true) }
+            pdfState.pdfViewer?.let { pdfSettingsManager.save(it, savePageNumber = true) }
             setPdfViewer(null)
         }
     }
 
+    BackHandler {
+        if (toolBarState.isFindBarOpen)
+            toolBarState.isFindBarOpen = false
+        else finish()
+    }
+
     PdfContainer(
-        state = state,
+        state = pdfState,
         pdfViewer = {
             PdfViewer(
                 modifier = Modifier.fillMaxSize(),
@@ -161,11 +170,12 @@ private fun Activity.MainScreen(
         pdfToolBar = {
             PdfToolBar(
                 title = title,
+                toolBarState = toolBarState,
                 onBack = { finish() },
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 dropDownMenu = { onDismiss, defaultMenus ->
                     ExtendedTooBarMenus(
-                        state,
+                        pdfState,
                         onDismiss,
                         defaultMenus
                     )
