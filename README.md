@@ -139,9 +139,9 @@ filePath can be
 Include compose dependency
 
 <pre>
-val state = rememberPdfState(url = filePath)
+val pdfState = rememberPdfState(url = filePath)
 PdfViewer(  
-    state = state,  
+    pdfState = pdfState,  
     modifier = Modifier,  
     containerColor = Color.Transparent,  
     onReady = {
@@ -215,10 +215,10 @@ container.setAsLoader(loaderView)
 Include compose and compose-ui dependencies
 
 <pre>
-val state = rememberPdfState(url = filePath)  
+val pdfState = rememberPdfState(url = filePath)  
 
 PdfContainer(  
-   state = state,  
+   pdfState = pdfState,  
    pdfViewer = {  
       PdfViewer(  
          modifier = Modifier.fillMaxSize(),  
