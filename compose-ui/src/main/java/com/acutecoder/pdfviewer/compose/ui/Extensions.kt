@@ -1,4 +1,4 @@
-package com.acutecoder.pdfviewer.compose
+package com.acutecoder.pdfviewer.compose.ui
 
 import java.text.SimpleDateFormat
 import java.util.Locale

@@ -1,4 +1,4 @@
-package com.acutecoder.pdfviewer.compose
+package com.acutecoder.pdfviewer.compose.ui
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -64,6 +64,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdfviewer.compose.MatchState
+import com.acutecoder.pdfviewer.compose.PdfState
 import kotlinx.coroutines.delay
 
 @Composable

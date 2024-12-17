@@ -1,4 +1,4 @@
-package com.acutecoder.pdfviewer.compose
+package com.acutecoder.pdfviewer.compose.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdfviewer.compose.PdfState
 
 @Composable
 fun PdfContainer(
@@ -57,7 +58,7 @@ fun PdfContainerBoxScope.PdfViewer(
     containerColor: Color? = null,
     onReady: (PdfViewer.() -> Unit)? = null,
 ) {
-    PdfViewer(
+    com.acutecoder.pdfviewer.compose.PdfViewer(
         state = pdfState,
         modifier = modifier,
         containerColor = containerColor,

@@ -1,4 +1,4 @@
-package com.acutecoder.pdfviewer.compose
+package com.acutecoder.pdfviewer.compose.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.acutecoder.pdfviewer.compose.PdfState
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 

@@ -1,6 +1,7 @@
-package com.acutecoder.pdfviewer.compose
+package com.acutecoder.pdfviewer.compose.ui
 
 import androidx.compose.foundation.layout.BoxScope
+import com.acutecoder.pdfviewer.compose.PdfState
 
 open class PdfContainerScope internal constructor(
     internal val pdfState: PdfState

@@ -55,13 +55,13 @@ import com.acutecoder.pdf.PdfOnScrollModeChange
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.setting.sharedPdfSettingsManager
-import com.acutecoder.pdfviewer.compose.PdfContainer
-import com.acutecoder.pdfviewer.compose.PdfScrollBar
+import com.acutecoder.pdfviewer.compose.ui.PdfContainer
+import com.acutecoder.pdfviewer.compose.ui.PdfScrollBar
 import com.acutecoder.pdfviewer.compose.PdfState
-import com.acutecoder.pdfviewer.compose.PdfToolBar
-import com.acutecoder.pdfviewer.compose.PdfViewer
+import com.acutecoder.pdfviewer.compose.ui.PdfToolBar
+import com.acutecoder.pdfviewer.compose.ui.PdfViewer
 import com.acutecoder.pdfviewer.compose.rememberPdfState
-import com.acutecoder.pdfviewer.compose.rememberToolBarState
+import com.acutecoder.pdfviewer.compose.ui.rememberToolBarState
 import com.acutecoder.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
 
 class ComposePdfViewerActivity : ComponentActivity() {

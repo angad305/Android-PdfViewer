@@ -1,4 +1,4 @@
-package com.acutecoder.pdfviewer.compose
+package com.acutecoder.pdfviewer.compose.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
