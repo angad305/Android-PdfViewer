@@ -76,7 +76,7 @@ fun PdfContainerScope.PdfToolBar(
     contentColor: Color? = null,
     backIcon: (@Composable PdfToolBarScope.() -> Unit)?
     = defaultToolBarBackIcon(contentColor, onBack),
-    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (String) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
+    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
 ) {
     PdfToolBar(
         pdfState = pdfState,

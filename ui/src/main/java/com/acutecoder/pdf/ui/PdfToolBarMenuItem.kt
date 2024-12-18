@@ -1,6 +1,6 @@
 package com.acutecoder.pdf.ui
 
-enum class PdfMenuItem(internal val id: Int) {
+enum class PdfToolBarMenuItem(internal val id: Int) {
     DOWNLOAD(0),
     ZOOM(1),
     GO_TO_PAGE(2),

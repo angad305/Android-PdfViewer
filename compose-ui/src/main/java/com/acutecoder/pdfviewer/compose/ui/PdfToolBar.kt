@@ -81,7 +81,7 @@ fun PdfToolBar(
     contentColor: Color? = null,
     backIcon: (@Composable PdfToolBarScope.() -> Unit)?
     = defaultToolBarBackIcon(contentColor, onBack),
-    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (String) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
+    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
 ) {
     val toolBarScope = PdfToolBarScope(
         pdfState = pdfState,
@@ -249,7 +249,7 @@ private fun MoreOptions(
     state: PdfState,
     fileName: (() -> String)?,
     onDismiss: () -> Unit,
-    validator: (String) -> Boolean,
+    validator: (PdfToolBarMenuItem) -> Boolean,
 ) {
     val pdfViewer = state.pdfViewer ?: return
 
@@ -260,74 +260,79 @@ private fun MoreOptions(
     var showAlignMode by remember { mutableStateOf(false) }
     var showSnapPage by remember { mutableStateOf(false) }
     var showDocumentProperties by remember { mutableStateOf(false) }
-    val dropdownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
 
-    if (validator("Download")) DropdownMenuItem(
-        text = { Text("Download", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.DOWNLOAD,
+        validator = validator,
         onClick = {
             pdfViewer.downloadFile()
             onDismiss()
         }
     )
-    if (validator("Zoom")) DropdownMenuItem(
-        text = {
-            Text(
-                pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
-                modifier = dropdownModifier
-            )
-        },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.ZOOM,
+        validator = validator,
+        text = pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
         onClick = {
             showZoom = true
         }
     )
 
-    if (validator("Go to page")) DropdownMenuItem(
-        text = { Text("Go to page", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.GO_TO_PAGE,
+        validator = validator,
         onClick = {
             showGoToPage = true
         }
     )
-    if (validator("Rotate Clockwise")) DropdownMenuItem(
-        text = { Text("Rotate Clockwise", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.ROTATE_CLOCK_WISE,
+        validator = validator,
         onClick = {
             pdfViewer.rotateClockWise()
             onDismiss()
         }
     )
-    if (validator("Rotate Anti Clockwise")) DropdownMenuItem(
-        text = { Text("Rotate Anti Clockwise", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE,
+        validator = validator,
         onClick = {
             pdfViewer.rotateCounterClockWise()
             onDismiss()
         }
     )
 
-    if (validator("Scroll Mode")) DropdownMenuItem(
-        text = { Text("Scroll Mode", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.SCROLL_MODE,
+        validator = validator,
         onClick = {
             showScrollMode = true
         }
     )
-    if (validator("Split Mode")) DropdownMenuItem(
-        text = { Text("Split Mode", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.SPREAD_MODE,
+        validator = validator,
         onClick = {
             showSplitMode = true
         }
     )
-    if (validator("Align Mode")) DropdownMenuItem(
-        text = { Text("Align Mode", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.ALIGN_MODE,
+        validator = validator,
         onClick = {
             showAlignMode = true
         }
     )
-    if (validator("Snap Page")) DropdownMenuItem(
-        text = { Text("Snap Page", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.SNAP_PAGE,
+        validator = validator,
         onClick = {
             showSnapPage = true
         }
     )
-    if (validator("Properties")) DropdownMenuItem(
-        text = { Text(text = "Properties", modifier = dropdownModifier) },
+    DropdownMenuItem(
+        menuItem = PdfToolBarMenuItem.PROPERTIES,
+        validator = validator,
         onClick = {
             showDocumentProperties = true
         }
@@ -735,8 +740,26 @@ internal fun defaultToolBarBackIcon(
     }
 }
 
-internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (String) -> Boolean) -> Unit) -> Unit {
+internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit {
     return { _, defaultMenus ->
         defaultMenus { true }
     }
+}
+
+@Composable
+private fun DropdownMenuItem(
+    menuItem: PdfToolBarMenuItem,
+    onClick: () -> Unit,
+    validator: (PdfToolBarMenuItem) -> Boolean,
+    text: String = menuItem.displayName,
+) {
+    if (validator(menuItem)) DropdownMenuItem(
+        text = {
+            Text(
+                text = text,
+                modifier = Modifier.padding(start = 6.dp, end = 18.dp)
+            )
+        },
+        onClick = onClick
+    )
 }

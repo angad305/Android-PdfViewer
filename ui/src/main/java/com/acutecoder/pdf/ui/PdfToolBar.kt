@@ -191,19 +191,19 @@ open class PdfToolBar @JvmOverloads constructor(
 
     protected open fun handlePopupMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
-            PdfMenuItem.DOWNLOAD.id -> pdfViewer.downloadFile()
-            PdfMenuItem.ZOOM.id -> showZoomDialog()
-            PdfMenuItem.GO_TO_PAGE.id -> showGoToPageDialog()
-            PdfMenuItem.ROTATE_CLOCK_WISE.id -> pdfViewer.rotateClockWise()
-            PdfMenuItem.ROTATE_ANTI_CLOCK_WISE.id -> pdfViewer.rotateCounterClockWise()
-            PdfMenuItem.SCROLL_MODE.id -> showScrollModeDialog()
-            PdfMenuItem.SPREAD_MODE.id -> showSpreadModeDialog()
-            PdfMenuItem.ALIGN_MODE.id -> showAlignModeDialog()
-            PdfMenuItem.SNAP_PAGE.id -> showSnapPageDialog()
-            PdfMenuItem.PROPERTIES.id -> showPropertiesDialog()
+            PdfToolBarMenuItem.DOWNLOAD.id -> pdfViewer.downloadFile()
+            PdfToolBarMenuItem.ZOOM.id -> showZoomDialog()
+            PdfToolBarMenuItem.GO_TO_PAGE.id -> showGoToPageDialog()
+            PdfToolBarMenuItem.ROTATE_CLOCK_WISE.id -> pdfViewer.rotateClockWise()
+            PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE.id -> pdfViewer.rotateCounterClockWise()
+            PdfToolBarMenuItem.SCROLL_MODE.id -> showScrollModeDialog()
+            PdfToolBarMenuItem.SPREAD_MODE.id -> showSpreadModeDialog()
+            PdfToolBarMenuItem.ALIGN_MODE.id -> showAlignModeDialog()
+            PdfToolBarMenuItem.SNAP_PAGE.id -> showSnapPageDialog()
+            PdfToolBarMenuItem.PROPERTIES.id -> showPropertiesDialog()
         }
 
-        return item.itemId < PdfMenuItem.entries.size
+        return item.itemId < PdfToolBarMenuItem.entries.size
     }
 
     protected open fun getPopupMenu(anchorView: View): PopupMenu {
@@ -212,25 +212,25 @@ open class PdfToolBar @JvmOverloads constructor(
 
     protected open fun addDefaultMenus(popupMenu: PopupMenu): PopupMenu {
         return popupMenu.apply {
-            addMenu("Download", PdfMenuItem.DOWNLOAD)
+            addMenu("Download", PdfToolBarMenuItem.DOWNLOAD)
             addMenu(
                 pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
-                PdfMenuItem.ZOOM
+                PdfToolBarMenuItem.ZOOM
             )
-            addMenu("Go to page", PdfMenuItem.GO_TO_PAGE)
-            addMenu("Rotate Clockwise", PdfMenuItem.ROTATE_CLOCK_WISE)
-            addMenu("Rotate Anti Clockwise", PdfMenuItem.ROTATE_ANTI_CLOCK_WISE)
-            addMenu("Scroll Mode", PdfMenuItem.SCROLL_MODE)
-            addMenu("Split Mode", PdfMenuItem.SPREAD_MODE)
-            addMenu("Align Mode", PdfMenuItem.ALIGN_MODE)
-            addMenu("Snap Page", PdfMenuItem.SNAP_PAGE)
-            addMenu("Properties", PdfMenuItem.PROPERTIES)
+            addMenu("Go to page", PdfToolBarMenuItem.GO_TO_PAGE)
+            addMenu("Rotate Clockwise", PdfToolBarMenuItem.ROTATE_CLOCK_WISE)
+            addMenu("Rotate Anti Clockwise", PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE)
+            addMenu("Scroll Mode", PdfToolBarMenuItem.SCROLL_MODE)
+            addMenu("Split Mode", PdfToolBarMenuItem.SPREAD_MODE)
+            addMenu("Align Mode", PdfToolBarMenuItem.ALIGN_MODE)
+            addMenu("Snap Page", PdfToolBarMenuItem.SNAP_PAGE)
+            addMenu("Properties", PdfToolBarMenuItem.PROPERTIES)
         }
     }
 
-    protected open fun validate(item: PdfMenuItem): Boolean = true
+    protected open fun validate(item: PdfToolBarMenuItem): Boolean = true
 
-    private fun PopupMenu.addMenu(title: String, item: PdfMenuItem) {
+    private fun PopupMenu.addMenu(title: String, item: PdfToolBarMenuItem) {
         if (validate(item))
             menu.add(Menu.NONE, item.id, Menu.NONE, title)
     }

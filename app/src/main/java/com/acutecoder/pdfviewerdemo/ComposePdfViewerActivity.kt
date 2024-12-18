@@ -60,6 +60,7 @@ import com.acutecoder.pdfviewer.compose.rememberPdfState
 import com.acutecoder.pdfviewer.compose.ui.PdfContainer
 import com.acutecoder.pdfviewer.compose.ui.PdfScrollBar
 import com.acutecoder.pdfviewer.compose.ui.PdfToolBar
+import com.acutecoder.pdfviewer.compose.ui.PdfToolBarMenuItem
 import com.acutecoder.pdfviewer.compose.ui.PdfViewer
 import com.acutecoder.pdfviewer.compose.ui.rememberToolBarState
 import com.acutecoder.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
@@ -209,7 +210,7 @@ private fun Activity.MainScreen(
 private fun Activity.ExtendedTooBarMenus(
     state: PdfState,
     onDismiss: () -> Unit,
-    defaultMenus: @Composable (validator: (String) -> Boolean) -> Unit
+    defaultMenus: @Composable (validator: (PdfToolBarMenuItem) -> Boolean) -> Unit
 ) {
     var showZoomLimitDialog by remember { mutableStateOf(false) }
     val dropDownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
