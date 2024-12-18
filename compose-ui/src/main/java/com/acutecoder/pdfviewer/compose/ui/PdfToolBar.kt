@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -79,7 +81,7 @@ fun PdfToolBar(
     contentColor: Color? = null,
     backIcon: (@Composable PdfToolBarScope.() -> Unit)?
     = defaultToolBarBackIcon(contentColor, onBack),
-    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable () -> Unit) -> Unit = defaultToolBarDropDownMenu(),
+    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (String) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
 ) {
     val toolBarScope = PdfToolBarScope(
         pdfState = pdfState,
@@ -99,6 +101,7 @@ fun PdfToolBar(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
+                .horizontalScroll(rememberScrollState())
                 .padding(8.dp)
                 .weight(1f),
             color = contentColor ?: Color.Unspecified,
@@ -134,11 +137,12 @@ fun PdfToolBar(
                 onDismissRequest = { showMoreOptions = false },
                 shape = RoundedCornerShape(12.dp),
             ) {
-                dropDownMenu({ showMoreOptions = false }) {
+                dropDownMenu({ showMoreOptions = false }) { validator ->
                     MoreOptions(
                         state = pdfState,
                         fileName = fileName,
-                        onDismiss = { showMoreOptions = false }
+                        onDismiss = { showMoreOptions = false },
+                        validator = validator,
                     )
                 }
             }
@@ -241,7 +245,12 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
 }
 
 @Composable
-private fun MoreOptions(state: PdfState, fileName: (() -> String)?, onDismiss: () -> Unit) {
+private fun MoreOptions(
+    state: PdfState,
+    fileName: (() -> String)?,
+    onDismiss: () -> Unit,
+    validator: (String) -> Boolean,
+) {
     val pdfViewer = state.pdfViewer ?: return
 
     var showZoom by remember { mutableStateOf(false) }
@@ -253,14 +262,14 @@ private fun MoreOptions(state: PdfState, fileName: (() -> String)?, onDismiss: (
     var showDocumentProperties by remember { mutableStateOf(false) }
     val dropdownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
 
-    DropdownMenuItem(
+    if (validator("Download")) DropdownMenuItem(
         text = { Text("Download", modifier = dropdownModifier) },
         onClick = {
             pdfViewer.downloadFile()
             onDismiss()
         }
     )
-    DropdownMenuItem(
+    if (validator("Zoom")) DropdownMenuItem(
         text = {
             Text(
                 pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
@@ -272,20 +281,20 @@ private fun MoreOptions(state: PdfState, fileName: (() -> String)?, onDismiss: (
         }
     )
 
-    DropdownMenuItem(
+    if (validator("Go to page")) DropdownMenuItem(
         text = { Text("Go to page", modifier = dropdownModifier) },
         onClick = {
             showGoToPage = true
         }
     )
-    DropdownMenuItem(
+    if (validator("Rotate Clockwise")) DropdownMenuItem(
         text = { Text("Rotate Clockwise", modifier = dropdownModifier) },
         onClick = {
             pdfViewer.rotateClockWise()
             onDismiss()
         }
     )
-    DropdownMenuItem(
+    if (validator("Rotate Anti Clockwise")) DropdownMenuItem(
         text = { Text("Rotate Anti Clockwise", modifier = dropdownModifier) },
         onClick = {
             pdfViewer.rotateCounterClockWise()
@@ -293,31 +302,31 @@ private fun MoreOptions(state: PdfState, fileName: (() -> String)?, onDismiss: (
         }
     )
 
-    DropdownMenuItem(
+    if (validator("Scroll Mode")) DropdownMenuItem(
         text = { Text("Scroll Mode", modifier = dropdownModifier) },
         onClick = {
             showScrollMode = true
         }
     )
-    DropdownMenuItem(
+    if (validator("Split Mode")) DropdownMenuItem(
         text = { Text("Split Mode", modifier = dropdownModifier) },
         onClick = {
             showSplitMode = true
         }
     )
-    DropdownMenuItem(
+    if (validator("Align Mode")) DropdownMenuItem(
         text = { Text("Align Mode", modifier = dropdownModifier) },
         onClick = {
             showAlignMode = true
         }
     )
-    DropdownMenuItem(
+    if (validator("Snap Page")) DropdownMenuItem(
         text = { Text("Snap Page", modifier = dropdownModifier) },
         onClick = {
             showSnapPage = true
         }
     )
-    DropdownMenuItem(
+    if (validator("Properties")) DropdownMenuItem(
         text = { Text(text = "Properties", modifier = dropdownModifier) },
         onClick = {
             showDocumentProperties = true
@@ -726,8 +735,8 @@ internal fun defaultToolBarBackIcon(
     }
 }
 
-internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable () -> Unit) -> Unit {
+internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (String) -> Boolean) -> Unit) -> Unit {
     return { _, defaultMenus ->
-        defaultMenus()
+        defaultMenus { true }
     }
 }

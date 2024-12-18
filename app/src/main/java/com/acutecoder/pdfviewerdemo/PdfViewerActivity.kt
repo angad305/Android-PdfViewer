@@ -44,6 +44,7 @@ class PdfViewerActivity : AppCompatActivity() {
         val filePath: String
         val fileName: String
         pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
+            .also { it.includeAll() }
 
         // View from other apps (from intent filter)
         if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
@@ -112,12 +113,12 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        pdfSettingsManager.save(view.pdfViewer, savePageNumber = true)
+        pdfSettingsManager.save(view.pdfViewer)
         super.onPause()
     }
 
     override fun onDestroy() {
-        pdfSettingsManager.save(view.pdfViewer, savePageNumber = true)
+        pdfSettingsManager.save(view.pdfViewer)
         super.onDestroy()
     }
 

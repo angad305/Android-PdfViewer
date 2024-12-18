@@ -55,12 +55,12 @@ import com.acutecoder.pdf.PdfOnScrollModeChange
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.setting.sharedPdfSettingsManager
+import com.acutecoder.pdfviewer.compose.PdfState
+import com.acutecoder.pdfviewer.compose.rememberPdfState
 import com.acutecoder.pdfviewer.compose.ui.PdfContainer
 import com.acutecoder.pdfviewer.compose.ui.PdfScrollBar
-import com.acutecoder.pdfviewer.compose.PdfState
 import com.acutecoder.pdfviewer.compose.ui.PdfToolBar
 import com.acutecoder.pdfviewer.compose.ui.PdfViewer
-import com.acutecoder.pdfviewer.compose.rememberPdfState
 import com.acutecoder.pdfviewer.compose.ui.rememberToolBarState
 import com.acutecoder.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
 
@@ -75,6 +75,7 @@ class ComposePdfViewerActivity : ComponentActivity() {
         val filePath: String
         val fileName: String
         pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
+            .also { it.includeAll() }
 
         // View from other apps (from intent filter)
         if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
@@ -84,8 +85,8 @@ class ComposePdfViewerActivity : ComponentActivity() {
             // Path from asset, url or android uri
             filePath = intent.extras?.getString("filePath")
                 ?: intent.extras?.getString("fileUrl")
-                ?: intent.extras?.getString("fileUri")
-                ?: run {
+                        ?: intent.extras?.getString("fileUri")
+                        ?: run {
                     toast("No source available!")
                     finish()
                     return
@@ -115,12 +116,12 @@ class ComposePdfViewerActivity : ComponentActivity() {
     }
 
     override fun onPause() {
-        pdfViewer?.let { pdfSettingsManager.save(it, savePageNumber = true) }
+        pdfViewer?.let { pdfSettingsManager.save(it) }
         super.onPause()
     }
 
     override fun onDestroy() {
-        pdfViewer?.let { pdfSettingsManager.save(it, savePageNumber = true) }
+        pdfViewer?.let { pdfSettingsManager.save(it) }
         super.onDestroy()
     }
 }
@@ -144,7 +145,7 @@ private fun Activity.MainScreen(
 
     DisposableEffect(Unit) {
         onDispose {
-            pdfState.pdfViewer?.let { pdfSettingsManager.save(it, savePageNumber = true) }
+            pdfState.pdfViewer?.let { pdfSettingsManager.save(it) }
             setPdfViewer(null)
         }
     }
@@ -208,7 +209,7 @@ private fun Activity.MainScreen(
 private fun Activity.ExtendedTooBarMenus(
     state: PdfState,
     onDismiss: () -> Unit,
-    defaultMenus: @Composable () -> Unit
+    defaultMenus: @Composable (validator: (String) -> Boolean) -> Unit
 ) {
     var showZoomLimitDialog by remember { mutableStateOf(false) }
     val dropDownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
@@ -230,7 +231,7 @@ private fun Activity.ExtendedTooBarMenus(
         text = { Text(text = "Zoom Limit", modifier = dropDownModifier) },
         onClick = { showZoomLimitDialog = true }
     )
-    defaultMenus()
+    defaultMenus { true }
 
     if (showZoomLimitDialog)
         ZoomLimitDialog(state = state, onDismiss = { showZoomLimitDialog = false; onDismiss() })

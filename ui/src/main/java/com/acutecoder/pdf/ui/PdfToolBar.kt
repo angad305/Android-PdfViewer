@@ -7,6 +7,7 @@ import android.content.DialogInterface
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -209,7 +210,7 @@ open class PdfToolBar @JvmOverloads constructor(
         return addDefaultMenus(PopupMenu(context, anchorView))
     }
 
-    protected fun addDefaultMenus(popupMenu: PopupMenu): PopupMenu {
+    protected open fun addDefaultMenus(popupMenu: PopupMenu): PopupMenu {
         return popupMenu.apply {
             addMenu("Download", PdfMenuItem.DOWNLOAD)
             addMenu(
@@ -225,6 +226,13 @@ open class PdfToolBar @JvmOverloads constructor(
             addMenu("Snap Page", PdfMenuItem.SNAP_PAGE)
             addMenu("Properties", PdfMenuItem.PROPERTIES)
         }
+    }
+
+    protected open fun validate(item: PdfMenuItem): Boolean = true
+
+    private fun PopupMenu.addMenu(title: String, item: PdfMenuItem) {
+        if (validate(item))
+            menu.add(Menu.NONE, item.id, Menu.NONE, title)
     }
 
     private fun showZoomDialog() {

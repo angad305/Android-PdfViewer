@@ -2,12 +2,10 @@ package com.acutecoder.pdf.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
-import android.view.Menu
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.PopupMenu
 import androidx.core.graphics.ColorUtils
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -29,10 +27,6 @@ internal fun String.formatZoom(zoom: Float): String {
         Zoom.ACTUAL_SIZE.value -> "Zoom (Actual Size)"
         else -> "Zoom (${(zoom * 100).roundToInt()}%)"
     }
-}
-
-internal fun PopupMenu.addMenu(title: String, item: PdfMenuItem) {
-    menu.add(Menu.NONE, item.id, Menu.NONE, title)
 }
 
 internal fun EditText.requestKeyboard() {

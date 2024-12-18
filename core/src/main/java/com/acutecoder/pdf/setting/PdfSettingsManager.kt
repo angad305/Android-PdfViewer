@@ -6,24 +6,44 @@ import com.acutecoder.pdf.PdfViewer
 
 class PdfSettingsManager(private val saver: PdfSettingsSaver) {
 
-    fun save(pdfViewer: PdfViewer, savePageNumber: Boolean = false) {
+    var currentPageIncluded = false
+    var minScaleIncluded = true
+    var maxScaleIncluded = true
+    var defaultScaleIncluded = true
+    var scrollModeIncluded = true
+    var spreadModeIncluded = true
+    var rotationIncluded = true
+    var alignModeIncluded = true
+    var snapPageIncluded = true
+
+    fun includeAll() {
+        currentPageIncluded = true
+        minScaleIncluded = true
+        maxScaleIncluded = true
+        defaultScaleIncluded = true
+        scrollModeIncluded = true
+        spreadModeIncluded = true
+        rotationIncluded = true
+        alignModeIncluded = true
+        snapPageIncluded = true
+    }
+
+    fun save(pdfViewer: PdfViewer) {
         saver.run {
             pdfViewer.run {
-                if (savePageNumber)
-                    save(KEY_CURRENT_PAGE, currentPage)
-                else remove(KEY_CURRENT_PAGE)
+                save(currentPageIncluded, KEY_CURRENT_PAGE, currentPage)
 
-                save(KEY_MIN_SCALE, minPageScale)
-                save(KEY_MAX_SCALE, maxPageScale)
-                save(KEY_DEFAULT_SCALE, currentPageScale)
+                save(minScaleIncluded, KEY_MIN_SCALE, minPageScale)
+                save(maxScaleIncluded, KEY_MAX_SCALE, maxPageScale)
+                save(defaultScaleIncluded, KEY_DEFAULT_SCALE, currentPageScale)
 
-                save(KEY_SCROLL_MODE, pageScrollMode)
-                save(KEY_SPREAD_MODE, pageSpreadMode)
-                save(KEY_ROTATION, pageRotation)
+                save(scrollModeIncluded, KEY_SCROLL_MODE, pageScrollMode)
+                save(spreadModeIncluded, KEY_SPREAD_MODE, pageSpreadMode)
+                save(rotationIncluded, KEY_ROTATION, pageRotation)
 
                 @OptIn(PdfUnstableApi::class)
-                save(KEY_ALIGN_MODE, pageAlignMode)
-                save(KEY_SNAP_PAGE, snapPage)
+                save(alignModeIncluded, KEY_ALIGN_MODE, pageAlignMode)
+                save(snapPageIncluded, KEY_SNAP_PAGE, snapPage)
 
                 apply()
             }
@@ -59,6 +79,26 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
     fun reset() {
         saver.clearAll()
         saver.apply()
+    }
+
+    private fun PdfSettingsSaver.save(included: Boolean, key: String, value: Int) {
+        if (included) save(key, value)
+        else remove(key)
+    }
+
+    private fun PdfSettingsSaver.save(included: Boolean, key: String, value: Float) {
+        if (included) save(key, value)
+        else remove(key)
+    }
+
+    private fun PdfSettingsSaver.save(included: Boolean, key: String, value: Boolean) {
+        if (included) save(key, value)
+        else remove(key)
+    }
+
+    private fun <T : Enum<T>> PdfSettingsSaver.save(included: Boolean, key: String, value: T) {
+        if (included) save(key, value.name)
+        else remove(key)
     }
 
     companion object {
