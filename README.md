@@ -1,6 +1,4 @@
 
-
-
 # PdfViewer (Early stage)
 
 A lightweight **Android PDF viewer library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features.
@@ -19,7 +17,7 @@ You can download apk from [here](/app/release/app-release.apk)
 2. [Usage](#2-usage)<br>
    2.1. [Core PdfViewer](#21-core-pdfviewer)<br>
    2.2. [Full UI](#22-full-ui)<br>
-   2.3. [Without PdfContainer](#23-without-pdfcontainer)<br>
+   2.3. [Without PdfViewerContainer](#23-without-pdfviewercontainer)<br>
    2.4. [Listener](#24-listener)<br>
    2.5. [Adding extra menu to PdfToolBar](#25-adding-extra-menu-to-pdftoolbar)<br>
 3. [See also](#3-see-also)<br>
@@ -109,16 +107,16 @@ Then call load function
 <pre>
   // Kotlin
   pdfViewer.onReady {
-    load(filePath)
+    load(source)
   }
 
   // Java
   PdfUtil.onReady(pdfViewer, () -> {
-    pdfViewer.load(filePath);
+    pdfViewer.load(source);
   });
 </pre>
 
-filePath can be
+source can be
  1. Asset Path like "file:///android_asset/sample.pdf"
  2. Android Uri
  3. Network url like "https://example.com/sample.pdf"
@@ -138,7 +136,7 @@ filePath can be
 Include compose dependency
 
 <pre>
-val pdfState = rememberPdfState(url = filePath)
+val pdfState = rememberPdfState(source = source)
 PdfViewer(  
     pdfState = pdfState,  
     modifier = Modifier,  
@@ -153,7 +151,7 @@ PdfViewer(
 Include core and ui dependencies
 
 <pre>
-&lt;com.acutecoder.pdf.ui.PdfContainer xmlns:android="http://schemas.android.com/apk/res/android"
+&lt;com.acutecoder.pdf.ui.PdfViewerContainer xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   xmlns:tools="http://schemas.android.com/tools"
   android:id="@+id/container"
@@ -161,7 +159,7 @@ Include core and ui dependencies
   android:layout_height="match_parent"
   tools:context=".MainActivity"&gt;
 
-&lt;!-- id is mandatory, if not random int will be assigned by PdfContainer--&gt;
+&lt;!-- id is mandatory, if not random int will be assigned by PdfViewerContainer--&gt;
   &lt;com.acutecoder.pdf.ui.PdfToolBar
       android:id="@+id/toolbar"
       android:layout_width="match_parent"
@@ -183,7 +181,7 @@ Include core and ui dependencies
       app:handleColor="@color/md_theme_background" /&gt;
 
   &lt;LinearLayout
-      android:id="@+id/loaderView"
+      android:id="@+id/loading_indicator"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:layout_below="@id/toolbar"
@@ -197,16 +195,16 @@ Include core and ui dependencies
 
   &lt;/LinearLayout&gt;
 
-&lt;/com.acutecoder.pdf.ui.PdfContainer&gt;
+&lt;/com.acutecoder.pdf.ui.PdfViewerContainer&gt;
 </pre>
 
 Then load the file
 <pre>
 pdfViewer.onReady {
-    load(filePath)
+    load(source)
     toolbar.setFileName(fileName) // or toolbar.setTitle(title)
 }
-container.setAsLoader(loaderView)
+container.setAsLoadingIndicator(loadingIndicator)
 </pre>
 
 **With Compose**
@@ -214,9 +212,9 @@ container.setAsLoader(loaderView)
 Include compose and compose-ui dependencies
 
 <pre>
-val pdfState = rememberPdfState(url = filePath)  
+val pdfState = rememberPdfState(source = source)  
 
-PdfContainer(  
+PdfViewerContainer(  
    pdfState = pdfState,  
    pdfViewer = {  
       PdfViewer(  
@@ -238,7 +236,7 @@ PdfContainer(
          handleColor = MaterialTheme.colorScheme.background  
       )  
    },  
-   loader = {  
+   loadingIndicator = {  
       Column(  
          modifier = Modifier  
             .fillMaxSize()  
@@ -252,7 +250,7 @@ PdfContainer(
  })
 </pre>
 
-### 2.3 Without PdfContainer
+### 2.3 Without PdfViewerContainer
 <pre>
 &lt;RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -294,7 +292,7 @@ And then
 pdfToolBar.setupWith(pdfViewer)
 pdfScrollBar.setupWith(pdfViewer, pdfToolBar)
 pdfViewer.onReady {
-  load(filePath)
+  load(source)
   toolbar.setFileName(fileName) // or toolbar.setTitle(title)
 }
 </pre>
@@ -321,7 +319,7 @@ pdfViewer.addListener(object: PdfListener {
 > [!NOTE]
 > [PdfViewerActivity.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/PdfViewerActivity.kt) <br>
 > [ComposePdfViewerActivity.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/ComposePdfViewerActivity.kt)<br>
-> [PdfContainer.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfContainer.kt)<br>
+> [PdfViewerContainer.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfViewerContainer.kt)<br>
 > [PdfScrollBar.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfScrollBar.kt)<br>
 > [PdfToolBar.kt](/ui/src/main/java/com/acutecoder/pdf/ui/PdfToolBar.kt)<br>
 > [ExtendedToolBar.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/ExtendedToolBar.kt)<br>

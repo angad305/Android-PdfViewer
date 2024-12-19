@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.acutecoder.pdf.ui.PdfContainer xmlns:android="http://schemas.android.com/apk/res/android"
+<com.acutecoder.pdf.ui.PdfViewerContainer xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
@@ -42,4 +42,4 @@
 
     </LinearLayout>
 
-</com.acutecoder.pdf.ui.PdfContainer>
+</com.acutecoder.pdf.ui.PdfViewerContainer>

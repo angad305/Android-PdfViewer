@@ -41,7 +41,7 @@ class PdfViewer @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     var isInitialized = false; private set
-    var currentUrl: String? = null; private set
+    var currentSource: String? = null; private set
     var currentPage: Int = 1; private set
     var pagesCount: Int = 0; private set
     var currentPageScale: Float = 0f; private set
@@ -161,7 +161,7 @@ class PdfViewer @JvmOverloads constructor(
             webView setDirectly "LONG_CLICK_THRESHOLD"(value)
         }
 
-    @FloatRange(-4.0, 10.0)
+    @FloatRange(from = -4.0, to = 10.0)
     var minPageScale = 0.1f
         set(value) {
             field = value
@@ -174,7 +174,7 @@ class PdfViewer @JvmOverloads constructor(
                 listeners.forEach { it.onScaleLimitChange(value, maxPageScale, defaultPageScale) }
         }
 
-    @FloatRange(-4.0, 10.0)
+    @FloatRange(from = -4.0, to = 10.0)
     var maxPageScale = 10f
         set(value) {
             if (field != value)
@@ -187,7 +187,7 @@ class PdfViewer @JvmOverloads constructor(
             }
         }
 
-    @FloatRange(-4.0, 10.0)
+    @FloatRange(from = -4.0, to = 10.0)
     var defaultPageScale = Zoom.AUTOMATIC.floatValue
         set(value) {
             if (field != value)
@@ -266,17 +266,17 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     @JvmOverloads
-    fun load(url: String, originalUrl: String = url) {
+    fun load(source: String, originalUrl: String = source) {
         checkViewer()
         currentPage = 1
         pagesCount = 0
         currentPageScale = 0f
         currentPageScaleValue = ""
         properties = null
-        currentUrl = url
+        currentSource = source
 
         listeners.forEach { it.onPageLoadStart() }
-        webView callDirectly "openFile"("{url: '$url', originalUrl: '$originalUrl'}")
+        webView callDirectly "openFile"("{url: '$source', originalUrl: '$originalUrl'}")
     }
 
     fun onReady(onReady: PdfViewer.() -> Unit) {
@@ -304,7 +304,7 @@ class PdfViewer @JvmOverloads constructor(
         webView callDirectly "scrollToRatio"(ratio)
     }
 
-    fun scrollTo(offset: Int) {
+    fun scrollTo(@IntRange(from = 0) offset: Int) {
         webView callDirectly "scrollTo"(offset)
     }
 
@@ -320,7 +320,7 @@ class PdfViewer @JvmOverloads constructor(
         webView callDirectly "goToLastPage"()
     }
 
-    fun scalePageTo(@FloatRange(-4.0, 10.0) scale: Float) {
+    fun scalePageTo(@FloatRange(from = -4.0, to = 10.0) scale: Float) {
         if (scale in Zoom_SCALE_RANGE)
             zoomTo(Zoom.entries[abs(scale.toInt()) - 1])
         else {
@@ -431,7 +431,7 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     private fun checkViewer() {
-        if (!isInitialized) throw PdfViewNotInitializedException()
+        if (!isInitialized) throw PdfViewerNotInitializedException()
     }
 
     @OptIn(PdfUnstableApi::class)

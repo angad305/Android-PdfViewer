@@ -20,7 +20,7 @@ import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfViewer
 import kotlin.random.Random
 
-class PdfContainer : RelativeLayout {
+class PdfViewerContainer : RelativeLayout {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
@@ -77,14 +77,14 @@ class PdfContainer : RelativeLayout {
         }
     }
 
-    fun setAsLoader(loader: View) {
+    fun setAsLoadingIndicator(view: View) {
         pdfViewer?.addListener(object : PdfListener {
             override fun onPageLoadStart() {
-                loader.visibility = VISIBLE
+                view.visibility = VISIBLE
             }
 
             override fun onPageLoadSuccess(pagesCount: Int) {
-                loader.visibility = GONE
+                view.visibility = GONE
             }
         })
     }

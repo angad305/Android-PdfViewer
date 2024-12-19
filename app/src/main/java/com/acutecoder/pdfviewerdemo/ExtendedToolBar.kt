@@ -13,17 +13,16 @@ import com.acutecoder.pdf.ui.PdfToolBar
 import com.acutecoder.pdfviewerdemo.databinding.ZoomLimitDialogBinding
 import kotlin.math.roundToInt
 
-class ExtendedToolBar : PdfToolBar {
-
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
-            : super(context, attrs, defStyleAttr)
+class ExtendedToolBar @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : PdfToolBar(context, attrs, defStyleAttr) {
 
     override fun getPopupMenu(anchorView: View): PopupMenu {
         return PopupMenu(context, anchorView).apply {
             // Item ids 0-9 are already taken
-            if (pdfViewer.currentUrl?.startsWith("file:///android_asset") == false)
+            if (pdfViewer.currentSource?.startsWith("file:///android_asset") == false)
                 menu.add(Menu.NONE, 10, Menu.NONE, "Open in other app")
             menu.add(Menu.NONE, 11, Menu.NONE, "Zoom Limit")
             addDefaultMenus(this)
@@ -35,7 +34,7 @@ class ExtendedToolBar : PdfToolBar {
 
         return when (item.itemId) {
             10 -> {
-                val uri = Uri.parse(pdfViewer.currentUrl)
+                val uri = Uri.parse(pdfViewer.currentSource)
                 context.startActivity(
                     Intent(Intent.ACTION_VIEW, uri).apply {
                         putExtra(Intent.EXTRA_STREAM, uri)

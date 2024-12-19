@@ -57,7 +57,7 @@ import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.setting.sharedPdfSettingsManager
 import com.acutecoder.pdfviewer.compose.PdfState
 import com.acutecoder.pdfviewer.compose.rememberPdfState
-import com.acutecoder.pdfviewer.compose.ui.PdfContainer
+import com.acutecoder.pdfviewer.compose.ui.PdfViewerContainer
 import com.acutecoder.pdfviewer.compose.ui.PdfScrollBar
 import com.acutecoder.pdfviewer.compose.ui.PdfToolBar
 import com.acutecoder.pdfviewer.compose.ui.PdfToolBarMenuItem
@@ -157,7 +157,7 @@ private fun Activity.MainScreen(
         else finish()
     }
 
-    PdfContainer(
+    PdfViewerContainer(
         pdfState = pdfState,
         pdfViewer = {
             PdfViewer(
@@ -191,7 +191,7 @@ private fun Activity.MainScreen(
                 handleColor = MaterialTheme.colorScheme.background
             )
         },
-        loader = {
+        loadingIndicator = {
             Column(
                 Modifier
                     .fillMaxSize()
@@ -215,11 +215,11 @@ private fun Activity.ExtendedTooBarMenus(
     var showZoomLimitDialog by remember { mutableStateOf(false) }
     val dropDownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
 
-    if (state.pdfViewer?.currentUrl?.startsWith("file:///android_asset") == false)
+    if (state.pdfViewer?.currentSource?.startsWith("file:///android_asset") == false)
         DropdownMenuItem(
             text = { Text(text = "Open in other app", modifier = dropDownModifier) },
             onClick = {
-                val uri = Uri.parse(state.pdfViewer?.currentUrl ?: return@DropdownMenuItem)
+                val uri = Uri.parse(state.pdfViewer?.currentSource ?: return@DropdownMenuItem)
                 startActivity(
                     Intent(Intent.ACTION_VIEW, uri).apply {
                         putExtra(Intent.EXTRA_STREAM, uri)
@@ -354,7 +354,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
         }
     }
 
-    PdfContainer(
+    PdfViewerContainer(
         pdfState = state,
         pdfViewer = {
             var showPageButtons by remember { mutableStateOf(false) }
@@ -430,7 +430,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
                 handleColor = MaterialTheme.colorScheme.background
             )
         },
-        loader = {
+        loadingIndicator = {
             Column(
                 Modifier
                     .fillMaxSize()

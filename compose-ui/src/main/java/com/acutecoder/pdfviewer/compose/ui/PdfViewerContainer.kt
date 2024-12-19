@@ -16,12 +16,12 @@ import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdfviewer.compose.PdfState
 
 @Composable
-fun PdfContainer(
+fun PdfViewerContainer(
     pdfState: PdfState,
     pdfViewer: @Composable PdfContainerBoxScope.() -> Unit,
     pdfToolBar: (@Composable PdfContainerScope.() -> Unit)? = null,
     pdfScrollBar: (@Composable PdfContainerBoxScope.(parentHeight: Int) -> Unit)? = null,
-    loader: (@Composable PdfContainerBoxScope.() -> Unit)? = null,
+    loadingIndicator: (@Composable PdfContainerBoxScope.() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var parentHeight by remember { mutableIntStateOf(0) }
@@ -45,7 +45,7 @@ fun PdfContainer(
                 }
             }
 
-            if (pdfState.isLoading || !pdfState.isInitialized) loader?.invoke(
+            if (pdfState.isLoading || !pdfState.isInitialized) loadingIndicator?.invoke(
                 PdfContainerBoxScope(pdfState, this)
             )
         }

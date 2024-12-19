@@ -19,7 +19,7 @@ fun PdfViewer(
     LaunchedEffect(state.url) {
         state.pdfViewer?.run {
             if (isInitialized)
-                load(url = state.url)
+                load(source = state.url)
         }
     }
 
