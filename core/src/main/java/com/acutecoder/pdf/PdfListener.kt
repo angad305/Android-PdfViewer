@@ -13,7 +13,7 @@ interface PdfListener {
     fun onFindMatchStart() {}
     fun onFindMatchChange(current: Int, total: Int) {}
     fun onFindMatchComplete(found: Boolean) {}
-    fun onScrollChange(currentOffset: Int, totalOffset: Int) {}
+    fun onScrollChange(currentOffset: Int, totalOffset: Int, isHorizontalScroll: Boolean) {}
     fun onLoadProperties(properties: PdfDocumentProperties) {}
     fun onPasswordDialogChange(isOpen: Boolean) {}
     fun onScrollModeChange(scrollMode: PdfViewer.PageScrollMode) {}
@@ -112,10 +112,10 @@ fun PdfOnFindMatchComplete(callback: (found: Boolean) -> Unit) =
     }
 
 @Suppress("FunctionName")
-fun PdfOnScrollChange(callback: (currentOffset: Int, totalOffset: Int) -> Unit) =
+fun PdfOnScrollChange(callback: (currentOffset: Int, totalOffset: Int, isHorizontal: Boolean) -> Unit) =
     object : PdfListener {
-        override fun onScrollChange(currentOffset: Int, totalOffset: Int) {
-            callback(currentOffset, totalOffset)
+        override fun onScrollChange(currentOffset: Int, totalOffset: Int, isHorizontalScroll: Boolean) {
+            callback(currentOffset, totalOffset, isHorizontalScroll)
         }
     }
 

@@ -26,16 +26,35 @@ class PdfScrollBar @JvmOverloads constructor(
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     @SuppressLint("InflateParams")
-    private val root = LayoutInflater.from(context).inflate(R.layout.pdf_scrollbar, null)
+    private val rootVertical =
+        LayoutInflater.from(context).inflate(R.layout.pdf_scrollbar_vertical, null)
+
+    @SuppressLint("InflateParams")
+    private val rootHorizontal =
+        LayoutInflater.from(context).inflate(R.layout.pdf_scrollbar_horizontal, null)
+    private var root = rootVertical
+
     private val timer = Timer()
     private var timerTask: TimerTask? = null
     private var isSetupDone = false
+    private val scrollModeChangeListeners = mutableListOf<(isHorizontalScroll: Boolean) -> Unit>()
+    var useVerticalScrollBarForHorizontalMode = false
+    var isHorizontalScroll = false
+        private set(value) {
+            val newValue = value && !useVerticalScrollBarForHorizontalMode
+            if (field == newValue) return
+            field = newValue
+            applyScrollMode(newValue)
+        }
+
     var hideDelayMillis = 2000L
     var animationDuration = 250L
     var interactiveScrolling = true
 
-    val pageNumberInfo: TextView = root.findViewById(R.id.page_number_info)
-    val dragHandle: ImageView = root.findViewById(R.id.drag_handle)
+    val pageNumberInfo: TextView
+        get() = root.findViewById(R.id.page_number_info)
+    val dragHandle: ImageView
+        get() = root.findViewById(R.id.drag_handle)
 
     init {
         addView(root)
@@ -51,7 +70,12 @@ class PdfScrollBar @JvmOverloads constructor(
                 R.styleable.PdfScrollBar_handleColor,
                 0xfff1f1f1.toInt()
             )
+            val useVerticalScrollBarForHorizontalMode = typedArray.getBoolean(
+                R.styleable.PdfScrollBar_useVerticalScrollBarForHorizontalMode,
+                useVerticalScrollBarForHorizontalMode
+            )
             setContentColor(contentColor, handleColor)
+            this.useVerticalScrollBarForHorizontalMode = useVerticalScrollBarForHorizontalMode
             typedArray.recycle()
         }
 
@@ -66,7 +90,25 @@ class PdfScrollBar @JvmOverloads constructor(
         isSetupDone = true
 
         pdfViewer.post {
-            val dragListener = DragListener(
+            val dragListenerX = DragListenerX(
+                targetView = this,
+                parentWidth = pdfViewer.width,
+                onScrollChange = { x ->
+                    val ratio = x / (pdfViewer.width - width)
+                    pdfViewer.scrollToRatio(ratio)
+                },
+                onUpdatePageInfoForNonInteractiveMode = { y ->
+                    timerTask?.cancel()
+                    if (visibility != VISIBLE) animateShow()
+                    startTimer()
+
+                    val ratio = x / (pdfViewer.width - width)
+                    val pageNumber =
+                        (ratio * (pdfViewer.pagesCount - 1)).checkNaN(1f).roundToInt() + 1
+                    pageNumberInfo.text = "$pageNumber/${pdfViewer.pagesCount}"
+                }
+            )
+            val dragListenerY = DragListenerY(
                 targetView = this,
                 parentHeight = pdfViewer.height,
                 topHeight = toolBar?.height ?: 0,
@@ -87,7 +129,8 @@ class PdfScrollBar @JvmOverloads constructor(
             )
 
             pdfViewer.onReady { ui.viewerScrollbar = false }
-            dragHandle.setOnTouchListener(dragListener)
+            rootHorizontal.findViewById<View>(R.id.drag_handle).setOnTouchListener(dragListenerX)
+            rootVertical.findViewById<View>(R.id.drag_handle).setOnTouchListener(dragListenerY)
 
             pdfViewer.addListener(object : PdfListener {
                 override fun onPageChange(pageNumber: Int) {
@@ -103,19 +146,40 @@ class PdfScrollBar @JvmOverloads constructor(
                     pdfViewer.scrollTo(0)
                 }
 
-                override fun onScrollChange(currentOffset: Int, totalOffset: Int) {
+                override fun onScrollChange(
+                    currentOffset: Int,
+                    totalOffset: Int,
+                    isHorizontalScroll: Boolean
+                ) {
                     timerTask?.cancel()
                     if (visibility != VISIBLE) animateShow()
                     startTimer()
+                    this@PdfScrollBar.isHorizontalScroll = isHorizontalScroll
+                    pageNumberInfo.text = "${pdfViewer.currentPage}/${pdfViewer.pagesCount}"
 
-                    if (!dragListener.isDragging) {
+                    if (!dragListenerY.isDragging && !dragListenerX.isDragging) {
                         val ratio = currentOffset.toFloat() / totalOffset.toFloat()
-                        val top = (pdfViewer.height - height) * ratio
-                        translationY = (toolBar?.height ?: 0) + top
+                        if (this@PdfScrollBar.isHorizontalScroll) {
+                            val left = (pdfViewer.width - width) * ratio
+                            translationX = left
+                            translationY = 0f
+                        } else {
+                            val top = (pdfViewer.height - height) * ratio
+                            translationY = (toolBar?.height ?: 0) + top
+                            translationX = 0f
+                        }
                     }
                 }
             })
         }
+    }
+
+    fun addScrollModeChangeListener(listener: (isHorizontalScroll: Boolean) -> Unit) {
+        scrollModeChangeListeners.add(listener)
+    }
+
+    fun removeScrollModeChangeListener(listener: (isHorizontalScroll: Boolean) -> Unit) {
+        scrollModeChangeListeners.remove(listener)
     }
 
     fun setContentColor(@ColorInt contentColor: Int, @ColorInt handleColor: Int) {
@@ -164,7 +228,56 @@ class PdfScrollBar @JvmOverloads constructor(
         }
     }
 
-    inner class DragListener(
+    private fun applyScrollMode(isHorizontalScroll: Boolean) {
+        rootVertical.removeFromParent()
+        rootHorizontal.removeFromParent()
+        root = if (isHorizontalScroll) rootHorizontal else rootVertical
+        addView(root)
+        scrollModeChangeListeners.forEach { it(isHorizontalScroll) }
+    }
+
+    inner class DragListenerX(
+        private var targetView: View,
+        private val parentWidth: Int,
+        private val onScrollChange: (x: Float) -> Unit,
+        private val onUpdatePageInfoForNonInteractiveMode: (x: Float) -> Unit,
+    ) : OnTouchListener {
+        var isDragging: Boolean = false
+        private var dX: Float = 0f
+
+        @SuppressLint("ClickableViewAccessibility")
+        override fun onTouch(view: View, event: MotionEvent): Boolean {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    dX = targetView.x - event.rawX
+                    isDragging = true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val x = (event.rawX + dX - width / 2)
+                        .coerceIn(0f, parentWidth.toFloat() - width)
+
+                    targetView.translationX = x
+                    if (interactiveScrolling)
+                        onScrollChange(x)
+                    else onUpdatePageInfoForNonInteractiveMode(x)
+                }
+
+                else -> {
+                    if (!interactiveScrolling)
+                        onScrollChange(targetView.translationX)
+
+                    isDragging = false
+                    startTimer()
+
+                    return false
+                }
+            }
+            return true
+        }
+    }
+
+    inner class DragListenerY(
         private var targetView: View,
         private val parentHeight: Int,
         private val topHeight: Int,

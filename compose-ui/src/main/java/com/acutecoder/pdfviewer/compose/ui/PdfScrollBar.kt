@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -16,10 +17,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.acutecoder.pdfviewer.compose.PdfState
@@ -37,27 +39,38 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
-fun PdfScrollBar(
+fun PdfContainerBoxScope.PdfScrollBar(
     pdfState: PdfState,
-    parentHeight: Int,
+    parentSize: IntSize,
     modifier: Modifier = Modifier,
     contentColor: Color = Color.Black,
     handleColor: Color = Color(0xfff1f1f1),
-    interactiveScrolling: Boolean = true
+    interactiveScrolling: Boolean = true,
+    useVerticalScrollBarForHorizontalMode: Boolean = false,
 ) {
     var visible by remember { mutableStateOf(true) }
-    var myHeight by remember { mutableIntStateOf(1) }
+    var mySize by remember { mutableStateOf(IntSize(1, 1)) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
+    var isHorizontalScroll by remember { mutableStateOf(false) }
 
     LaunchedEffect(pdfState.scrollState) {
         visible = true
         if (!isDragging) {
-            offsetY = (pdfState.scrollState.ratio * (parentHeight - myHeight))
+            offsetX = (pdfState.scrollState.ratio * (parentSize.width - mySize.width))
+            offsetY = (pdfState.scrollState.ratio * (parentSize.height - mySize.height))
         }
         delay(1200)
         if (!isDragging)
             visible = false
+    }
+
+    LaunchedEffect(pdfState.scrollState.isHorizontalScroll) {
+        val newValue =
+            pdfState.scrollState.isHorizontalScroll && !useVerticalScrollBarForHorizontalMode
+        if (isHorizontalScroll != newValue)
+            isHorizontalScroll = newValue
     }
 
     LaunchedEffect(pdfState.isInitialized) {
@@ -70,69 +83,181 @@ fun PdfScrollBar(
         visible = visible,
         enter = fadeIn(),
         exit = fadeOut(),
-        modifier = Modifier
-            .offset { IntOffset(x = 0, y = offsetY.toInt()) }
-            .onGloballyPositioned {
-                myHeight = it.size.height
+        modifier = modifier
+            .align(if (isHorizontalScroll) Alignment.BottomStart else Alignment.TopEnd)
+            .offset {
+                IntOffset(
+                    x = if (isHorizontalScroll) offsetX.toInt() else 0,
+                    y = if (isHorizontalScroll) 0 else offsetY.toInt()
+                )
             }
+            .onGloballyPositioned { mySize = it.size }
     ) {
-        Row(
-            modifier = modifier,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val currentPage =
-                if (interactiveScrolling) pdfState.currentPage
-                else {
-                    val ratio = offsetY / (parentHeight - myHeight)
-                    (ratio * (pdfState.pagesCount - 1)).checkNaN(1f).roundToInt() + 1
-                }
-
-            Text(
-                text = "$currentPage/${pdfState.pagesCount}",
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(handleColor)
-                    .padding(horizontal = 8.dp, vertical = 1.dp),
-                fontSize = 12.sp,
-                color = contentColor
-            )
-
-            Icon(
-                painter = painterResource(R.drawable.baseline_drag_indicator_24),
-                contentDescription = null,
-                modifier = Modifier
-                    .draggable(
-                        orientation = Orientation.Vertical,
-                        state = rememberDraggableState { delta ->
-                            isDragging = true
-                            val newOffsetY =
-                                (offsetY + delta).coerceIn(0f, (parentHeight - myHeight).toFloat())
-                            offsetY = newOffsetY
-                            val newRatio = newOffsetY / (parentHeight - myHeight)
-
-                            if (interactiveScrolling) {
-                                pdfState.pdfViewer?.scrollToRatio(newRatio)
-                            }
-                        },
-                        onDragStopped = {
-                            if (!interactiveScrolling) {
-                                val newRatio = offsetY / (parentHeight - myHeight)
-                                val newCurrentPage = (newRatio * (pdfState.pagesCount - 1)).toInt() + 1
-                                pdfState.pdfViewer?.scrollToRatio(newRatio)
-                                pdfState.pdfViewer?.goToPage(newCurrentPage)
-                            }
-                            isDragging = false
-                        }
-                    )
-                    .padding(start = 4.dp)
-                    .size(height = 48.dp, width = 38.dp)
-                    .clip(RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp))
-                    .background(handleColor)
-                    .padding(vertical = 8.dp)
-                    .padding(start = 8.dp, end = 4.dp),
-                tint = contentColor,
-            )
-        }
+        if (isHorizontalScroll) HorizontalScrollBar(
+            interactiveScrolling = interactiveScrolling,
+            pdfState = pdfState,
+            offsetX = offsetX,
+            parentWidth = parentSize.width,
+            myWidth = mySize.width,
+            handleColor = handleColor,
+            contentColor = contentColor,
+            setIsDragging = { isDragging = it },
+            setOffsetX = { offsetX = it }
+        )
+        else VerticalScrollBar(
+            interactiveScrolling = interactiveScrolling,
+            pdfState = pdfState,
+            offsetY = offsetY,
+            parentHeight = parentSize.height,
+            myHeight = mySize.height,
+            handleColor = handleColor,
+            contentColor = contentColor,
+            setIsDragging = { isDragging = it },
+            setOffsetY = { offsetY = it }
+        )
     }
 }
 
+@Composable
+private fun HorizontalScrollBar(
+    interactiveScrolling: Boolean,
+    pdfState: PdfState,
+    offsetX: Float,
+    parentWidth: Int,
+    myWidth: Int,
+    handleColor: Color,
+    contentColor: Color,
+    setIsDragging: (Boolean) -> Unit,
+    setOffsetX: (Float) -> Unit,
+) {
+    DisposableEffect(Unit) { onDispose { setIsDragging(false) } }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        val currentPage =
+            if (interactiveScrolling) pdfState.currentPage
+            else {
+                val ratio = offsetX / (parentWidth - myWidth)
+                (ratio * (pdfState.pagesCount - 1)).checkNaN(1f).roundToInt() + 1
+            }
+
+        Text(
+            text = "$currentPage/${pdfState.pagesCount}",
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(handleColor)
+                .padding(horizontal = 8.dp, vertical = 1.dp),
+            fontSize = 12.sp,
+            color = contentColor
+        )
+
+        Icon(
+            painter = painterResource(R.drawable.baseline_drag_indicator_horizontal_24),
+            contentDescription = null,
+            modifier = Modifier
+                .draggable(
+                    orientation = Orientation.Horizontal,
+                    state = rememberDraggableState { delta ->
+                        setIsDragging(true)
+                        val newOffsetX =
+                            (offsetX + delta).coerceIn(0f, (parentWidth - myWidth).toFloat())
+                        val newRatio = newOffsetX / (parentWidth - myWidth)
+
+                        if (interactiveScrolling)
+                            pdfState.pdfViewer?.scrollToRatio(newRatio)
+                        setOffsetX(newOffsetX)
+                    },
+                    onDragStopped = {
+                        if (!interactiveScrolling) {
+                            val newRatio = offsetX / (parentWidth - myWidth)
+                            val newCurrentPage =
+                                (newRatio * (pdfState.pagesCount - 1)).toInt() + 1
+                            pdfState.pdfViewer?.scrollToRatio(newRatio)
+                            pdfState.pdfViewer?.goToPage(newCurrentPage)
+                        }
+                        setIsDragging(false)
+                    }
+                )
+                .padding(top = 4.dp)
+                .size(width = 48.dp, height = 36.dp)
+                .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+                .background(handleColor)
+                .padding(horizontal = 8.dp)
+                .padding(top = 8.dp, bottom = 4.dp),
+            tint = contentColor,
+        )
+    }
+}
+
+@Composable
+private fun VerticalScrollBar(
+    interactiveScrolling: Boolean,
+    pdfState: PdfState,
+    offsetY: Float,
+    parentHeight: Int,
+    myHeight: Int,
+    handleColor: Color,
+    contentColor: Color,
+    setIsDragging: (Boolean) -> Unit,
+    setOffsetY: (Float) -> Unit,
+) {
+    DisposableEffect(Unit) { onDispose { setIsDragging(false) } }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val currentPage =
+            if (interactiveScrolling) pdfState.currentPage
+            else {
+                val ratio = offsetY / (parentHeight - myHeight)
+                (ratio * (pdfState.pagesCount - 1)).checkNaN(1f).roundToInt() + 1
+            }
+
+        Text(
+            text = "$currentPage/${pdfState.pagesCount}",
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(handleColor)
+                .padding(horizontal = 8.dp, vertical = 1.dp),
+            fontSize = 12.sp,
+            color = contentColor
+        )
+
+        Icon(
+            painter = painterResource(R.drawable.baseline_drag_indicator_24),
+            contentDescription = null,
+            modifier = Modifier
+                .draggable(
+                    orientation = Orientation.Vertical,
+                    state = rememberDraggableState { delta ->
+                        setIsDragging(true)
+                        val newOffsetY =
+                            (offsetY + delta).coerceIn(0f, (parentHeight - myHeight).toFloat())
+                        val newRatio = newOffsetY / (parentHeight - myHeight)
+
+                        if (interactiveScrolling)
+                            pdfState.pdfViewer?.scrollToRatio(newRatio)
+                        setOffsetY(newOffsetY)
+                    },
+                    onDragStopped = {
+                        if (!interactiveScrolling) {
+                            val newRatio = offsetY / (parentHeight - myHeight)
+                            val newCurrentPage =
+                                (newRatio * (pdfState.pagesCount - 1)).toInt() + 1
+                            pdfState.pdfViewer?.scrollToRatio(newRatio)
+                            pdfState.pdfViewer?.goToPage(newCurrentPage)
+                        }
+                        setIsDragging(false)
+                    }
+                )
+                .padding(start = 4.dp)
+                .size(height = 48.dp, width = 38.dp)
+                .clip(RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp))
+                .background(handleColor)
+                .padding(vertical = 8.dp)
+                .padding(start = 8.dp, end = 4.dp),
+            tint = contentColor,
+        )
+    }
+}

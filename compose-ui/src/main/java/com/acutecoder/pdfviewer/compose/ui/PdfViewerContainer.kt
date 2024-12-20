@@ -5,13 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntSize
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdfviewer.compose.PdfState
 
@@ -20,28 +20,23 @@ fun PdfViewerContainer(
     pdfState: PdfState,
     pdfViewer: @Composable PdfContainerBoxScope.() -> Unit,
     pdfToolBar: (@Composable PdfContainerScope.() -> Unit)? = null,
-    pdfScrollBar: (@Composable PdfContainerBoxScope.(parentHeight: Int) -> Unit)? = null,
+    pdfScrollBar: (@Composable PdfContainerBoxScope.(parentSize: IntSize) -> Unit)? = null,
     loadingIndicator: (@Composable PdfContainerBoxScope.() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    var parentHeight by remember { mutableIntStateOf(0) }
+    var parentSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     Column(modifier = modifier) {
         pdfToolBar?.invoke(PdfContainerScope(pdfState))
 
         Box(modifier = Modifier
             .fillMaxSize()
-            .onGloballyPositioned {
-                parentHeight = it.size.height
-            }
+            .onGloballyPositioned { parentSize = it.size }
         ) {
             pdfViewer(PdfContainerBoxScope(pdfState, this))
             pdfScrollBar?.let { scrollBar ->
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.TopEnd
-                ) {
-                    scrollBar(PdfContainerBoxScope(pdfState, this), parentHeight)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    scrollBar(PdfContainerBoxScope(pdfState, this), parentSize)
                 }
             }
 
@@ -93,18 +88,20 @@ fun PdfContainerScope.PdfToolBar(
 
 @Composable
 fun PdfContainerBoxScope.PdfScrollBar(
-    parentHeight: Int,
+    parentSize: IntSize,
     modifier: Modifier = Modifier,
     contentColor: Color = Color.Black,
     handleColor: Color = Color(0xfff1f1f1),
-    interactiveScrolling: Boolean = true
+    interactiveScrolling: Boolean = true,
+    useVerticalScrollBarForHorizontalMode: Boolean = false,
 ) {
     PdfScrollBar(
         pdfState = pdfState,
-        parentHeight = parentHeight,
+        parentSize = parentSize,
         modifier = modifier,
         contentColor = contentColor,
         handleColor = handleColor,
-        interactiveScrolling = interactiveScrolling
+        interactiveScrolling = interactiveScrolling,
+        useVerticalScrollBarForHorizontalMode = useVerticalScrollBarForHorizontalMode,
     )
 }

@@ -95,10 +95,20 @@ function setupHelper() {
 
     const viewerContainer = $("#viewerContainer");
     viewerContainer.addEventListener("scroll", () => {
-        let currentOffset = viewerContainer.scrollTop;
-        let totalHeight = viewerContainer.scrollHeight - viewerContainer.clientHeight;
+        let currentOffset;
+        let totalScrollable;
+        let isHorizontalScroll = false;
 
-        JWI.onScroll(Math.round(currentOffset), totalHeight);
+        if (viewerContainer.scrollHeight > viewerContainer.clientHeight) {
+            currentOffset = viewerContainer.scrollTop;
+            totalScrollable = viewerContainer.scrollHeight - viewerContainer.clientHeight;
+        } else if (viewerContainer.scrollWidth > viewerContainer.clientWidth) {
+            currentOffset = viewerContainer.scrollLeft;
+            totalScrollable = viewerContainer.scrollWidth - viewerContainer.clientWidth;
+            isHorizontalScroll = true;
+        }
+
+        JWI.onScroll(Math.round(currentOffset), totalScrollable, isHorizontalScroll);
     });
 
     const searchInput = document.getElementById("findInput");
@@ -391,9 +401,15 @@ function scrollTo(offset) {
     $("#viewerContainer").scrollTop = offset;
 }
 
-function scrollToRatio(ratio) {
-    const totalHeight = $("#viewerContainer").scrollHeight - $("#viewerContainer").clientHeight;
-    $("#viewerContainer").scrollTop = totalHeight * ratio;
+function scrollToRatio(ratio, isHorizontalScroll) {
+    let viewerContainer = $("#viewerContainer");
+    if (isHorizontalScroll) {
+        let totalScrollable = viewerContainer.scrollWidth - viewerContainer.clientWidth;
+        viewerContainer.scrollLeft = totalScrollable * ratio;
+    } else {
+        let totalScrollable = viewerContainer.scrollHeight - viewerContainer.clientHeight;
+        viewerContainer.scrollTop = totalScrollable * ratio;
+    }
 }
 
 function sendDocumentProperties() {

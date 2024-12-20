@@ -300,8 +300,12 @@ class PdfViewer @JvmOverloads constructor(
         return false
     }
 
-    fun scrollToRatio(@FloatRange(from = 0.0, to = 1.0) ratio: Float) {
-        webView callDirectly "scrollToRatio"(ratio)
+    @JvmOverloads
+    fun scrollToRatio(
+        @FloatRange(from = 0.0, to = 1.0) ratio: Float,
+        isHorizontalScroll: Boolean = pageScrollMode == PageScrollMode.HORIZONTAL
+    ) {
+        webView callDirectly "scrollToRatio"(ratio, isHorizontalScroll)
     }
 
     fun scrollTo(@IntRange(from = 0) offset: Int) {
@@ -602,8 +606,8 @@ class PdfViewer @JvmOverloads constructor(
         }
 
         @JavascriptInterface
-        fun onScroll(currentOffset: Int, totalOffset: Int) = post {
-            listeners.forEach { it.onScrollChange(currentOffset, totalOffset) }
+        fun onScroll(currentOffset: Int, totalOffset: Int, isHorizontal: Boolean) = post {
+            listeners.forEach { it.onScrollChange(currentOffset, totalOffset, isHorizontal) }
         }
 
         @JavascriptInterface

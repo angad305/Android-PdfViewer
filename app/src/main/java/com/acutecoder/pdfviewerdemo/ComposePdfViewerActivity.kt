@@ -57,11 +57,11 @@ import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.setting.sharedPdfSettingsManager
 import com.acutecoder.pdfviewer.compose.PdfState
 import com.acutecoder.pdfviewer.compose.rememberPdfState
-import com.acutecoder.pdfviewer.compose.ui.PdfViewerContainer
 import com.acutecoder.pdfviewer.compose.ui.PdfScrollBar
 import com.acutecoder.pdfviewer.compose.ui.PdfToolBar
 import com.acutecoder.pdfviewer.compose.ui.PdfToolBarMenuItem
 import com.acutecoder.pdfviewer.compose.ui.PdfViewer
+import com.acutecoder.pdfviewer.compose.ui.PdfViewerContainer
 import com.acutecoder.pdfviewer.compose.ui.rememberToolBarState
 import com.acutecoder.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
 
@@ -86,8 +86,8 @@ class ComposePdfViewerActivity : ComponentActivity() {
             // Path from asset, url or android uri
             filePath = intent.extras?.getString("filePath")
                 ?: intent.extras?.getString("fileUrl")
-                        ?: intent.extras?.getString("fileUri")
-                        ?: run {
+                ?: intent.extras?.getString("fileUri")
+                ?: run {
                     toast("No source available!")
                     finish()
                     return
@@ -162,7 +162,7 @@ private fun Activity.MainScreen(
         pdfViewer = {
             PdfViewer(
                 modifier = Modifier.fillMaxSize(),
-                containerColor = Color.Transparent,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 onReady = {
                     pdfSettingsManager.restore(this)
                     setPdfViewer(this)
@@ -184,9 +184,9 @@ private fun Activity.MainScreen(
                 },
             )
         },
-        pdfScrollBar = { parentHeight ->
+        pdfScrollBar = { parentSize ->
             PdfScrollBar(
-                parentHeight = parentHeight,
+                parentSize = parentSize,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 handleColor = MaterialTheme.colorScheme.background
             )
@@ -423,9 +423,9 @@ private fun Activity.MainScreenWithScrollModeSupport() {
                 contentColor = MaterialTheme.colorScheme.onBackground,
             )
         },
-        pdfScrollBar = { parentHeight ->
+        pdfScrollBar = { parentSize ->
             PdfScrollBar(
-                parentHeight = parentHeight,
+                parentSize = parentSize,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 handleColor = MaterialTheme.colorScheme.background
             )

@@ -3,6 +3,7 @@ package com.acutecoder.pdf.ui
 import android.content.Context
 import android.content.res.ColorStateList
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
@@ -106,4 +107,11 @@ internal fun View.setBgTintModes(color: Int) {
         ),
         intArrayOf(color, ColorUtils.setAlphaComponent(color, 150))
     )
+}
+
+internal fun View.removeFromParent() {
+    parent?.let {
+        if (it is ViewGroup)
+            it.removeView(this)
+    }
 }

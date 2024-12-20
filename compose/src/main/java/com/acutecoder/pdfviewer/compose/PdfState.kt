@@ -84,8 +84,12 @@ class PdfState(url: String) {
             matchState = MatchState.Completed(found, matchState.current, matchState.total)
         }
 
-        override fun onScrollChange(currentOffset: Int, totalOffset: Int) {
-            scrollState = ScrollState(currentOffset, totalOffset)
+        override fun onScrollChange(
+            currentOffset: Int,
+            totalOffset: Int,
+            isHorizontalScroll: Boolean
+        ) {
+            scrollState = ScrollState(currentOffset, totalOffset, isHorizontalScroll)
         }
 
         override fun onLoadProperties(properties: PdfDocumentProperties) {
@@ -129,6 +133,7 @@ class PdfState(url: String) {
 data class ScrollState(
     val currentOffset: Int = 0,
     val totalOffset: Int = 0,
+    val isHorizontalScroll: Boolean = false,
 ) {
     val ratio: Float
         get() = currentOffset.toFloat() / totalOffset.toFloat()

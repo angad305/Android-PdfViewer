@@ -56,6 +56,15 @@ class PdfViewerContainer : RelativeLayout {
                         addRule(ALIGN_PARENT_END)
                         if (isInEditMode)
                             pdfToolBar?.id?.let { addRule(BELOW, it) }
+                        child.addScrollModeChangeListener { isHorizontal ->
+                            if (isHorizontal) {
+                                addRule(ALIGN_PARENT_BOTTOM)
+                                removeRule(ALIGN_PARENT_END)
+                            } else {
+                                addRule(ALIGN_PARENT_END)
+                                removeRule(ALIGN_PARENT_BOTTOM)
+                            }
+                        }
                     }
                 })
             }
@@ -112,12 +121,13 @@ class PdfViewerContainer : RelativeLayout {
                     @SuppressLint("InflateParams")
                     val root =
                         LayoutInflater.from(context).inflate(R.layout.pdf_go_to_page_dialog, null)
-                    val field: EditText = root.findViewById<EditText?>(R.id.go_to_page_field).apply {
-                        inputType =
-                            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                        imeOptions = EditorInfo.IME_ACTION_DONE
-                        hint = "Password"
-                    }
+                    val field: EditText =
+                        root.findViewById<EditText?>(R.id.go_to_page_field).apply {
+                            inputType =
+                                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                            imeOptions = EditorInfo.IME_ACTION_DONE
+                            hint = "Password"
+                        }
 
                     val submitPassword: (String, DialogInterface) -> Unit = { password, dialog ->
                         if (password.isEmpty()) onPasswordDialogChange(true)
