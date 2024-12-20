@@ -14,12 +14,11 @@ import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.PdfViewer.Zoom
 
 @Composable
-fun rememberPdfState(url: String): PdfState = remember { PdfState(url = url) }
+fun rememberPdfState(source: String): PdfState = remember { PdfState(source = source) }
 
-class PdfState(url: String) {
+class PdfState(source: String) {
 
-    internal var url by mutableStateOf(url)
-
+    var source by mutableStateOf(source); internal set
     var pdfViewer: PdfViewer? by mutableStateOf(null); internal set
     var isInitialized by mutableStateOf(false); internal set
 
@@ -38,8 +37,8 @@ class PdfState(url: String) {
     var scaleLimit by mutableStateOf(ScaleLimit()); internal set
     var actualScaleLimit by mutableStateOf(ActualScaleLimit()); internal set
 
-    fun load(url: String) {
-        this.url = url
+    fun load(source: String) {
+        this.source = source
     }
 
     fun setViewer(viewer: PdfViewer) {

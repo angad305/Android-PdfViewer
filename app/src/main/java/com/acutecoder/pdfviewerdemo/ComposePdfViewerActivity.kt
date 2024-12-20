@@ -134,7 +134,7 @@ private fun Activity.MainScreen(
     pdfSettingsManager: PdfSettingsManager,
     setPdfViewer: (PdfViewer?) -> Unit,
 ) {
-    val pdfState = rememberPdfState(url = url)
+    val pdfState = rememberPdfState(source = url)
     val toolBarState = rememberToolBarState()
 
     LaunchedEffect(pdfState.errorMessage) {

@@ -16,10 +16,10 @@ fun PdfViewer(
     containerColor: Color? = null,
     onReady: (PdfViewer.() -> Unit)? = null,
 ) {
-    LaunchedEffect(state.url) {
+    LaunchedEffect(state.source) {
         state.pdfViewer?.run {
             if (isInitialized)
-                load(source = state.url)
+                load(source = state.source)
         }
     }
 
@@ -28,7 +28,7 @@ fun PdfViewer(
             PdfViewer(context).also {
                 state.setViewer(it)
                 it.onReady {
-                    load(state.url)
+                    load(state.source)
                     onReady?.invoke(it)
                 }
 
