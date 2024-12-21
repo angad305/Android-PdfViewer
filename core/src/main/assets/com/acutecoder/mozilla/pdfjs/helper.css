@@ -1,11 +1,18 @@
+#viewerContainer {
+    --visible-toolbar-height: 0px;
+}
+
 .vertical-view-pager {
     scroll-snap-type: y mandatory;
 }
+
 .horizontal-view-pager {
     scroll-snap-type: x mandatory;
 }
 
+.vertical-view-pager .full-size-container,
 .vertical-view-pager .page,
+.horizontal-view-pager .full-size-container,
 .horizontal-view-pager .page {
     scroll-snap-align: start;
 }
@@ -18,4 +25,23 @@
 .horizontal-center {
     display: flex;
     justify-content: center;
+}
+
+.single-page-arrangement-vertical-center .full-size-container {
+    align-items: center;
+}
+
+.single-page-arrangement-horizontal-center .full-size-container {
+    justify-content: center;
+}
+
+.full-size-container {
+    display: inline-flex;
+    min-width: 100vw;
+    min-height: calc(100vh - var(--visible-toolbar-height) - 1px);
+    overflow: hidden;
+}
+
+.full-size-container .page {
+    margin: 0;
 }

@@ -7,8 +7,9 @@ enum class PdfToolBarMenuItem(internal val id: Int) {
     ROTATE_CLOCK_WISE(3),
     ROTATE_ANTI_CLOCK_WISE(4),
     SCROLL_MODE(5),
-    SPREAD_MODE(6),
-    ALIGN_MODE(7),
-    SNAP_PAGE(8),
-    PROPERTIES(9)
+    SINGLE_PAGE_ARRANGEMENT(6),
+    SPREAD_MODE(7),
+    ALIGN_MODE(8),
+    SNAP_PAGE(9),
+    PROPERTIES(10)
 }

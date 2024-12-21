@@ -26,6 +26,7 @@ import com.acutecoder.pdf.PdfDocumentProperties
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdf.PdfViewer.PageSpreadMode
 
 open class PdfToolBar @JvmOverloads constructor(
     context: Context,
@@ -197,6 +198,7 @@ open class PdfToolBar @JvmOverloads constructor(
             PdfToolBarMenuItem.ROTATE_CLOCK_WISE.id -> pdfViewer.rotateClockWise()
             PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE.id -> pdfViewer.rotateCounterClockWise()
             PdfToolBarMenuItem.SCROLL_MODE.id -> showScrollModeDialog()
+            PdfToolBarMenuItem.SINGLE_PAGE_ARRANGEMENT.id -> showSinglePageArrangementDialog()
             PdfToolBarMenuItem.SPREAD_MODE.id -> showSpreadModeDialog()
             PdfToolBarMenuItem.ALIGN_MODE.id -> showAlignModeDialog()
             PdfToolBarMenuItem.SNAP_PAGE.id -> showSnapPageDialog()
@@ -221,6 +223,9 @@ open class PdfToolBar @JvmOverloads constructor(
             addMenu("Rotate Clockwise", PdfToolBarMenuItem.ROTATE_CLOCK_WISE)
             addMenu("Rotate Anti Clockwise", PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE)
             addMenu("Scroll Mode", PdfToolBarMenuItem.SCROLL_MODE)
+            if (pdfViewer.pageScrollMode.let { it == PdfViewer.PageScrollMode.VERTICAL || it == PdfViewer.PageScrollMode.HORIZONTAL }
+                && pdfViewer.pageSpreadMode == PageSpreadMode.NONE)
+                addMenu("Single Page Arrangement", PdfToolBarMenuItem.SINGLE_PAGE_ARRANGEMENT)
             addMenu("Split Mode", PdfToolBarMenuItem.SPREAD_MODE)
             addMenu("Align Mode", PdfToolBarMenuItem.ALIGN_MODE)
             addMenu("Snap Page", PdfToolBarMenuItem.SNAP_PAGE)
@@ -332,14 +337,34 @@ open class PdfToolBar @JvmOverloads constructor(
         showDialog(dialog)
     }
 
+    @OptIn(PdfUnstableApi::class)
+    private fun showSinglePageArrangementDialog() {
+        val root = layoutInflater.inflate(R.layout.pdf_snap_page_dialog, null)
+        val switch = root.findViewById<SwitchCompat>(R.id.snap_page)
+        switch.isChecked = pdfViewer.singlePageArrangement
+
+        alertDialogBuilder()
+            .setTitle("Single Page Arrangement")
+            .setView(root)
+            .setPositiveButton("Done") { dialog, _ ->
+                pdfViewer.singlePageArrangement = switch.isChecked
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
+    }
+
     private fun showSpreadModeDialog() {
         val displayOptions = arrayOf(
             "None", "Odd", "Even"
         )
         val options = arrayOf(
-            PdfViewer.PageSpreadMode.NONE.name,
-            PdfViewer.PageSpreadMode.ODD.name,
-            PdfViewer.PageSpreadMode.EVEN.name
+            PageSpreadMode.NONE.name,
+            PageSpreadMode.ODD.name,
+            PageSpreadMode.EVEN.name
         )
 
         val dialog = alertDialogBuilder()
@@ -348,7 +373,7 @@ open class PdfToolBar @JvmOverloads constructor(
                 displayOptions,
                 findSelectedOption(options, pdfViewer.pageSpreadMode.name)
             ) { dialog, which ->
-                pdfViewer.pageSpreadMode = PdfViewer.PageSpreadMode.valueOf(options[which])
+                pdfViewer.pageSpreadMode = PageSpreadMode.valueOf(options[which])
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel") { dialog, _ ->
@@ -362,20 +387,20 @@ open class PdfToolBar @JvmOverloads constructor(
     private fun showAlignModeDialog() {
         val displayOptions = buildList {
             add("Default")
-            if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED)
+            if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED))
                 add("Center Vertically")
-            if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL)
+            if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL))
                 add("Center Horizontally")
-            if (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE)
+            if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE))
                 add("Center Both")
         }.toTypedArray()
         val options = buildList {
             add(PdfViewer.PageAlignMode.DEFAULT.name)
-            if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED)
+            if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED))
                 add(PdfViewer.PageAlignMode.CENTER_VERTICAL.name)
-            if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL)
+            if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL))
                 add(PdfViewer.PageAlignMode.CENTER_HORIZONTAL.name)
-            if (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE)
+            if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE))
                 add(PdfViewer.PageAlignMode.CENTER_BOTH.name)
         }.toTypedArray()
 

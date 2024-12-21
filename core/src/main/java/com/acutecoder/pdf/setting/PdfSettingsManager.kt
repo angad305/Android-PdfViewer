@@ -15,6 +15,7 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
     var rotationIncluded = true
     var alignModeIncluded = true
     var snapPageIncluded = true
+    var customArrangementIncluded = true
 
     fun includeAll() {
         currentPageIncluded = true
@@ -26,6 +27,20 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         rotationIncluded = true
         alignModeIncluded = true
         snapPageIncluded = true
+        customArrangementIncluded = true
+    }
+
+    fun excludeAll() {
+        currentPageIncluded = false
+        minScaleIncluded = false
+        maxScaleIncluded = false
+        defaultScaleIncluded = false
+        scrollModeIncluded = false
+        spreadModeIncluded = false
+        rotationIncluded = false
+        alignModeIncluded = false
+        snapPageIncluded = false
+        customArrangementIncluded = false
     }
 
     fun save(pdfViewer: PdfViewer) {
@@ -41,9 +56,12 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
                 save(spreadModeIncluded, KEY_SPREAD_MODE, pageSpreadMode)
                 save(rotationIncluded, KEY_ROTATION, pageRotation)
 
+                save(snapPageIncluded, KEY_SNAP_PAGE, snapPage)
+
                 @OptIn(PdfUnstableApi::class)
                 save(alignModeIncluded, KEY_ALIGN_MODE, pageAlignMode)
-                save(snapPageIncluded, KEY_SNAP_PAGE, snapPage)
+                @OptIn(PdfUnstableApi::class)
+                save(customArrangementIncluded, KEY_CUSTOM_ARRANGEMENT, singlePageArrangement)
 
                 apply()
             }
@@ -53,13 +71,18 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
     fun restore(pdfViewer: PdfViewer) {
         saver.run {
             pdfViewer.run {
-                val currentPage = getInt(KEY_CURRENT_PAGE, -1)
-                if (currentPage != -1) {
-                    addListener(PdfOnPageLoadSuccess { pagesCount ->
-                        if (currentPage <= pagesCount)
-                            goToPage(currentPage)
-                    })
-                }
+                addListener(PdfOnPageLoadSuccess { pagesCount ->
+                    val currentPage = getInt(KEY_CURRENT_PAGE, -1)
+                    if (currentPage != -1 && currentPage <= pagesCount)
+                        goToPage(currentPage)
+
+                    @OptIn(PdfUnstableApi::class)
+                    singlePageArrangement =
+                        getBoolean(KEY_CUSTOM_ARRANGEMENT, singlePageArrangement)
+
+                    @OptIn(PdfUnstableApi::class)
+                    pageAlignMode = getEnum(KEY_ALIGN_MODE, pageAlignMode)
+                })
 
                 minPageScale = getFloat(KEY_MIN_SCALE, minPageScale)
                 maxPageScale = getFloat(KEY_MAX_SCALE, maxPageScale)
@@ -69,8 +92,6 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
                 pageSpreadMode = getEnum(KEY_SPREAD_MODE, pageSpreadMode)
                 pageRotation = getEnum(KEY_ROTATION, pageRotation)
 
-                @OptIn(PdfUnstableApi::class)
-                pageAlignMode = getEnum(KEY_ALIGN_MODE, pageAlignMode)
                 snapPage = getBoolean(KEY_SNAP_PAGE, snapPage)
             }
         }
@@ -111,5 +132,6 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         private const val KEY_ROTATION = "rotation"
         private const val KEY_ALIGN_MODE = "center_align"
         private const val KEY_SNAP_PAGE = "snap_page"
+        private const val KEY_CUSTOM_ARRANGEMENT = "custom_arrangement"
     }
 }

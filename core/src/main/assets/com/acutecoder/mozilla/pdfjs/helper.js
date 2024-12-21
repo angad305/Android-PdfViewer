@@ -199,6 +199,7 @@ function setSecondaryToolbarToggleButtonEnabled(enabled) {
 function setToolbarEnabled(enabled) {
     $(".toolbar").style.display = enabled ? "block" : "none";
     $("#viewerContainer").style.top = enabled ? "var(--toolbar-height)" : "0px";
+    $("#viewerContainer").style.setProperty("--visible-toolbar-height", enabled ? "var(--toolbar-height)" : "0px");
 }
 
 function setSecondaryPrintEnabled(enabled) {
@@ -515,37 +516,86 @@ function getActualScaleFor(value) {
     return scale;
 }
 
-function enableVerticalViewPagerBehavior() {
+function enableVerticalSnapBehavior() {
     let viewerContainer = $("#viewerContainer");
 
     viewerContainer.classList.remove("horizontal-view-pager");
     viewerContainer.classList.add("vertical-view-pager");
 }
 
-function enableHorizontalViewPagerBehavior() {
+function enableHorizontalSnapBehavior() {
     let viewerContainer = $("#viewerContainer");
 
     viewerContainer.classList.remove("vertical-view-pager");
     viewerContainer.classList.add("horizontal-view-pager");
 }
 
-function removeViewPagerBehavior() {
+function removeSnapBehavior() {
     let viewerContainer = $("#viewerContainer");
 
     viewerContainer.classList.remove("vertical-view-pager");
     viewerContainer.classList.remove("horizontal-view-pager");
 }
 
-function centerPage(vertical, horizontal) {
+function centerPage(vertical, horizontal, singlePageArrangemenentEnabled = false) {
     let viewerContainer = $("#viewerContainer");
 
-    if (vertical) viewerContainer.classList.add("vertical-center");
-    else viewerContainer.classList.remove("vertical-center");
+    if (singlePageArrangemenentEnabled) {
+        viewerContainer.classList.add("single-page-arrangement");
+        viewerContainer.classList.remove("vertical-center");
+        viewerContainer.classList.remove("horizontal-center");
 
-    if (horizontal) viewerContainer.classList.add("horizontal-center");
-    else viewerContainer.classList.remove("horizontal-center");
+        if (vertical) viewerContainer.classList.add("single-page-arrangement-vertical-center");
+        else viewerContainer.classList.remove("single-page-arrangement-vertical-center");
+
+        if (horizontal) viewerContainer.classList.add("single-page-arrangement-horizontal-center");
+        else viewerContainer.classList.remove("single-page-arrangement-horizontal-center");
+    } else {
+        viewerContainer.classList.remove("single-page-arrangement");
+        viewerContainer.classList.remove("single-page-arrangement-vertical-center");
+        viewerContainer.classList.remove("single-page-arrangement-horizontal-center");
+
+        if (vertical) viewerContainer.classList.add("vertical-center");
+        else viewerContainer.classList.remove("vertical-center");
+
+        if (horizontal) viewerContainer.classList.add("horizontal-center");
+        else viewerContainer.classList.remove("horizontal-center");
+    }
+}
+
+function applySinglePageArrangement() {
+    if ($all(".full-size-container").length != 0) return "Already in view pager mode";
+
+    let pages = $all(".page");
+
+    pages.forEach((page) => {
+        let parent = page.parentElement;
+        parent.removeChild(page);
+
+        let pageContainer = document.createElement("div");
+        pageContainer.classList.add("full-size-container");
+
+        pageContainer.appendChild(page);
+        parent.appendChild(pageContainer);
+    });
+}
+
+function removeSinglePageArrangement() {
+    let pageContainers = $all(".full-size-container");
+
+    pageContainers.forEach((pageContainer) => {
+        let parent = pageContainer.parentElement;
+        let page = pageContainer.children[0];
+
+        parent.removeChild(pageContainer);
+        parent.appendChild(page);
+    });
 }
 
 function $(query) {
     return document.querySelector(query);
+}
+
+function $all(query) {
+    return document.querySelectorAll(query);
 }

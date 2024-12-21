@@ -45,6 +45,24 @@ class PdfState(source: String) {
         this.pdfViewer = viewer
         viewer.addListener(Listener())
         viewer.onReady { this@PdfState.isInitialized = true }
+
+        pagesCount = viewer.pagesCount
+        currentPage = viewer.currentPage
+        currentScale = viewer.currentPageScale
+        properties = viewer.properties
+        scrollMode = viewer.pageScrollMode
+        spreadMode = viewer.pageSpreadMode
+        rotation = viewer.pageRotation
+        scaleLimit = ScaleLimit(
+            viewer.minPageScale,
+            viewer.maxPageScale,
+            viewer.defaultPageScale
+        )
+        actualScaleLimit = ActualScaleLimit(
+            viewer.actualMinPageScale,
+            viewer.actualMaxPageScale,
+            viewer.actualDefaultPageScale
+        )
     }
 
     inner class Listener internal constructor() : PdfListener {

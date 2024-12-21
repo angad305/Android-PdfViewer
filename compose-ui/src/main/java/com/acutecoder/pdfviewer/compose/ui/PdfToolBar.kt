@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -66,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdf.PdfViewer.PageSpreadMode
 import com.acutecoder.pdfviewer.compose.MatchState
 import com.acutecoder.pdfviewer.compose.PdfState
 import kotlinx.coroutines.delay
@@ -256,6 +256,7 @@ private fun MoreOptions(
     var showZoom by remember { mutableStateOf(false) }
     var showGoToPage by remember { mutableStateOf(false) }
     var showScrollMode by remember { mutableStateOf(false) }
+    var showPageSingleArrangement by remember { mutableStateOf(false) }
     var showSplitMode by remember { mutableStateOf(false) }
     var showAlignMode by remember { mutableStateOf(false) }
     var showSnapPage by remember { mutableStateOf(false) }
@@ -309,6 +310,17 @@ private fun MoreOptions(
             showScrollMode = true
         }
     )
+
+    val showSingleArrangementMenu = remember {
+        state.scrollMode.let { it == PdfViewer.PageScrollMode.VERTICAL || it == PdfViewer.PageScrollMode.HORIZONTAL }
+                && state.spreadMode == PageSpreadMode.NONE
+    }
+    if (showSingleArrangementMenu)
+        DropdownMenuItem(
+            menuItem = PdfToolBarMenuItem.CUSTOM_PAGE_ARRANGEMENT,
+            validator = validator,
+            onClick = { showPageSingleArrangement = true }
+        )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.SPREAD_MODE,
         validator = validator,
@@ -344,6 +356,11 @@ private fun MoreOptions(
         GoToPageDialog(state = state, onDismiss = { showGoToPage = false; onDismiss() })
     if (showScrollMode)
         ScrollModeDialog(state = state, onDismiss = { showScrollMode = false; onDismiss() })
+    if (showPageSingleArrangement)
+        SinglePageArrangementDialog(
+            state = state,
+            onDismiss = { showPageSingleArrangement = false; onDismiss() }
+        )
     if (showSplitMode)
         SplitModeDialog(state = state, onDismiss = { showSplitMode = false; onDismiss() })
     if (showAlignMode)
@@ -442,7 +459,7 @@ private fun GoToPageDialog(state: PdfState, onDismiss: () -> Unit) {
                     .fillMaxWidth()
                     .padding(horizontal = 6.dp),
                 decorationBox = {
-                    Box(Modifier.fillMaxSize()) {
+                    Box(Modifier.fillMaxWidth()) {
                         it()
                         AnimatedVisibility(
                             visible = pageNumber.isEmpty(),
@@ -504,15 +521,56 @@ private fun ScrollModeDialog(state: PdfState, onDismiss: () -> Unit) {
     )
 }
 
+@OptIn(PdfUnstableApi::class)
+@Composable
+private fun SinglePageArrangementDialog(state: PdfState, onDismiss: () -> Unit) {
+    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+    var isChecked by remember { mutableStateOf(pdfViewer.singlePageArrangement) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Single Page Arrangement",
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                pdfViewer.singlePageArrangement = isChecked
+                onDismiss()
+            }) { Text(text = "Done") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(text = "Cancel") } },
+        text = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { isChecked = !isChecked }
+                    .padding(start = 12.dp, end = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Enable", modifier = Modifier.weight(1f))
+
+                Switch(
+                    checked = isChecked,
+                    onCheckedChange = { isChecked = it }
+                )
+            }
+        }
+    )
+}
+
 @Composable
 private fun SplitModeDialog(state: PdfState, onDismiss: () -> Unit) {
     val displayOptions = arrayOf(
         "None", "Odd", "Even"
     )
     val options = arrayOf(
-        PdfViewer.PageSpreadMode.NONE.name,
-        PdfViewer.PageSpreadMode.ODD.name,
-        PdfViewer.PageSpreadMode.EVEN.name
+        PageSpreadMode.NONE.name,
+        PageSpreadMode.ODD.name,
+        PageSpreadMode.EVEN.name
     )
     val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
     val selectedIndex = findSelectedOption(options, pdfViewer.pageSpreadMode.name)
@@ -535,7 +593,7 @@ private fun SplitModeDialog(state: PdfState, onDismiss: () -> Unit) {
                         text = option,
                         onSelectIndex = { which ->
                             pdfViewer.pageSpreadMode =
-                                PdfViewer.PageSpreadMode.valueOf(options[which])
+                                PageSpreadMode.valueOf(options[which])
                             onDismiss()
                         },
                     )
@@ -551,20 +609,20 @@ private fun AlignModeDialog(state: PdfState, onDismiss: () -> Unit) {
     val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
     val displayOptions = buildList {
         add("Default")
-        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED)
+        if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED))
             add("Center Vertically")
-        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL)
+        if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL))
             add("Center Horizontally")
-        if (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE)
+        if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE))
             add("Center Both")
     }.toTypedArray()
     val options = buildList {
         add(PdfViewer.PageAlignMode.DEFAULT.name)
-        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED)
+        if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED))
             add(PdfViewer.PageAlignMode.CENTER_VERTICAL.name)
-        if (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL)
+        if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.HORIZONTAL))
             add(PdfViewer.PageAlignMode.CENTER_HORIZONTAL.name)
-        if (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE)
+        if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE))
             add(PdfViewer.PageAlignMode.CENTER_BOTH.name)
     }.toTypedArray()
     val selectedIndex = findSelectedOption(options, pdfViewer.pageAlignMode.name)

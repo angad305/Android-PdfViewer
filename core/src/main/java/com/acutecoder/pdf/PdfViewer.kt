@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.util.Base64
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.webkit.JavascriptInterface
@@ -121,7 +122,7 @@ class PdfViewer @JvmOverloads constructor(
             checkViewer()
             field = value
             webView callDirectly value.function()
-            adjustAlignMode(value)
+            adjustAlignModeAndArrangementMode(value)
             setSnapPageTo(snapPage)
         }
 
@@ -130,6 +131,9 @@ class PdfViewer @JvmOverloads constructor(
             checkViewer()
             field = value
             webView callDirectly value.function()
+            @OptIn(PdfUnstableApi::class)
+            if (value != PageSpreadMode.NONE && singlePageArrangement)
+                singlePageArrangement = false
         }
 
     var cursorToolMode: CursorToolMode = CursorToolMode.TEXT_SELECT
@@ -235,8 +239,27 @@ class PdfViewer @JvmOverloads constructor(
     var pageAlignMode = PageAlignMode.DEFAULT
         set(value) {
             checkViewer()
-            field = value
-            webView callDirectly value.function()
+            val alignMode =
+                adjustAlignMode(value).also { Log.e("Align mode", "from $value to $it") }
+            field = alignMode
+            webView callDirectly "centerPage"(
+                alignMode.vertical,
+                alignMode.horizontal,
+                singlePageArrangement
+            )
+        }
+
+    @PdfUnstableApi
+    var singlePageArrangement = false
+        set(value) {
+            checkViewer()
+            val newValue =
+                if (value) {
+                    (pageScrollMode == PageScrollMode.VERTICAL || pageScrollMode == PageScrollMode.HORIZONTAL)
+                            && pageSpreadMode == PageSpreadMode.NONE
+                } else false
+            field = newValue
+            webView callDirectly if (newValue) "applySinglePageArrangement"() else "removeSinglePageArrangement"()
         }
     var snapPage = false
         set(value) {
@@ -439,7 +462,13 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     @OptIn(PdfUnstableApi::class)
-    private fun adjustAlignMode(scrollMode: PageScrollMode) {
+    private fun adjustAlignModeAndArrangementMode(scrollMode: PageScrollMode) {
+        if (singlePageArrangement) {
+            if (scrollMode != PageScrollMode.VERTICAL && scrollMode != PageScrollMode.HORIZONTAL)
+                singlePageArrangement = false
+            else return
+        }
+
         when (scrollMode) {
             PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> {
                 if (pageAlignMode == PageAlignMode.CENTER_VERTICAL || pageAlignMode == PageAlignMode.CENTER_BOTH)
@@ -451,18 +480,41 @@ class PdfViewer @JvmOverloads constructor(
                     pageAlignMode = PageAlignMode.DEFAULT
             }
 
+            PageScrollMode.SINGLE_PAGE -> {
+                pageAlignMode = pageAlignMode
+            }
+        }
+    }
+
+    @OptIn(PdfUnstableApi::class)
+    private fun adjustAlignMode(alignMode: PageAlignMode): PageAlignMode {
+        if (singlePageArrangement) return alignMode
+
+        when (pageScrollMode) {
+            PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> {
+                if (alignMode == PageAlignMode.CENTER_VERTICAL || alignMode == PageAlignMode.CENTER_BOTH)
+                    return PageAlignMode.DEFAULT
+            }
+
+            PageScrollMode.HORIZONTAL -> {
+                if (alignMode == PageAlignMode.CENTER_HORIZONTAL || alignMode == PageAlignMode.CENTER_BOTH)
+                    return PageAlignMode.DEFAULT
+            }
+
             PageScrollMode.SINGLE_PAGE -> {}
         }
+
+        return alignMode
     }
 
     private fun setSnapPageTo(value: Boolean) {
         if (value) {
             when (pageScrollMode) {
-                PageScrollMode.HORIZONTAL -> webView callDirectly "enableHorizontalViewPagerBehavior"()
-                PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> webView callDirectly "enableVerticalViewPagerBehavior"()
+                PageScrollMode.HORIZONTAL -> webView callDirectly "enableHorizontalSnapBehavior"()
+                PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> webView callDirectly "enableVerticalSnapBehavior"()
                 else -> {}
             }
-        } else webView callDirectly "removeViewPagerBehavior"()
+        } else webView callDirectly "removeSnapBehavior"()
     }
 
     private fun setUpActualScaleValues(callback: () -> Unit) {
@@ -542,11 +594,11 @@ class PdfViewer @JvmOverloads constructor(
         R_270(270),
     }
 
-    enum class PageAlignMode(internal val function: () -> Triple<String, String, ((String?) -> Unit)?>) {
-        DEFAULT({ "centerPage"() }),
-        CENTER_VERTICAL({ "centerPage"(true) }),
-        CENTER_HORIZONTAL({ "centerPage"(false, true) }),
-        CENTER_BOTH({ "centerPage"(true, true) }),
+    enum class PageAlignMode(internal val vertical: Boolean, internal val horizontal: Boolean) {
+        DEFAULT(false, false),
+        CENTER_VERTICAL(true, false),
+        CENTER_HORIZONTAL(false, true),
+        CENTER_BOTH(true, true),
     }
 
     companion object {
@@ -565,9 +617,13 @@ class PdfViewer @JvmOverloads constructor(
                 scalePageTo(actualDefaultPageScale)
             }
             pageRotation = pageRotation
+            snapPage = snapPage
+
+            @OptIn(PdfUnstableApi::class)
+            singlePageArrangement = singlePageArrangement
             @OptIn(PdfUnstableApi::class)
             pageAlignMode = pageAlignMode
-            snapPage = snapPage
+
             listeners.forEach { it.onPageLoadSuccess(count) }
         }
 
@@ -607,7 +663,8 @@ class PdfViewer @JvmOverloads constructor(
 
         @JavascriptInterface
         fun onScroll(currentOffset: Int, totalOffset: Int, isHorizontal: Boolean) = post {
-            listeners.forEach { it.onScrollChange(currentOffset, totalOffset, isHorizontal) }
+            if (pageScrollMode != PageScrollMode.SINGLE_PAGE)
+                listeners.forEach { it.onScrollChange(currentOffset, totalOffset, isHorizontal) }
         }
 
         @JavascriptInterface
