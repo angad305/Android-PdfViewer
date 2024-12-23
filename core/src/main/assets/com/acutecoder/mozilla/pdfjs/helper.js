@@ -482,11 +482,8 @@ function getActualScaleFor(value) {
     } else if (this._scrollMode === ScrollMode.HORIZONTAL) {
         [hPadding, vPadding] = [vPadding, hPadding];
     }
-    const pageWidthScale =
-        (((PDFViewerApplication.pdfViewer.container.clientWidth - hPadding) / currentPage.width) * currentPage.scale) /
-        PDFViewerApplication.pdfViewer.pageWidthScaleFactor();
-    const pageHeightScale =
-        ((PDFViewerApplication.pdfViewer.container.clientHeight - vPadding) / currentPage.height) * currentPage.scale;
+    const pageWidthScale = (((PDFViewerApplication.pdfViewer.container.clientWidth - hPadding) / currentPage.width) * currentPage.scale) / PDFViewerApplication.pdfViewer.pageWidthScaleFactor();
+    const pageHeightScale = ((PDFViewerApplication.pdfViewer.container.clientHeight - vPadding) / currentPage.height) * currentPage.scale;
     let scale = -3;
     function isPortraitOrientation(size) {
         return size.width <= size.height;
@@ -505,9 +502,7 @@ function getActualScaleFor(value) {
             scale = Math.min(pageWidthScale, pageHeightScale);
             break;
         case "auto":
-            const horizontalScale = isPortraitOrientation(currentPage)
-                ? pageWidthScale
-                : Math.min(pageHeightScale, pageWidthScale);
+            const horizontalScale = isPortraitOrientation(currentPage) ? pageWidthScale : Math.min(pageHeightScale, pageWidthScale);
             scale = Math.min(MAX_AUTO_SCALE, horizontalScale);
             break;
         default:
@@ -519,22 +514,28 @@ function getActualScaleFor(value) {
 function enableVerticalSnapBehavior() {
     let viewerContainer = $("#viewerContainer");
 
-    viewerContainer.classList.remove("horizontal-view-pager");
-    viewerContainer.classList.add("vertical-view-pager");
+    viewerContainer.classList.remove("horizontal-snap");
+    viewerContainer.classList.add("vertical-snap");
+    viewerContainer.style.scrollSnapType = "y mandatory";
+    viewerContainer._originalScrollSnapType = "y mandatory";
 }
 
 function enableHorizontalSnapBehavior() {
     let viewerContainer = $("#viewerContainer");
 
-    viewerContainer.classList.remove("vertical-view-pager");
-    viewerContainer.classList.add("horizontal-view-pager");
+    viewerContainer.classList.remove("vertical-snap");
+    viewerContainer.classList.add("horizontal-snap");
+    viewerContainer.style.scrollSnapType = "x mandatory";
+    viewerContainer._originalScrollSnapType = "x mandatory";
 }
 
 function removeSnapBehavior() {
     let viewerContainer = $("#viewerContainer");
 
-    viewerContainer.classList.remove("vertical-view-pager");
-    viewerContainer.classList.remove("horizontal-view-pager");
+    viewerContainer.classList.remove("vertical-snap");
+    viewerContainer.classList.remove("horizontal-snap");
+    viewerContainer.style.scrollSnapType = "none";
+    viewerContainer._originalScrollSnapType = "none";
 }
 
 function centerPage(vertical, horizontal, singlePageArrangemenentEnabled = false) {
@@ -590,6 +591,84 @@ function removeSinglePageArrangement() {
         parent.removeChild(pageContainer);
         parent.appendChild(page);
     });
+}
+
+function limitScroll(maxSpeed = 100) {
+    const viewerContainer = document.querySelector("#viewerContainer");
+    if (!viewerContainer) return;
+
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+
+    const disableSnap = () => {
+        viewerContainer.style.scrollSnapType = "none";
+    };
+
+    const restoreSnap = () => {
+        viewerContainer.style.scrollSnapType = viewerContainer._originalScrollSnapType;
+    };
+
+    const touchStartHandler = (event) => {
+        if (event.touches.length > 1) return;
+
+        lastTouchX = event.touches[0].clientX;
+        lastTouchY = event.touches[0].clientY;
+        disableSnap();
+    };
+
+    const touchMoveHandler = (event) => {
+        if (event.touches.length > 1) return;
+
+        const touch = event.touches[0];
+        const currentTouchX = touch.clientX;
+        const currentTouchY = touch.clientY;
+
+        let deltaX = lastTouchX - currentTouchX;
+        let deltaY = lastTouchY - currentTouchY;
+
+        if (Math.abs(deltaX) > maxSpeed) {
+            deltaX = deltaX > 0 ? maxSpeed : -maxSpeed;
+        }
+
+        if (Math.abs(deltaY) > maxSpeed) {
+            deltaY = deltaY > 0 ? maxSpeed : -maxSpeed;
+        }
+
+        viewerContainer.scrollLeft += deltaX;
+        viewerContainer.scrollTop += deltaY;
+
+        lastTouchX = currentTouchX;
+        lastTouchY = currentTouchY;
+
+        event.preventDefault();
+    };
+
+    const touchEndHandler = (event) => {
+        if (event.touches.length > 1) return;
+
+        restoreSnap();
+    };
+
+    viewerContainer.addEventListener("touchstart", touchStartHandler);
+    viewerContainer.addEventListener("touchmove", touchMoveHandler, { passive: false });
+    viewerContainer.addEventListener("touchend", touchEndHandler);
+
+    viewerContainer._scrollHandlers = { touchStartHandler, touchMoveHandler, touchEndHandler };
+}
+
+function removeScrollLimit() {
+    const viewerContainer = document.querySelector("#viewerContainer");
+    if (!viewerContainer || !viewerContainer._scrollHandlers) return;
+
+    const { touchStartHandler, touchMoveHandler, touchEndHandler } = viewerContainer._scrollHandlers;
+
+    viewerContainer.removeEventListener("touchstart", touchStartHandler);
+    viewerContainer.removeEventListener("touchmove", touchMoveHandler);
+    viewerContainer.removeEventListener("touchend", touchEndHandler);
+
+    viewerContainer.style.scrollSnapType = window.getComputedStyle(viewerContainer).scrollSnapType;
+
+    delete viewerContainer._scrollHandlers;
 }
 
 function $(query) {

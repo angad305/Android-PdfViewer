@@ -13,9 +13,12 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
     var scrollModeIncluded = true
     var spreadModeIncluded = true
     var rotationIncluded = true
-    var alignModeIncluded = true
     var snapPageIncluded = true
-    var customArrangementIncluded = true
+
+    // Unstable apis are excluded by default
+    var alignModeIncluded = false
+    var singlePageArrangementIncluded = false
+    var scrollSpeedLimitIncluded = false
 
     fun includeAll() {
         currentPageIncluded = true
@@ -25,9 +28,11 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         scrollModeIncluded = true
         spreadModeIncluded = true
         rotationIncluded = true
-        alignModeIncluded = true
         snapPageIncluded = true
-        customArrangementIncluded = true
+
+        alignModeIncluded = true
+        singlePageArrangementIncluded = true
+        scrollSpeedLimitIncluded = true
     }
 
     fun excludeAll() {
@@ -38,9 +43,11 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         scrollModeIncluded = false
         spreadModeIncluded = false
         rotationIncluded = false
-        alignModeIncluded = false
         snapPageIncluded = false
-        customArrangementIncluded = false
+
+        alignModeIncluded = false
+        singlePageArrangementIncluded = false
+        scrollSpeedLimitIncluded = false
     }
 
     fun save(pdfViewer: PdfViewer) {
@@ -61,7 +68,13 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
                 @OptIn(PdfUnstableApi::class)
                 save(alignModeIncluded, KEY_ALIGN_MODE, pageAlignMode)
                 @OptIn(PdfUnstableApi::class)
-                save(customArrangementIncluded, KEY_CUSTOM_ARRANGEMENT, singlePageArrangement)
+                save(
+                    singlePageArrangementIncluded,
+                    KEY_SINGLE_PAGE_ARRANGEMENT,
+                    singlePageArrangement
+                )
+                @OptIn(PdfUnstableApi::class)
+                save(scrollSpeedLimitIncluded, KEY_SCROLL_SPEED_LIMIT, scrollSpeedLimit)
 
                 apply()
             }
@@ -78,10 +91,13 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
 
                     @OptIn(PdfUnstableApi::class)
                     singlePageArrangement =
-                        getBoolean(KEY_CUSTOM_ARRANGEMENT, singlePageArrangement)
+                        getBoolean(KEY_SINGLE_PAGE_ARRANGEMENT, singlePageArrangement)
 
                     @OptIn(PdfUnstableApi::class)
                     pageAlignMode = getEnum(KEY_ALIGN_MODE, pageAlignMode)
+
+                    @OptIn(PdfUnstableApi::class)
+                    scrollSpeedLimit = getScrollSpeedLimit()
                 })
 
                 minPageScale = getFloat(KEY_MIN_SCALE, minPageScale)
@@ -122,6 +138,26 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         else remove(key)
     }
 
+    private fun PdfSettingsSaver.save(
+        included: Boolean,
+        key: String,
+        value: PdfViewer.ScrollSpeedLimit
+    ) {
+        if (included) save(
+            key, when (value) {
+                is PdfViewer.ScrollSpeedLimit.Fixed -> value.limit
+                PdfViewer.ScrollSpeedLimit.None -> -1f
+            }
+        )
+        else remove(key)
+    }
+
+    private fun PdfSettingsSaver.getScrollSpeedLimit(): PdfViewer.ScrollSpeedLimit {
+        val limit = getFloat(KEY_SCROLL_SPEED_LIMIT, -1f)
+        return if (limit > 0f) PdfViewer.ScrollSpeedLimit(limit)
+        else PdfViewer.ScrollSpeedLimit()
+    }
+
     companion object {
         private const val KEY_CURRENT_PAGE = "current_page"
         private const val KEY_MIN_SCALE = "min_scale"
@@ -130,8 +166,9 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         private const val KEY_SCROLL_MODE = "scroll_mode"
         private const val KEY_SPREAD_MODE = "spread_mode"
         private const val KEY_ROTATION = "rotation"
-        private const val KEY_ALIGN_MODE = "center_align"
         private const val KEY_SNAP_PAGE = "snap_page"
-        private const val KEY_CUSTOM_ARRANGEMENT = "custom_arrangement"
+        private const val KEY_ALIGN_MODE = "center_align"
+        private const val KEY_SINGLE_PAGE_ARRANGEMENT = "single_arrangement"
+        private const val KEY_SCROLL_SPEED_LIMIT = "scroll_speed_limit"
     }
 }

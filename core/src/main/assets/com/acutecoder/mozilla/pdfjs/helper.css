@@ -2,18 +2,18 @@
     --visible-toolbar-height: 0px;
 }
 
-.vertical-view-pager {
+.vertical-snap {
     scroll-snap-type: y mandatory;
 }
 
-.horizontal-view-pager {
+.horizontal-snap {
     scroll-snap-type: x mandatory;
 }
 
-.vertical-view-pager .full-size-container,
-.vertical-view-pager .page,
-.horizontal-view-pager .full-size-container,
-.horizontal-view-pager .page {
+.vertical-snap .full-size-container,
+.vertical-snap .page,
+.horizontal-snap .full-size-container,
+.horizontal-snap .page {
     scroll-snap-align: start;
 }
 

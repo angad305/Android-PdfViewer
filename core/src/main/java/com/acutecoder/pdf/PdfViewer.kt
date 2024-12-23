@@ -10,7 +10,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.util.Base64
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.webkit.JavascriptInterface
@@ -35,6 +34,7 @@ import com.acutecoder.pdf.js.with
 import com.acutecoder.pdf.setting.UiSettings
 import kotlin.math.abs
 
+// TODO: Restructure listener dispatch
 class PdfViewer @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -235,12 +235,18 @@ class PdfViewer @JvmOverloads constructor(
             field = value
         }
 
+    var snapPage = false
+        set(value) {
+            checkViewer()
+            field = value
+            setSnapPageTo(value)
+        }
+
     @PdfUnstableApi
     var pageAlignMode = PageAlignMode.DEFAULT
         set(value) {
             checkViewer()
-            val alignMode =
-                adjustAlignMode(value).also { Log.e("Align mode", "from $value to $it") }
+            val alignMode = adjustAlignMode(value)
             field = alignMode
             webView callDirectly "centerPage"(
                 alignMode.vertical,
@@ -261,11 +267,16 @@ class PdfViewer @JvmOverloads constructor(
             field = newValue
             webView callDirectly if (newValue) "applySinglePageArrangement"() else "removeSinglePageArrangement"()
         }
-    var snapPage = false
+
+    @PdfUnstableApi
+    var scrollSpeedLimit: ScrollSpeedLimit = ScrollSpeedLimit()
         set(value) {
             checkViewer()
             field = value
-            setSnapPageTo(value)
+            webView callDirectly when (value) {
+                is ScrollSpeedLimit.Fixed -> "limitScroll"(value.limit)
+                ScrollSpeedLimit.None -> "removeScrollLimit"()
+            }
         }
 
     init {
@@ -601,6 +612,19 @@ class PdfViewer @JvmOverloads constructor(
         CENTER_BOTH(true, true),
     }
 
+    sealed class ScrollSpeedLimit private constructor() {
+        data object None : ScrollSpeedLimit()
+        data class Fixed(
+            @FloatRange(from = 0.0, fromInclusive = false) val limit: Float
+        ) : ScrollSpeedLimit()
+
+        companion object {
+            operator fun invoke(
+                @FloatRange(from = 0.0, fromInclusive = false) limit: Float? = null
+            ) = limit?.let { Fixed(limit) } ?: None
+        }
+    }
+
     companion object {
         private const val PDF_VIEWER_URL =
             "file:///android_asset/com/acutecoder/mozilla/pdfjs/pdf_viewer.html"
@@ -623,6 +647,8 @@ class PdfViewer @JvmOverloads constructor(
             singlePageArrangement = singlePageArrangement
             @OptIn(PdfUnstableApi::class)
             pageAlignMode = pageAlignMode
+            @OptIn(PdfUnstableApi::class)
+            scrollSpeedLimit = scrollSpeedLimit
 
             listeners.forEach { it.onPageLoadSuccess(count) }
         }

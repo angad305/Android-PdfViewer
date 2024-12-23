@@ -234,6 +234,7 @@ private fun Activity.MainScreen(
     )
 }
 
+@OptIn(PdfUnstableApi::class)
 @Composable
 private fun Activity.ExtendedTooBarMenus(
     state: PdfState,
@@ -259,6 +260,21 @@ private fun Activity.ExtendedTooBarMenus(
     DropdownMenuItem(
         text = { Text(text = "Zoom Limit", modifier = dropDownModifier) },
         onClick = { showZoomLimitDialog = true }
+    )
+    DropdownMenuItem(
+        text = {
+            Text(
+                text =
+                (if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable" else "Disable")
+                        + " scroll speed limit", modifier = dropDownModifier
+            )
+        },
+        onClick = {
+            if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
+                state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit(5000f)
+            else state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit()
+            onDismiss()
+        }
     )
     defaultMenus { true }
 
