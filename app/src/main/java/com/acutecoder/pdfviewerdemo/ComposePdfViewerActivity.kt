@@ -8,6 +8,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -51,7 +56,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfOnScrollModeChange
+import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.setting.sharedPdfSettingsManager
@@ -136,12 +143,17 @@ private fun Activity.MainScreen(
 ) {
     val pdfState = rememberPdfState(source = url)
     val toolBarState = rememberToolBarState()
+    var fullscreen by remember { mutableStateOf(false) }
 
     LaunchedEffect(pdfState.errorMessage) {
         pdfState.errorMessage?.let {
             toast(it)
             finish()
         }
+    }
+
+    LaunchedEffect(fullscreen) {
+        setFullscreen(fullscreen)
     }
 
     DisposableEffect(Unit) {
@@ -166,23 +178,39 @@ private fun Activity.MainScreen(
                 onReady = {
                     pdfSettingsManager.restore(this)
                     setPdfViewer(this)
+                    addListener(object : PdfListener {
+                        override fun onSingleClick() {
+                            fullscreen = !fullscreen
+                        }
+
+                        override fun onDoubleClick() {
+                            if (!isZoomInMinScale()) zoomToMinimum()
+                            else zoomToMaximum()
+                        }
+                    })
                 }
             )
         },
         pdfToolBar = {
-            PdfToolBar(
-                title = title,
-                toolBarState = toolBarState,
-                onBack = { finish() },
-                contentColor = MaterialTheme.colorScheme.onBackground,
-                dropDownMenu = { onDismiss, defaultMenus ->
-                    ExtendedTooBarMenus(
-                        pdfState,
-                        onDismiss,
-                        defaultMenus
-                    )
-                },
-            )
+            AnimatedVisibility(
+                visible = !fullscreen,
+                enter = fadeIn() + slideInVertically { -it },
+                exit = fadeOut() + slideOutVertically { -it },
+            ) {
+                PdfToolBar(
+                    title = title,
+                    toolBarState = toolBarState,
+                    onBack = { finish() },
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    dropDownMenu = { onDismiss, defaultMenus ->
+                        ExtendedTooBarMenus(
+                            pdfState,
+                            onDismiss,
+                            defaultMenus
+                        )
+                    },
+                )
+            }
         },
         pdfScrollBar = { parentSize ->
             PdfScrollBar(
