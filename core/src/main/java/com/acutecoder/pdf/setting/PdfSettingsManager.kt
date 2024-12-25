@@ -74,7 +74,7 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
                     singlePageArrangement
                 )
                 @OptIn(PdfUnstableApi::class)
-                save(scrollSpeedLimitIncluded, KEY_SCROLL_SPEED_LIMIT, scrollSpeedLimit)
+                save(scrollSpeedLimitIncluded, scrollSpeedLimit)
 
                 apply()
             }
@@ -140,22 +140,32 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
 
     private fun PdfSettingsSaver.save(
         included: Boolean,
-        key: String,
         value: PdfViewer.ScrollSpeedLimit
     ) {
-        if (included) save(
-            key, when (value) {
-                is PdfViewer.ScrollSpeedLimit.Fixed -> value.limit
-                PdfViewer.ScrollSpeedLimit.None -> -1f
+        if (included) when (value) {
+            is PdfViewer.ScrollSpeedLimit.Fixed -> {
+                save(KEY_SCROLL_SPEED_LIMIT, value.limit)
+                save(KEY_FLING_THRESHOLD, value.flingThreshold)
             }
-        )
-        else remove(key)
+
+            PdfViewer.ScrollSpeedLimit.None -> {
+                save(KEY_SCROLL_SPEED_LIMIT, -1f)
+                save(KEY_FLING_THRESHOLD, -1f)
+            }
+        }
+        else {
+            remove(KEY_SCROLL_SPEED_LIMIT)
+            remove(KEY_FLING_THRESHOLD)
+        }
     }
 
     private fun PdfSettingsSaver.getScrollSpeedLimit(): PdfViewer.ScrollSpeedLimit {
         val limit = getFloat(KEY_SCROLL_SPEED_LIMIT, -1f)
-        return if (limit > 0f) PdfViewer.ScrollSpeedLimit(limit)
-        else PdfViewer.ScrollSpeedLimit()
+        val flingThreshold = getFloat(KEY_FLING_THRESHOLD, -1f)
+
+        return if (limit > 0f && flingThreshold > 0f)
+            PdfViewer.ScrollSpeedLimit.Fixed(limit, flingThreshold)
+        else PdfViewer.ScrollSpeedLimit.None
     }
 
     companion object {
@@ -170,5 +180,6 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         private const val KEY_ALIGN_MODE = "center_align"
         private const val KEY_SINGLE_PAGE_ARRANGEMENT = "single_arrangement"
         private const val KEY_SCROLL_SPEED_LIMIT = "scroll_speed_limit"
+        private const val KEY_FLING_THRESHOLD = "fling_threshold"
     }
 }

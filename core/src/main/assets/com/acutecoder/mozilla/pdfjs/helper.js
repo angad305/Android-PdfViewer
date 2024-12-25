@@ -451,17 +451,18 @@ function cancelPasswordDialog() {
     $("#passwordCancel").click();
 }
 
+const ScrollMode = {
+    UNKNOWN: -1,
+    VERTICAL: 0,
+    HORIZONTAL: 1,
+    WRAPPED: 2,
+    PAGE: 3,
+};
+
 function getActualScaleFor(value) {
     const SCROLLBAR_PADDING = 40;
     const VERTICAL_PADDING = 5;
     const MAX_AUTO_SCALE = 1.25;
-    const ScrollMode = {
-        UNKNOWN: -1,
-        VERTICAL: 0,
-        HORIZONTAL: 1,
-        WRAPPED: 2,
-        PAGE: 3,
-    };
     const SpreadMode = {
         UNKNOWN: -1,
         NONE: 0,
@@ -593,26 +594,43 @@ function removeSinglePageArrangement() {
     });
 }
 
-function limitScroll(maxSpeed = 100) {
+function limitScroll(maxSpeed = 100, flingThreshold = 0.5) {
     const viewerContainer = document.querySelector("#viewerContainer");
     if (!viewerContainer) return;
 
     let lastTouchX = 0;
     let lastTouchY = 0;
+    let lastTouchTime = 0;
+    let accumulatedDeltaX = 0;
+    let accumulatedDeltaY = 0;
+    let restoreTimer;
+    let isDragging = false;
+
+    viewerContainer._originalScrollSnapType = window.getComputedStyle(viewerContainer).scrollSnapType;
 
     const disableSnap = () => {
         viewerContainer.style.scrollSnapType = "none";
+        if (restoreTimer) clearTimeout(restoreTimer);
     };
 
     const restoreSnap = () => {
         viewerContainer.style.scrollSnapType = viewerContainer._originalScrollSnapType;
     };
 
+    const clamp = (value, max) => Math.max(-max, Math.min(value, max));
+
     const touchStartHandler = (event) => {
         if (event.touches.length > 1) return;
 
         lastTouchX = event.touches[0].clientX;
         lastTouchY = event.touches[0].clientY;
+        lastTouchTime = event.timeStamp;
+        PDFViewerApplication._touchStartCurrentPage = PDFViewerApplication.page;
+
+        accumulatedDeltaX = 0;
+        accumulatedDeltaY = 0;
+        isDragging = false;
+
         disableSnap();
     };
 
@@ -626,16 +644,17 @@ function limitScroll(maxSpeed = 100) {
         let deltaX = lastTouchX - currentTouchX;
         let deltaY = lastTouchY - currentTouchY;
 
-        if (Math.abs(deltaX) > maxSpeed) {
-            deltaX = deltaX > 0 ? maxSpeed : -maxSpeed;
-        }
-
-        if (Math.abs(deltaY) > maxSpeed) {
-            deltaY = deltaY > 0 ? maxSpeed : -maxSpeed;
+        deltaX = clamp(deltaX, maxSpeed);
+        deltaY = clamp(deltaY, maxSpeed);
+        if (!isDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+            isDragging = true;
         }
 
         viewerContainer.scrollLeft += deltaX;
         viewerContainer.scrollTop += deltaY;
+
+        accumulatedDeltaX += deltaX;
+        accumulatedDeltaY += deltaY;
 
         lastTouchX = currentTouchX;
         lastTouchY = currentTouchY;
@@ -644,31 +663,179 @@ function limitScroll(maxSpeed = 100) {
     };
 
     const touchEndHandler = (event) => {
-        if (event.touches.length > 1) return;
+        if (!isDragging) return;
 
-        restoreSnap();
+        const touchEndTime = event.timeStamp;
+        const timeElapsed = touchEndTime - lastTouchTime;
+
+        const velocityX = accumulatedDeltaX / timeElapsed;
+        const velocityY = accumulatedDeltaY / timeElapsed;
+
+        const isVerticalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.VERTICAL;
+        const isHorizontalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.HORIZONTAL;
+
+        event.preventDefault();
+
+        if (isHorizontalScroll && Math.abs(velocityX) > flingThreshold && Math.abs(velocityX) > Math.abs(velocityY)) {
+            if (velocityX > 0) {
+                setScrollToNextPage();
+            } else {
+                setScrollToPreviousPage();
+            }
+        } else if (isVerticalScroll && Math.abs(velocityY) > flingThreshold && Math.abs(velocityY) > Math.abs(velocityX)) {
+            if (velocityY > 0) {
+                setScrollToNextPage();
+            } else {
+                setScrollToPreviousPage();
+            }
+        } else if (setScrollToCurrentPage()) {
+            restoreTimer = setTimeout(() => {
+                restoreSnap();
+            }, 500);
+        } else {
+            //restoreSnap();
+        }
+    };
+
+    const resizeAndScaleListener = () => {
+        setScrollToCurrentPage();
     };
 
     viewerContainer.addEventListener("touchstart", touchStartHandler);
     viewerContainer.addEventListener("touchmove", touchMoveHandler, { passive: false });
-    viewerContainer.addEventListener("touchend", touchEndHandler);
+    viewerContainer.addEventListener("touchend", touchEndHandler, { passive: false });
+    window.addEventListener("resize", resizeAndScaleListener);
+    PDFViewerApplication.eventBus.on("scalechanging", resizeAndScaleListener);
 
-    viewerContainer._scrollHandlers = { touchStartHandler, touchMoveHandler, touchEndHandler };
+    viewerContainer._scrollHandlers = { touchStartHandler, touchMoveHandler, touchEndHandler, resizeAndScaleListener };
 }
 
 function removeScrollLimit() {
     const viewerContainer = document.querySelector("#viewerContainer");
     if (!viewerContainer || !viewerContainer._scrollHandlers) return;
 
-    const { touchStartHandler, touchMoveHandler, touchEndHandler } = viewerContainer._scrollHandlers;
+    const { touchStartHandler, touchMoveHandler, touchEndHandler, resizeAndScaleListener } = viewerContainer._scrollHandlers;
 
     viewerContainer.removeEventListener("touchstart", touchStartHandler);
     viewerContainer.removeEventListener("touchmove", touchMoveHandler);
     viewerContainer.removeEventListener("touchend", touchEndHandler);
+    window.removeEventListener("resize", resizeAndScaleListener);
+    PDFViewerApplication.eventBus.off("scalechanging", resizeAndScaleListener);
 
-    viewerContainer.style.scrollSnapType = window.getComputedStyle(viewerContainer).scrollSnapType;
+    viewerContainer.style.scrollSnapType = viewerContainer._originalScrollSnapType;
 
     delete viewerContainer._scrollHandlers;
+}
+
+function setScrollToPreviousPage() {
+    setScrollToPage(PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication._touchStartCurrentPage - 2), true);
+}
+
+function setScrollToNextPage() {
+    setScrollToPage(PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication._touchStartCurrentPage));
+}
+
+function setScrollToCurrentPage() {
+    let targetPage = PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication._touchStartCurrentPage - 1);
+    const viewerContainer = document.querySelector("#viewerContainer");
+
+    const isVerticalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.VERTICAL;
+    const isHorizontalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.HORIZONTAL;
+
+    if (!targetPage || !viewerContainer) return;
+
+    const containerHeight = viewerContainer.clientHeight;
+    const containerWidth = viewerContainer.clientWidth;
+
+    const pageHeight = targetPage.div.clientHeight;
+    const pageWidth = targetPage.div.clientWidth;
+
+    const currentScrollTop = viewerContainer.scrollTop;
+    const currentScrollLeft = viewerContainer.scrollLeft;
+
+    let targetOffsetTop, targetOffsetLeft;
+
+    if (pageHeight >= containerHeight || pageWidth >= containerWidth) {
+        if (isVerticalScroll) {
+            let canChange = currentScrollTop < targetPage.div.offsetTop || currentScrollTop + containerHeight > PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication._touchStartCurrentPage)?.div?.offsetTop || 0;
+            if (pageHeight > containerHeight && canChange) targetOffsetTop = nearest(currentScrollTop, targetPage.div.offsetTop, targetPage.div.offsetTop + pageHeight - containerHeight);
+            else if (pageWidth > containerWidth && canChange) targetOffsetTop = targetPage.div.offsetTop - Math.abs(containerHeight - pageHeight) / 2;
+            else targetOffsetTop = currentScrollTop;
+        } else targetOffsetTop = currentScrollTop;
+        if (isHorizontalScroll) {
+            let canChange = currentScrollLeft < targetPage.div.offsetLeft || currentScrollLeft + containerWidth > PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication._touchStartCurrentPage)?.div?.offsetLeft || 0;
+            if (pageWidth > containerWidth && canChange) targetOffsetLeft = nearest(currentScrollLeft, targetPage.div.offsetLeft, targetPage.div.offsetLeft + pageWidth - containerWidth);
+            else if (pageHeight > containerHeight && canChange) targetOffsetLeft = targetPage.div.offsetLeft - Math.abs(containerWidth - pageWidth) / 2;
+            else targetOffsetLeft = currentScrollLeft;
+        } else targetOffsetLeft = currentScrollLeft;
+    } else {
+        targetOffsetLeft = targetPage.div.offsetLeft - (targetPage.div.parentElement.clientWidth - targetPage.div.clientWidth) / 2;
+        targetOffsetTop = targetPage.div.offsetTop - (targetPage.div.parentElement.clientHeight - targetPage.div.clientHeight) / 2;
+    }
+
+    smoothScrollTo(viewerContainer, targetOffsetTop, targetOffsetLeft);
+}
+
+function setScrollToPage(targetPage, goToEnd = false) {
+    const containerHeight = viewerContainer.clientHeight;
+    const containerWidth = viewerContainer.clientWidth;
+
+    const pageHeight = targetPage.div.clientHeight;
+    const pageWidth = targetPage.div.clientWidth;
+
+    let targetOffsetTop, targetOffsetLeft;
+
+    if (pageHeight >= containerHeight || pageWidth >= containerWidth) {
+        const currentScrollTop = viewerContainer.scrollTop;
+        const currentScrollLeft = viewerContainer.scrollLeft;
+        const isVerticalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.VERTICAL;
+        const isHorizontalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.HORIZONTAL;
+
+        if (isVerticalScroll) targetOffsetLeft = currentScrollLeft;
+        else {
+            if (goToEnd) targetOffsetLeft = targetPage.div.offsetLeft + targetPage.div.clientWidth - containerWidth;
+            else targetOffsetLeft = targetPage.div.offsetLeft;
+        }
+        if (isHorizontalScroll) targetOffsetTop = currentScrollTop;
+        else {
+            if (goToEnd) targetOffsetTop = targetPage.div.offsetTop + targetPage.div.clientHeight - containerHeight;
+            else targetOffsetTop = targetPage.div.offsetTop;
+        }
+    } else {
+        targetOffsetLeft = targetPage.div.offsetLeft - (targetPage.div.parentElement.clientWidth - targetPage.div.clientWidth) / 2;
+        targetOffsetTop = targetPage.div.offsetTop - (targetPage.div.parentElement.clientHeight - targetPage.div.clientHeight) / 2;
+    }
+
+    smoothScrollTo(viewerContainer, targetOffsetTop, targetOffsetLeft);
+}
+
+function smoothScrollTo(container, targetScrollTop, targetScrollLeft, duration = 250) {
+    let startScrollLeft = container.scrollLeft;
+    let startScrollTop = container.scrollTop;
+    const distanceLeft = targetScrollLeft - startScrollLeft;
+    const distanceTop = targetScrollTop - startScrollTop + 8.5;
+    const startTime = performance.now();
+
+    function step(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeInOutQuad = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        container.scrollLeft = startScrollLeft + distanceLeft * easeInOutQuad;
+        container.scrollTop = startScrollTop + distanceTop * easeInOutQuad;
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        }
+    }
+
+    requestAnimationFrame(step);
+}
+
+function nearest(currentPoint, point1, point2) {
+    if (Math.abs(currentPoint - point1) < Math.abs(currentPoint - point2)) {
+        return point1;
+    } else return point2;
 }
 
 function $(query) {

@@ -271,8 +271,8 @@ private fun Activity.ExtendedTooBarMenus(
         },
         onClick = {
             if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
-                state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit(5000f)
-            else state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit()
+                state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.Fixed()
+            else state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
             onDismiss()
         }
     )

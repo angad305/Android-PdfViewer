@@ -269,12 +269,12 @@ class PdfViewer @JvmOverloads constructor(
         }
 
     @PdfUnstableApi
-    var scrollSpeedLimit: ScrollSpeedLimit = ScrollSpeedLimit()
+    var scrollSpeedLimit: ScrollSpeedLimit = ScrollSpeedLimit.None
         set(value) {
             checkViewer()
             field = value
             webView callDirectly when (value) {
-                is ScrollSpeedLimit.Fixed -> "limitScroll"(value.limit)
+                is ScrollSpeedLimit.Fixed -> "limitScroll"(value.limit, value.flingThreshold)
                 ScrollSpeedLimit.None -> "removeScrollLimit"()
             }
         }
@@ -615,14 +615,9 @@ class PdfViewer @JvmOverloads constructor(
     sealed class ScrollSpeedLimit private constructor() {
         data object None : ScrollSpeedLimit()
         data class Fixed(
-            @FloatRange(from = 0.0, fromInclusive = false) val limit: Float
+            @FloatRange(from = 0.0, fromInclusive = false) val limit: Float = 100f,
+            @FloatRange(from = 0.0, fromInclusive = false) val flingThreshold: Float = 0.5f,
         ) : ScrollSpeedLimit()
-
-        companion object {
-            operator fun invoke(
-                @FloatRange(from = 0.0, fromInclusive = false) limit: Float? = null
-            ) = limit?.let { Fixed(limit) } ?: None
-        }
     }
 
     companion object {
