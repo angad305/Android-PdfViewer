@@ -1,6 +1,7 @@
 package com.acutecoder.pdfviewerdemo
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.URLUtil
@@ -16,10 +17,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 class MainActivity : AppCompatActivity() {
 
     private lateinit var view: ActivityMainBinding
+    private lateinit var pref: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        pref = getSharedPreferences("pref", MODE_PRIVATE)
 
         // View from other apps (from intent filter)
         if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
@@ -42,7 +46,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         view.useCompose.run {
-            val pref = getSharedPreferences("pref", MODE_PRIVATE)
             isChecked = pref.getBoolean("use_compose", false)
             setOnCheckedChangeListener { _, isChecked ->
                 pref.edit().putBoolean("use_compose", isChecked).apply()
@@ -98,7 +101,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getViewerActivityClass(): Class<*> {
-        return if (view.useCompose.isChecked) ComposePdfViewerActivity::class.java
+        val useCompose = pref.getBoolean("use_compose", false)
+
+        return if (useCompose) ComposePdfViewerActivity::class.java
         else PdfViewerActivity::class.java
     }
 
@@ -121,10 +126,10 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
-        if (intent != null && intent.action == Intent.ACTION_VIEW && intent.data != null) {
+        if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
             startActivity(
                 Intent(this, getViewerActivityClass()).apply {
                     putExtra("fileUri", intent.data.toString())
