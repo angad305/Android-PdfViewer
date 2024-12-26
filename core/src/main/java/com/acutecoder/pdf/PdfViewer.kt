@@ -131,7 +131,6 @@ class PdfViewer @JvmOverloads constructor(
             checkViewer()
             field = value
             webView callDirectly value.function()
-            @OptIn(PdfUnstableApi::class)
             if (value != PageSpreadMode.NONE && singlePageArrangement)
                 singlePageArrangement = false
         }
@@ -242,7 +241,6 @@ class PdfViewer @JvmOverloads constructor(
             setSnapPageTo(value)
         }
 
-    @PdfUnstableApi
     var pageAlignMode = PageAlignMode.DEFAULT
         set(value) {
             checkViewer()
@@ -255,7 +253,6 @@ class PdfViewer @JvmOverloads constructor(
             )
         }
 
-    @PdfUnstableApi
     var singlePageArrangement = false
         set(value) {
             checkViewer()
@@ -272,6 +269,12 @@ class PdfViewer @JvmOverloads constructor(
     var scrollSpeedLimit: ScrollSpeedLimit = ScrollSpeedLimit.None
         set(value) {
             checkViewer()
+            if (!singlePageArrangement) {
+                webView callDirectly "removeScrollLimit"()
+                field = ScrollSpeedLimit.None
+                return
+            }
+
             field = value
             webView callDirectly when (value) {
                 is ScrollSpeedLimit.AdaptiveFling -> "limitScroll"(
@@ -485,7 +488,6 @@ class PdfViewer @JvmOverloads constructor(
         if (!isInitialized) throw PdfViewerNotInitializedException()
     }
 
-    @OptIn(PdfUnstableApi::class)
     private fun adjustAlignModeAndArrangementMode(scrollMode: PageScrollMode) {
         if (singlePageArrangement) {
             if (scrollMode != PageScrollMode.VERTICAL && scrollMode != PageScrollMode.HORIZONTAL)
@@ -510,7 +512,6 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    @OptIn(PdfUnstableApi::class)
     private fun adjustAlignMode(alignMode: PageAlignMode): PageAlignMode {
         if (singlePageArrangement) return alignMode
 
@@ -672,9 +673,7 @@ class PdfViewer @JvmOverloads constructor(
             pageRotation = pageRotation
             snapPage = snapPage
 
-            @OptIn(PdfUnstableApi::class)
             singlePageArrangement = singlePageArrangement
-            @OptIn(PdfUnstableApi::class)
             pageAlignMode = pageAlignMode
             @OptIn(PdfUnstableApi::class)
             scrollSpeedLimit = scrollSpeedLimit

@@ -65,9 +65,7 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
 
                 save(snapPageIncluded, KEY_SNAP_PAGE, snapPage)
 
-                @OptIn(PdfUnstableApi::class)
                 save(alignModeIncluded, KEY_ALIGN_MODE, pageAlignMode)
-                @OptIn(PdfUnstableApi::class)
                 save(
                     singlePageArrangementIncluded,
                     KEY_SINGLE_PAGE_ARRANGEMENT,
@@ -89,11 +87,9 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
                     if (currentPage != -1 && currentPage <= pagesCount)
                         goToPage(currentPage)
 
-                    @OptIn(PdfUnstableApi::class)
                     singlePageArrangement =
                         getBoolean(KEY_SINGLE_PAGE_ARRANGEMENT, singlePageArrangement)
 
-                    @OptIn(PdfUnstableApi::class)
                     pageAlignMode = getEnum(KEY_ALIGN_MODE, pageAlignMode)
 
                     @OptIn(PdfUnstableApi::class)

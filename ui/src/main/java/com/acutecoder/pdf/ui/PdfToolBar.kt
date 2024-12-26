@@ -24,7 +24,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
 import com.acutecoder.pdf.PdfDocumentProperties
 import com.acutecoder.pdf.PdfListener
-import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.PdfViewer.PageSpreadMode
 
@@ -347,7 +346,6 @@ open class PdfToolBar @JvmOverloads constructor(
         showDialog(dialog)
     }
 
-    @OptIn(PdfUnstableApi::class)
     private fun showSinglePageArrangementDialog() {
         val root = layoutInflater.inflate(R.layout.pdf_snap_page_dialog, null)
         val switch = root.findViewById<SwitchCompat>(R.id.snap_page)
@@ -393,7 +391,6 @@ open class PdfToolBar @JvmOverloads constructor(
         showDialog(dialog)
     }
 
-    @OptIn(PdfUnstableApi::class)
     private fun showAlignModeDialog() {
         val displayOptions = buildList {
             add("Default")

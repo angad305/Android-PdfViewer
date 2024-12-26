@@ -63,7 +63,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.PdfViewer.PageSpreadMode
 import com.acutecoder.pdfviewer.compose.MatchState
@@ -521,7 +520,6 @@ private fun ScrollModeDialog(state: PdfState, onDismiss: () -> Unit) {
     )
 }
 
-@OptIn(PdfUnstableApi::class)
 @Composable
 private fun SinglePageArrangementDialog(state: PdfState, onDismiss: () -> Unit) {
     val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
@@ -603,7 +601,6 @@ private fun SplitModeDialog(state: PdfState, onDismiss: () -> Unit) {
     )
 }
 
-@OptIn(PdfUnstableApi::class)
 @Composable
 private fun AlignModeDialog(state: PdfState, onDismiss: () -> Unit) {
     val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
