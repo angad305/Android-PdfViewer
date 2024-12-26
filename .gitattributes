@@ -6,4 +6,3 @@ core/src/main/assets/com/acutecoder/mozilla/pdfjs/pdf_viewer.css linguist-vendor
 core/src/main/assets/com/acutecoder/mozilla/pdfjs/pdf_viewer.html linguist-vendored
 core/src/main/assets/com/acutecoder/mozilla/pdfjs/pdf_viewer.mjs linguist-vendored
 core/src/main/assets/com/acutecoder/mozilla/web/standard_fonts/** linguist-vendored
-*.ftl linguist-vendored
