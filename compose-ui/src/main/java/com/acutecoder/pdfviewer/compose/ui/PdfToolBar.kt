@@ -163,7 +163,10 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
         }
     }
     DisposableEffect(Unit) {
-        onDispose { pdfState.pdfViewer?.findController?.stopFind() }
+        onDispose {
+            pdfState.pdfViewer?.findController?.stopFind()
+            pdfState.clearFind()
+        }
     }
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -203,7 +206,7 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
         )
 
         AnimatedVisibility(
-            visible = pdfState.matchState !is MatchState.Completed,
+            visible = pdfState.matchState.isLoading,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {

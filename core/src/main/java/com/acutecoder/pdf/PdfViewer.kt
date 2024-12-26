@@ -34,7 +34,6 @@ import com.acutecoder.pdf.js.with
 import com.acutecoder.pdf.setting.UiSettings
 import kotlin.math.abs
 
-// TODO: Restructure listener dispatch
 class PdfViewer @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -123,7 +122,7 @@ class PdfViewer @JvmOverloads constructor(
             field = value
             webView callDirectly value.function()
             adjustAlignModeAndArrangementMode(value)
-            setSnapPageTo(snapPage)
+            dispatchSnapChange(snapPage, false)
         }
 
     var pageSpreadMode: PageSpreadMode = PageSpreadMode.NONE
@@ -146,7 +145,6 @@ class PdfViewer @JvmOverloads constructor(
         set(value) {
             checkViewer()
             field = value
-            webView set "pdfViewer.pagesRotation"(value.degree)
             dispatchRotationChange(value)
         }
 
@@ -238,61 +236,26 @@ class PdfViewer @JvmOverloads constructor(
         set(value) {
             checkViewer()
             field = value
-            setSnapPageTo(value)
+            dispatchSnapChange(value)
         }
 
     var pageAlignMode = PageAlignMode.DEFAULT
         set(value) {
             checkViewer()
-            val alignMode = adjustAlignMode(value)
-            field = alignMode
-            webView callDirectly "centerPage"(
-                alignMode.vertical,
-                alignMode.horizontal,
-                singlePageArrangement
-            )
+            field = dispatchPageAlignMode(value)
         }
 
     var singlePageArrangement = false
         set(value) {
             checkViewer()
-            val newValue =
-                if (value) {
-                    (pageScrollMode == PageScrollMode.VERTICAL || pageScrollMode == PageScrollMode.HORIZONTAL)
-                            && pageSpreadMode == PageSpreadMode.NONE
-                } else false
-            field = newValue
-            webView callDirectly if (newValue) "applySinglePageArrangement"() else "removeSinglePageArrangement"()
+            field = dispatchSinglePageArrangement(value)
         }
 
     @PdfUnstableApi
     var scrollSpeedLimit: ScrollSpeedLimit = ScrollSpeedLimit.None
         set(value) {
             checkViewer()
-            if (!singlePageArrangement) {
-                webView callDirectly "removeScrollLimit"()
-                field = ScrollSpeedLimit.None
-                return
-            }
-
-            field = value
-            webView callDirectly when (value) {
-                is ScrollSpeedLimit.AdaptiveFling -> "limitScroll"(
-                    value.limit,
-                    value.flingThreshold,
-                    true,
-                    true,
-                )
-
-                is ScrollSpeedLimit.Fixed -> "limitScroll"(
-                    value.limit,
-                    value.flingThreshold,
-                    value.canFling,
-                    false,
-                )
-
-                ScrollSpeedLimit.None -> "removeScrollLimit"()
-            }
+            field = dispatchScrollSpeedLimit(value)
         }
 
     init {
@@ -331,6 +294,7 @@ class PdfViewer @JvmOverloads constructor(
 
     fun onReady(onReady: PdfViewer.() -> Unit) {
         onReadyListeners.add(onReady)
+        if (isInitialized) onReady(this)
     }
 
     fun addListener(listener: PdfListener) {
@@ -339,6 +303,11 @@ class PdfViewer @JvmOverloads constructor(
 
     fun removeListener(listener: PdfListener) {
         listeners.remove(listener)
+    }
+
+    fun clearAllListeners() {
+        onReadyListeners.clear()
+        listeners.clear()
     }
 
     fun goToPage(@IntRange(from = 1) pageNumber: Int): Boolean {
@@ -476,16 +445,141 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchRotationChange(pageRotation: PageRotation) {
-        listeners.forEach { it.onRotationChange(pageRotation) }
-    }
-
     private fun loadPage() {
         webView.loadUrl(PDF_VIEWER_URL)
     }
 
     private fun checkViewer() {
         if (!isInitialized) throw PdfViewerNotInitializedException()
+    }
+
+    private fun dispatchRotationChange(
+        pageRotation: PageRotation,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onRotationChange(pageRotation) }
+        ) {
+            webView set "pdfViewer.pagesRotation"(pageRotation)
+        }
+    }
+
+    private fun dispatchSnapChange(
+        snapPage: Boolean,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onSnapChange(snapPage) }
+        ) {
+            if (snapPage) {
+                when (pageScrollMode) {
+                    PageScrollMode.HORIZONTAL -> webView callDirectly "enableHorizontalSnapBehavior"()
+                    PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> webView callDirectly "enableVerticalSnapBehavior"()
+                    else -> {}
+                }
+            } else webView callDirectly "removeSnapBehavior"()
+        }
+    }
+
+    private fun dispatchPageAlignMode(
+        pageAlignMode: PageAlignMode,
+        dispatchToListener: Boolean = true,
+    ): PageAlignMode {
+        return dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onAlignModeChange(pageAlignMode, it) }
+        ) {
+            val alignMode = adjustAlignMode(pageAlignMode)
+            webView callDirectly "centerPage"(
+                alignMode.vertical,
+                alignMode.horizontal,
+                singlePageArrangement
+            )
+            alignMode
+        }
+    }
+
+    private fun adjustAlignMode(alignMode: PageAlignMode): PageAlignMode {
+        if (singlePageArrangement) return alignMode
+
+        when (pageScrollMode) {
+            PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> {
+                if (alignMode == PageAlignMode.CENTER_VERTICAL || alignMode == PageAlignMode.CENTER_BOTH)
+                    return PageAlignMode.DEFAULT
+            }
+
+            PageScrollMode.HORIZONTAL -> {
+                if (alignMode == PageAlignMode.CENTER_HORIZONTAL || alignMode == PageAlignMode.CENTER_BOTH)
+                    return PageAlignMode.DEFAULT
+            }
+
+            PageScrollMode.SINGLE_PAGE -> {}
+        }
+
+        return alignMode
+    }
+
+    private fun dispatchSinglePageArrangement(
+        singlePageArrangement: Boolean,
+        dispatchToListener: Boolean = true,
+    ): Boolean {
+        return dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onSinglePageArrangementChange(singlePageArrangement, it) }
+        ) {
+            val newValue =
+                if (singlePageArrangement) {
+                    (pageScrollMode == PageScrollMode.VERTICAL || pageScrollMode == PageScrollMode.HORIZONTAL)
+                            && pageSpreadMode == PageSpreadMode.NONE
+                } else false
+            webView callDirectly if (newValue) "applySinglePageArrangement"() else "removeSinglePageArrangement"()
+            newValue
+        }
+    }
+
+    private fun dispatchScrollSpeedLimit(
+        scrollSpeedLimit: ScrollSpeedLimit,
+        dispatchToListener: Boolean = true,
+    ): ScrollSpeedLimit {
+        return dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onScrollSpeedLimitChange(scrollSpeedLimit, it) }
+        ) {
+            if (!singlePageArrangement) {
+                webView callDirectly "removeScrollLimit"()
+                return@dispatch ScrollSpeedLimit.None
+            }
+            webView callDirectly when (scrollSpeedLimit) {
+                is ScrollSpeedLimit.AdaptiveFling -> "limitScroll"(
+                    scrollSpeedLimit.limit,
+                    scrollSpeedLimit.flingThreshold,
+                    true,
+                    true,
+                )
+
+                is ScrollSpeedLimit.Fixed -> "limitScroll"(
+                    scrollSpeedLimit.limit,
+                    scrollSpeedLimit.flingThreshold,
+                    scrollSpeedLimit.canFling,
+                    false,
+                )
+
+                ScrollSpeedLimit.None -> "removeScrollLimit"()
+            }
+            scrollSpeedLimit
+        }
+    }
+
+    private inline fun <T> dispatch(
+        dispatchToListener: Boolean = true,
+        callListener: PdfListener.(result: T) -> Unit,
+        block: () -> T,
+    ): T {
+        val result = block()
+        if (dispatchToListener) listeners.forEach { callListener(it, result) }
+        return result
     }
 
     private fun adjustAlignModeAndArrangementMode(scrollMode: PageScrollMode) {
@@ -510,36 +604,6 @@ class PdfViewer @JvmOverloads constructor(
                 pageAlignMode = pageAlignMode
             }
         }
-    }
-
-    private fun adjustAlignMode(alignMode: PageAlignMode): PageAlignMode {
-        if (singlePageArrangement) return alignMode
-
-        when (pageScrollMode) {
-            PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> {
-                if (alignMode == PageAlignMode.CENTER_VERTICAL || alignMode == PageAlignMode.CENTER_BOTH)
-                    return PageAlignMode.DEFAULT
-            }
-
-            PageScrollMode.HORIZONTAL -> {
-                if (alignMode == PageAlignMode.CENTER_HORIZONTAL || alignMode == PageAlignMode.CENTER_BOTH)
-                    return PageAlignMode.DEFAULT
-            }
-
-            PageScrollMode.SINGLE_PAGE -> {}
-        }
-
-        return alignMode
-    }
-
-    private fun setSnapPageTo(value: Boolean) {
-        if (value) {
-            when (pageScrollMode) {
-                PageScrollMode.HORIZONTAL -> webView callDirectly "enableHorizontalSnapBehavior"()
-                PageScrollMode.VERTICAL, PageScrollMode.WRAPPED -> webView callDirectly "enableVerticalSnapBehavior"()
-                else -> {}
-            }
-        } else webView callDirectly "removeSnapBehavior"()
     }
 
     private fun setUpActualScaleValues(callback: () -> Unit) {
@@ -664,19 +728,21 @@ class PdfViewer @JvmOverloads constructor(
 
     @Suppress("Unused")
     private inner class WebInterface {
+        private var findMatchStarted = false
+
         @JavascriptInterface
         fun onLoadSuccess(count: Int) = post {
             pagesCount = count
             setUpActualScaleValues {
                 scalePageTo(actualDefaultPageScale)
             }
-            pageRotation = pageRotation
-            snapPage = snapPage
+            dispatchRotationChange(pageRotation, false)
+            dispatchSnapChange(snapPage, false)
 
-            singlePageArrangement = singlePageArrangement
-            pageAlignMode = pageAlignMode
+            dispatchSinglePageArrangement(singlePageArrangement, false)
+            dispatchPageAlignMode(pageAlignMode, false)
             @OptIn(PdfUnstableApi::class)
-            scrollSpeedLimit = scrollSpeedLimit
+            dispatchScrollSpeedLimit(scrollSpeedLimit, false)
 
             listeners.forEach { it.onPageLoadSuccess(count) }
         }
@@ -702,17 +768,19 @@ class PdfViewer @JvmOverloads constructor(
 
         @JavascriptInterface
         fun onFindMatchStart() = post {
+            findMatchStarted = true
             listeners.forEach { it.onFindMatchStart() }
         }
 
         @JavascriptInterface
         fun onFindMatchChange(current: Int, total: Int) = post {
-            listeners.forEach { it.onFindMatchChange(current, total) }
+            if (findMatchStarted) listeners.forEach { it.onFindMatchChange(current, total) }
         }
 
         @JavascriptInterface
         fun onFindMatchComplete(found: Boolean) = post {
-            listeners.forEach { it.onFindMatchComplete(found) }
+            if (findMatchStarted) listeners.forEach { it.onFindMatchComplete(found) }
+            findMatchStarted = false
         }
 
         @JavascriptInterface

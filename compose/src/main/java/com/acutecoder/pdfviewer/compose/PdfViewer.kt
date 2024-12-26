@@ -26,7 +26,7 @@ fun PdfViewer(
     AndroidView(
         factory = { context ->
             PdfViewer(context).also {
-                state.setViewer(it)
+                state.setPdfViewerTo(it)
                 it.onReady {
                     load(state.source)
                     onReady?.invoke(it)
@@ -39,6 +39,18 @@ fun PdfViewer(
                 containerColor?.toArgb()?.let { color ->
                     it.setContainerBackgroundColor(color)
                 }
+            }
+        },
+        onRelease = {
+            it.clearAllListeners()
+            state.clearPdfViewer()
+        },
+        onReset = {
+            it.clearAllListeners()
+        },
+        update = {
+            containerColor?.toArgb()?.let { color ->
+                it.setContainerBackgroundColor(color)
             }
         },
         modifier = modifier

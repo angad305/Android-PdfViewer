@@ -23,6 +23,9 @@ interface PdfListener {
     fun onDoubleClick() {}
     fun onLongClick() {}
     fun onLinkClick(link: String) {}
+    fun onSnapChange(snapPage: Boolean) {}
+    fun onSinglePageArrangementChange(requestedArrangement: Boolean, appliedArrangement: Boolean) {}
+
     fun onScaleLimitChange(
         @FloatRange(-4.0, 10.0) minPageScale: Float,
         @FloatRange(-4.0, 10.0) maxPageScale: Float,
@@ -34,6 +37,18 @@ interface PdfListener {
         @FloatRange(0.0, 10.0) minPageScale: Float,
         @FloatRange(0.0, 10.0) maxPageScale: Float,
         @FloatRange(0.0, 10.0) defaultPageScale: Float
+    ) {
+    }
+
+    fun onAlignModeChange(
+        requestedMode: PdfViewer.PageAlignMode,
+        appliedMode: PdfViewer.PageAlignMode
+    ) {
+    }
+
+    fun onScrollSpeedLimitChange(
+        requestedLimit: PdfViewer.ScrollSpeedLimit,
+        appliedLimit: PdfViewer.ScrollSpeedLimit
     ) {
     }
 
@@ -114,7 +129,11 @@ fun PdfOnFindMatchComplete(callback: (found: Boolean) -> Unit) =
 @Suppress("FunctionName")
 fun PdfOnScrollChange(callback: (currentOffset: Int, totalOffset: Int, isHorizontal: Boolean) -> Unit) =
     object : PdfListener {
-        override fun onScrollChange(currentOffset: Int, totalOffset: Int, isHorizontalScroll: Boolean) {
+        override fun onScrollChange(
+            currentOffset: Int,
+            totalOffset: Int,
+            isHorizontalScroll: Boolean
+        ) {
             callback(currentOffset, totalOffset, isHorizontalScroll)
         }
     }

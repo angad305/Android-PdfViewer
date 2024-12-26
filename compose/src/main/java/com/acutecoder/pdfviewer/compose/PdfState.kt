@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.acutecoder.pdf.PdfDocumentProperties
 import com.acutecoder.pdf.PdfListener
+import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.PdfViewer.Zoom
 
@@ -36,20 +37,38 @@ class PdfState(source: String) {
     var rotation by mutableStateOf(PdfViewer.PageRotation.R_0); internal set
     var scaleLimit by mutableStateOf(ScaleLimit()); internal set
     var actualScaleLimit by mutableStateOf(ActualScaleLimit()); internal set
+    var snapPage by mutableStateOf(false); internal set
+    var singlePageArrangement by mutableStateOf(false); internal set
+    var alignMode by mutableStateOf(PdfViewer.PageAlignMode.DEFAULT); internal set
+
+    @PdfUnstableApi
+    var scrollSpeedLimit: PdfViewer.ScrollSpeedLimit by mutableStateOf(PdfViewer.ScrollSpeedLimit.None); internal set
 
     fun load(source: String) {
         this.source = source
     }
 
-    fun setViewer(viewer: PdfViewer) {
+    fun clearFind() {
+        matchState = MatchState.Initialized()
+    }
+
+    internal fun setPdfViewerTo(viewer: PdfViewer) {
+        if (pdfViewer == viewer) return
+
         this.pdfViewer = viewer
         viewer.addListener(Listener())
         viewer.onReady { this@PdfState.isInitialized = true }
 
+        isInitialized = viewer.isInitialized
+        isLoading = viewer.pagesCount == 0
+        errorMessage = null
         pagesCount = viewer.pagesCount
         currentPage = viewer.currentPage
         currentScale = viewer.currentPageScale
         properties = viewer.properties
+        passwordRequired = false
+        scrollState = ScrollState()
+        matchState = MatchState.Initialized()
         scrollMode = viewer.pageScrollMode
         spreadMode = viewer.pageSpreadMode
         rotation = viewer.pageRotation
@@ -63,18 +82,28 @@ class PdfState(source: String) {
             viewer.actualMaxPageScale,
             viewer.actualDefaultPageScale
         )
+        snapPage = viewer.snapPage
+        singlePageArrangement = viewer.singlePageArrangement
+        alignMode = viewer.pageAlignMode
+
+        @OptIn(PdfUnstableApi::class)
+        scrollSpeedLimit = viewer.scrollSpeedLimit
+    }
+
+    internal fun clearPdfViewer() {
+        pdfViewer = null
     }
 
     inner class Listener internal constructor() : PdfListener {
         override fun onPageLoadStart() {
-            isLoading = true
-            errorMessage = null
+            this@PdfState.isLoading = true
+            this@PdfState.errorMessage = null
         }
 
         override fun onPageLoadSuccess(pagesCount: Int) {
-            isLoading = false
+            this@PdfState.isLoading = false
             this@PdfState.pagesCount = pagesCount
-            currentPage = 1
+            this@PdfState.currentPage = 1
         }
 
         override fun onPageLoadFailed(errorMessage: String) {
@@ -82,23 +111,24 @@ class PdfState(source: String) {
         }
 
         override fun onPageChange(pageNumber: Int) {
-            currentPage = pageNumber
+            this@PdfState.currentPage = pageNumber
         }
 
         override fun onScaleChange(scale: Float) {
-            currentScale = scale
+            this@PdfState.currentScale = scale
         }
 
         override fun onFindMatchStart() {
-            matchState = MatchState.Initialized()
+            this@PdfState.matchState = MatchState.Started()
         }
 
         override fun onFindMatchChange(current: Int, total: Int) {
-            matchState = MatchState.Progress(current, total)
+            this@PdfState.matchState = MatchState.Progress(current, total)
         }
 
         override fun onFindMatchComplete(found: Boolean) {
-            matchState = MatchState.Completed(found, matchState.current, matchState.total)
+            this@PdfState.matchState =
+                MatchState.Completed(found, matchState.current, matchState.total)
         }
 
         override fun onScrollChange(
@@ -106,7 +136,7 @@ class PdfState(source: String) {
             totalOffset: Int,
             isHorizontalScroll: Boolean
         ) {
-            scrollState = ScrollState(currentOffset, totalOffset, isHorizontalScroll)
+            this@PdfState.scrollState = ScrollState(currentOffset, totalOffset, isHorizontalScroll)
         }
 
         override fun onLoadProperties(properties: PdfDocumentProperties) {
@@ -114,7 +144,7 @@ class PdfState(source: String) {
         }
 
         override fun onPasswordDialogChange(isOpen: Boolean) {
-            passwordRequired = isOpen
+            this@PdfState.passwordRequired = isOpen
         }
 
         override fun onScrollModeChange(scrollMode: PdfViewer.PageScrollMode) {
@@ -134,7 +164,7 @@ class PdfState(source: String) {
             maxPageScale: Float,
             defaultPageScale: Float
         ) {
-            scaleLimit = ScaleLimit(minPageScale, maxPageScale, defaultPageScale)
+            this@PdfState.scaleLimit = ScaleLimit(minPageScale, maxPageScale, defaultPageScale)
         }
 
         override fun onActualScaleLimitChange(
@@ -142,7 +172,34 @@ class PdfState(source: String) {
             maxPageScale: Float,
             defaultPageScale: Float
         ) {
-            actualScaleLimit = ActualScaleLimit(minPageScale, maxPageScale, defaultPageScale)
+            this@PdfState.actualScaleLimit =
+                ActualScaleLimit(minPageScale, maxPageScale, defaultPageScale)
+        }
+
+        override fun onSnapChange(snapPage: Boolean) {
+            this@PdfState.snapPage = snapPage
+        }
+
+        override fun onSinglePageArrangementChange(
+            requestedArrangement: Boolean,
+            appliedArrangement: Boolean
+        ) {
+            this@PdfState.singlePageArrangement = appliedArrangement
+        }
+
+        override fun onAlignModeChange(
+            requestedMode: PdfViewer.PageAlignMode,
+            appliedMode: PdfViewer.PageAlignMode
+        ) {
+            this@PdfState.alignMode = appliedMode
+        }
+
+        override fun onScrollSpeedLimitChange(
+            requestedLimit: PdfViewer.ScrollSpeedLimit,
+            appliedLimit: PdfViewer.ScrollSpeedLimit
+        ) {
+            @OptIn(PdfUnstableApi::class)
+            this@PdfState.scrollSpeedLimit = appliedLimit
         }
     }
 }
@@ -152,14 +209,16 @@ data class ScrollState(
     val totalOffset: Int = 0,
     val isHorizontalScroll: Boolean = false,
 ) {
-    val ratio: Float
-        get() = currentOffset.toFloat() / totalOffset.toFloat()
+    val ratio: Float get() = currentOffset.toFloat() / totalOffset.toFloat()
 }
 
 sealed class MatchState(val current: Int = 0, val total: Int = 0) {
     class Initialized(current: Int = 0, total: Int = 0) : MatchState(current, total)
+    class Started(current: Int = 0, total: Int = 0) : MatchState(current, total)
     class Progress(current: Int, total: Int) : MatchState(current, total)
     class Completed(val found: Boolean, current: Int, total: Int) : MatchState(current, total)
+
+    val isLoading: Boolean get() = this is Started || this is Progress
 }
 
 data class ScaleLimit(
