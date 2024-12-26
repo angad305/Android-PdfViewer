@@ -274,7 +274,20 @@ class PdfViewer @JvmOverloads constructor(
             checkViewer()
             field = value
             webView callDirectly when (value) {
-                is ScrollSpeedLimit.Fixed -> "limitScroll"(value.limit, value.flingThreshold)
+                is ScrollSpeedLimit.AdaptiveFling -> "limitScroll"(
+                    value.limit,
+                    value.flingThreshold,
+                    true,
+                    true,
+                )
+
+                is ScrollSpeedLimit.Fixed -> "limitScroll"(
+                    value.limit,
+                    value.flingThreshold,
+                    value.canFling,
+                    false,
+                )
+
                 ScrollSpeedLimit.None -> "removeScrollLimit"()
             }
         }
@@ -613,8 +626,29 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     sealed class ScrollSpeedLimit private constructor() {
+
+        /**
+         * Default behavior. No limit is applied.
+         */
         data object None : ScrollSpeedLimit()
+
+        /**
+         * Applies scroll speed limit
+         *
+         * Flings based on the parameter - canFling
+         */
         data class Fixed(
+            @FloatRange(from = 0.0, fromInclusive = false) val limit: Float = 100f,
+            @FloatRange(from = 0.0, fromInclusive = false) val flingThreshold: Float = 0.5f,
+            val canFling: Boolean = false,
+        ) : ScrollSpeedLimit()
+
+        /**
+         * Applies scroll speed limit
+         *
+         * Flings only when the page size is less than its container's size.
+         */
+        data class AdaptiveFling(
             @FloatRange(from = 0.0, fromInclusive = false) val limit: Float = 100f,
             @FloatRange(from = 0.0, fromInclusive = false) val flingThreshold: Float = 0.5f,
         ) : ScrollSpeedLimit()

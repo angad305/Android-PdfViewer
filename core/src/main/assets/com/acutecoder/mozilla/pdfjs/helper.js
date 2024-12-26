@@ -594,7 +594,7 @@ function removeSinglePageArrangement() {
     });
 }
 
-function limitScroll(maxSpeed = 100, flingThreshold = 0.5) {
+function limitScroll(maxSpeed = 100, flingThreshold = 0.5, canFling = false, adaptiveFling = false) {
     const viewerContainer = document.querySelector("#viewerContainer");
     if (!viewerContainer) return;
 
@@ -681,29 +681,29 @@ function limitScroll(maxSpeed = 100, flingThreshold = 0.5) {
         const pageHeight = targetPage.div.clientHeight;
         const pageWidth = targetPage.div.clientWidth;
 
-        const canFling = pageWidth < containerWidth || pageHeight < containerHeight;
+        const canFlingPage = adaptiveFling ? pageWidth < containerWidth || pageHeight < containerHeight : canFling;
 
         event.preventDefault();
 
-        if (canFling && isHorizontalScroll && Math.abs(velocityX) > flingThreshold && Math.abs(velocityX) > Math.abs(velocityY)) {
+        if (canFlingPage && isHorizontalScroll && Math.abs(velocityX) > flingThreshold && Math.abs(velocityX) > Math.abs(velocityY)) {
             if (velocityX > 0) {
                 setScrollToNextPage();
             } else {
                 setScrollToPreviousPage();
             }
-        } else if (canFling && isVerticalScroll && Math.abs(velocityY) > flingThreshold && Math.abs(velocityY) > Math.abs(velocityX)) {
+        } else if (canFlingPage && isVerticalScroll && Math.abs(velocityY) > flingThreshold && Math.abs(velocityY) > Math.abs(velocityX)) {
             if (velocityY > 0) {
                 setScrollToNextPage();
             } else {
                 setScrollToPreviousPage();
             }
-        } else if (isVerticalScroll && viewerContainer.scrollTop > targetPage.div.offsetTop + (targetPage.div.clientHeight * 3) / 5) {
+        } else if (isVerticalScroll && viewerContainer.scrollTop > targetPage.div.offsetTop + (targetPage.div.clientWidth * 4) / 5) {
             setScrollToNextPage();
-        } else if (isVerticalScroll && viewerContainer.scrollTop < targetPage.div.offsetTop - (targetPage.div.clientHeight * 2) / 4) {
+        } else if (isVerticalScroll && viewerContainer.scrollTop < targetPage.div.offsetTop - (containerHeight * 2) / 4) {
             setScrollToPreviousPage();
-        } else if (isHorizontalScroll && viewerContainer.scrollLeft > targetPage.div.offsetLeft + (targetPage.div.clientWidth * 3) / 5) {
+        } else if (isHorizontalScroll && viewerContainer.scrollLeft > targetPage.div.offsetLeft + (targetPage.div.clientWidth * 4) / 5) {
             setScrollToNextPage();
-        } else if (isHorizontalScroll && viewerContainer.scrollLeft < targetPage.div.offsetLeft - (targetPage.div.clientWidth * 2) / 4) {
+        } else if (isHorizontalScroll && viewerContainer.scrollLeft < targetPage.div.offsetLeft - (containerHeight * 2) / 4) {
             setScrollToPreviousPage();
         } else if (setScrollToCurrentPage()) {
             restoreTimer = setTimeout(() => {

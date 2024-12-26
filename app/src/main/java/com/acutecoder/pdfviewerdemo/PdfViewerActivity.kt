@@ -13,8 +13,11 @@ import androidx.core.view.WindowInsetsCompat
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfOnLinkClick
 import com.acutecoder.pdf.PdfOnPageLoadFailed
+import com.acutecoder.pdf.PdfUnstableApi
+import com.acutecoder.pdf.callIfScrollSpeedLimitIsEnabled
+import com.acutecoder.pdf.callWithScrollSpeedLimitDisabled
 import com.acutecoder.pdf.setting.PdfSettingsManager
-import com.acutecoder.pdf.setting.sharedPdfSettingsManager
+import com.acutecoder.pdf.sharedPdfSettingsManager
 import com.acutecoder.pdfviewerdemo.databinding.ActivityPdfViewerBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
@@ -97,16 +100,28 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
         view.pdfViewer.addListener(object : PdfListener {
+            @OptIn(PdfUnstableApi::class)
             override fun onSingleClick() {
-                fullscreen = !fullscreen
-                setFullscreen(fullscreen)
-                view.container.animateToolBar(!fullscreen)
+                view.pdfViewer.callWithScrollSpeedLimitDisabled { // Required only if you are using scrollSpeedLimit
+                    fullscreen = !fullscreen
+                    setFullscreen(fullscreen)
+                    view.container.animateToolBar(!fullscreen)
+                }
             }
 
+            @OptIn(PdfUnstableApi::class)
             override fun onDoubleClick() {
                 view.pdfViewer.run {
-                    if (!isZoomInMinScale()) zoomToMinimum()
-                    else zoomToMaximum()
+                    callWithScrollSpeedLimitDisabled { // Required only if you are using scrollSpeedLimit
+                        val originalCurrentPage = currentPage
+
+                        if (!isZoomInMinScale()) zoomToMinimum()
+                        else zoomToMaximum()
+
+                        callIfScrollSpeedLimitIsEnabled {
+                            goToPage(originalCurrentPage)
+                        }
+                    }
                 }
             }
         })

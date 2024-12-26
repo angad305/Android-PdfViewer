@@ -60,8 +60,10 @@ import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfOnScrollModeChange
 import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdf.callIfScrollSpeedLimitIsEnabled
+import com.acutecoder.pdf.callWithScrollSpeedLimitDisabled
 import com.acutecoder.pdf.setting.PdfSettingsManager
-import com.acutecoder.pdf.setting.sharedPdfSettingsManager
+import com.acutecoder.pdf.sharedPdfSettingsManager
 import com.acutecoder.pdfviewer.compose.PdfState
 import com.acutecoder.pdfviewer.compose.rememberPdfState
 import com.acutecoder.pdfviewer.compose.ui.PdfScrollBar
@@ -179,13 +181,25 @@ private fun Activity.MainScreen(
                     pdfSettingsManager.restore(this)
                     setPdfViewer(this)
                     addListener(object : PdfListener {
+                        @OptIn(PdfUnstableApi::class)
                         override fun onSingleClick() {
-                            fullscreen = !fullscreen
+                            callWithScrollSpeedLimitDisabled {  // Required only if you are using scrollSpeedLimit
+                                fullscreen = !fullscreen
+                            }
                         }
 
+                        @OptIn(PdfUnstableApi::class)
                         override fun onDoubleClick() {
-                            if (!isZoomInMinScale()) zoomToMinimum()
-                            else zoomToMaximum()
+                            callWithScrollSpeedLimitDisabled { // Required only if you are using scrollSpeedLimit
+                                val originalCurrentPage = currentPage
+
+                                if (!isZoomInMinScale()) zoomToMinimum()
+                                else zoomToMaximum()
+
+                                callIfScrollSpeedLimitIsEnabled {
+                                    goToPage(originalCurrentPage)
+                                }
+                            }
                         }
                     })
                 }
@@ -271,7 +285,7 @@ private fun Activity.ExtendedTooBarMenus(
         },
         onClick = {
             if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
-                state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.Fixed()
+                state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.AdaptiveFling()
             else state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
             onDismiss()
         }

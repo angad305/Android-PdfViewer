@@ -143,15 +143,24 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         value: PdfViewer.ScrollSpeedLimit
     ) {
         if (included) when (value) {
+            is PdfViewer.ScrollSpeedLimit.AdaptiveFling -> {
+                save(KEY_SCROLL_SPEED_LIMIT, value.limit)
+                save(KEY_FLING_THRESHOLD, value.flingThreshold)
+                save(KEY_FLING_ON_ZOOMED_IN, 2)
+            }
+
             is PdfViewer.ScrollSpeedLimit.Fixed -> {
                 save(KEY_SCROLL_SPEED_LIMIT, value.limit)
                 save(KEY_FLING_THRESHOLD, value.flingThreshold)
+                save(KEY_FLING_ON_ZOOMED_IN, if (value.canFling) 1 else 0)
             }
 
             PdfViewer.ScrollSpeedLimit.None -> {
                 save(KEY_SCROLL_SPEED_LIMIT, -1f)
                 save(KEY_FLING_THRESHOLD, -1f)
+                save(KEY_FLING_ON_ZOOMED_IN, -1)
             }
+
         }
         else {
             remove(KEY_SCROLL_SPEED_LIMIT)
@@ -162,10 +171,13 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
     private fun PdfSettingsSaver.getScrollSpeedLimit(): PdfViewer.ScrollSpeedLimit {
         val limit = getFloat(KEY_SCROLL_SPEED_LIMIT, -1f)
         val flingThreshold = getFloat(KEY_FLING_THRESHOLD, -1f)
+        val flingOnZoomedIn = getInt(KEY_FLING_ON_ZOOMED_IN, -1)
 
-        return if (limit > 0f && flingThreshold > 0f)
-            PdfViewer.ScrollSpeedLimit.Fixed(limit, flingThreshold)
-        else PdfViewer.ScrollSpeedLimit.None
+        return if (limit > 0f && flingThreshold > 0f) {
+            if (flingOnZoomedIn == 2)
+                PdfViewer.ScrollSpeedLimit.AdaptiveFling(limit, flingThreshold)
+            else PdfViewer.ScrollSpeedLimit.Fixed(limit, flingThreshold, flingOnZoomedIn == 1)
+        } else PdfViewer.ScrollSpeedLimit.None
     }
 
     companion object {
@@ -181,5 +193,6 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
         private const val KEY_SINGLE_PAGE_ARRANGEMENT = "single_arrangement"
         private const val KEY_SCROLL_SPEED_LIMIT = "scroll_speed_limit"
         private const val KEY_FLING_THRESHOLD = "fling_threshold"
+        private const val KEY_FLING_ON_ZOOMED_IN = "fling_on_zoomed_in"
     }
 }

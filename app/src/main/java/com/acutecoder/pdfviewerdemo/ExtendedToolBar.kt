@@ -62,7 +62,7 @@ class ExtendedToolBar @JvmOverloads constructor(
 
             12 -> {
                 if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
-                    pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.Fixed()
+                    pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.AdaptiveFling()
                 else pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
                 true
             }
