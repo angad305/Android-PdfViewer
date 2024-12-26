@@ -674,20 +674,37 @@ function limitScroll(maxSpeed = 100, flingThreshold = 0.5) {
         const isVerticalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.VERTICAL;
         const isHorizontalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.HORIZONTAL;
 
+        const containerHeight = viewerContainer.clientHeight;
+        const containerWidth = viewerContainer.clientWidth;
+
+        let targetPage = PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication._touchStartCurrentPage - 1);
+        const pageHeight = targetPage.div.clientHeight;
+        const pageWidth = targetPage.div.clientWidth;
+
+        const canFling = pageWidth < containerWidth || pageHeight < containerHeight;
+
         event.preventDefault();
 
-        if (isHorizontalScroll && Math.abs(velocityX) > flingThreshold && Math.abs(velocityX) > Math.abs(velocityY)) {
+        if (canFling && isHorizontalScroll && Math.abs(velocityX) > flingThreshold && Math.abs(velocityX) > Math.abs(velocityY)) {
             if (velocityX > 0) {
                 setScrollToNextPage();
             } else {
                 setScrollToPreviousPage();
             }
-        } else if (isVerticalScroll && Math.abs(velocityY) > flingThreshold && Math.abs(velocityY) > Math.abs(velocityX)) {
+        } else if (canFling && isVerticalScroll && Math.abs(velocityY) > flingThreshold && Math.abs(velocityY) > Math.abs(velocityX)) {
             if (velocityY > 0) {
                 setScrollToNextPage();
             } else {
                 setScrollToPreviousPage();
             }
+        } else if (isVerticalScroll && viewerContainer.scrollTop > targetPage.div.offsetTop + (targetPage.div.clientHeight * 3) / 5) {
+            setScrollToNextPage();
+        } else if (isVerticalScroll && viewerContainer.scrollTop < targetPage.div.offsetTop - (targetPage.div.clientHeight * 2) / 4) {
+            setScrollToPreviousPage();
+        } else if (isHorizontalScroll && viewerContainer.scrollLeft > targetPage.div.offsetLeft + (targetPage.div.clientWidth * 3) / 5) {
+            setScrollToNextPage();
+        } else if (isHorizontalScroll && viewerContainer.scrollLeft < targetPage.div.offsetLeft - (targetPage.div.clientWidth * 2) / 4) {
+            setScrollToPreviousPage();
         } else if (setScrollToCurrentPage()) {
             restoreTimer = setTimeout(() => {
                 restoreSnap();
