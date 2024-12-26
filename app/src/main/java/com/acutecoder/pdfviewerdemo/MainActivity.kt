@@ -21,6 +21,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // View from other apps (from intent filter)
+        if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
+            startActivity(
+                Intent(this, getViewerActivityClass()).apply {
+                    putExtra("fileUri", intent.data.toString())
+                }
+            )
+            finish()
+            return
+        }
+
         view = ActivityMainBinding.inflate(layoutInflater)
         setContentView(view.root)
 
@@ -110,4 +121,15 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        if (intent != null && intent.action == Intent.ACTION_VIEW && intent.data != null) {
+            startActivity(
+                Intent(this, getViewerActivityClass()).apply {
+                    putExtra("fileUri", intent.data.toString())
+                }
+            )
+        }
+    }
 }

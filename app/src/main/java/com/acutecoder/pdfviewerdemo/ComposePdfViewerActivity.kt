@@ -81,31 +81,22 @@ class ComposePdfViewerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        val filePath: String
-        val fileName: String
         pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
             .also { it.includeAll() }
 
-        // View from other apps (from intent filter)
-        if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
-            filePath = intent.data.toString()
-            fileName = intent.data!!.getFileName(this)
-        } else {
-            // Path from asset, url or android uri
-            filePath = intent.extras?.getString("filePath")
-                ?: intent.extras?.getString("fileUrl")
-                ?: intent.extras?.getString("fileUri")
-                ?: run {
-                    toast("No source available!")
-                    finish()
-                    return
-                }
+        // Path from asset, url or android uri
+        val filePath = intent.extras?.getString("filePath")
+            ?: intent.extras?.getString("fileUrl")
+            ?: intent.extras?.getString("fileUri")
+            ?: run {
+                toast("No source available!")
+                finish()
+                return
+            }
 
-            fileName = intent.extras?.getString("fileUri")
-                ?.let { uri -> Uri.parse(uri).getFileName(this) }
-                ?: intent.extras?.getString("fileName") ?: ""
-        }
+        val fileName = intent.extras?.getString("fileUri")
+            ?.let { uri -> Uri.parse(uri).getFileName(this) }
+            ?: intent.extras?.getString("fileName") ?: ""
 
         setContent {
             PdfViewerComposeDemoTheme {
