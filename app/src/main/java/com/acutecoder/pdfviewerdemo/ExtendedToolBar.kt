@@ -9,6 +9,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.PopupMenu
+import com.acutecoder.pdf.PdfUnstableApi
+import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.ui.PdfToolBar
 import com.acutecoder.pdfviewerdemo.databinding.ZoomLimitDialogBinding
 import kotlin.math.roundToInt
@@ -19,16 +21,25 @@ class ExtendedToolBar @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : PdfToolBar(context, attrs, defStyleAttr) {
 
+    @OptIn(PdfUnstableApi::class)
     override fun getPopupMenu(anchorView: View): PopupMenu {
         return PopupMenu(context, anchorView).apply {
             // Item ids 0-9 are already taken
             if (pdfViewer.currentSource?.startsWith("file:///android_asset") == false)
                 menu.add(Menu.NONE, 10, Menu.NONE, "Open in other app")
             menu.add(Menu.NONE, 11, Menu.NONE, "Zoom Limit")
+            menu.add(
+                Menu.NONE,
+                12,
+                Menu.NONE,
+                (if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable" else "Disable")
+                        + " scroll speed limit"
+            )
             addDefaultMenus(this)
         }
     }
 
+    @OptIn(PdfUnstableApi::class)
     override fun handlePopupMenuItemClick(item: MenuItem): Boolean {
         if (super.handlePopupMenuItemClick(item)) return true
 
@@ -46,6 +57,13 @@ class ExtendedToolBar @JvmOverloads constructor(
 
             11 -> {
                 showZoomLimitDialog()
+                true
+            }
+
+            12 -> {
+                if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
+                    pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.Fixed()
+                else pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
                 true
             }
 

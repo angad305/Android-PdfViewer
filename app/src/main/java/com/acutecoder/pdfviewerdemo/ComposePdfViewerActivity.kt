@@ -239,7 +239,7 @@ private fun Activity.MainScreen(
 private fun Activity.ExtendedTooBarMenus(
     state: PdfState,
     onDismiss: () -> Unit,
-    defaultMenus: @Composable (validator: (PdfToolBarMenuItem) -> Boolean) -> Unit
+    defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit
 ) {
     var showZoomLimitDialog by remember { mutableStateOf(false) }
     val dropDownModifier = Modifier.padding(start = 6.dp, end = 18.dp)

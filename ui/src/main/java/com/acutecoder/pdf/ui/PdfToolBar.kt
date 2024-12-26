@@ -212,31 +212,41 @@ open class PdfToolBar @JvmOverloads constructor(
         return addDefaultMenus(PopupMenu(context, anchorView))
     }
 
-    protected open fun addDefaultMenus(popupMenu: PopupMenu): PopupMenu {
+    protected open fun addDefaultMenus(
+        popupMenu: PopupMenu,
+        filter: (menuItem: PdfToolBarMenuItem) -> Boolean = { true },
+    ): PopupMenu {
         return popupMenu.apply {
-            addMenu("Download", PdfToolBarMenuItem.DOWNLOAD)
+            addMenu("Download", PdfToolBarMenuItem.DOWNLOAD, filter)
             addMenu(
                 pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
-                PdfToolBarMenuItem.ZOOM
+                PdfToolBarMenuItem.ZOOM,
+                filter
             )
-            addMenu("Go to page", PdfToolBarMenuItem.GO_TO_PAGE)
-            addMenu("Rotate Clockwise", PdfToolBarMenuItem.ROTATE_CLOCK_WISE)
-            addMenu("Rotate Anti Clockwise", PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE)
-            addMenu("Scroll Mode", PdfToolBarMenuItem.SCROLL_MODE)
+            addMenu("Go to page", PdfToolBarMenuItem.GO_TO_PAGE, filter)
+            addMenu("Rotate Clockwise", PdfToolBarMenuItem.ROTATE_CLOCK_WISE, filter)
+            addMenu("Rotate Anti Clockwise", PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE, filter)
+            addMenu("Scroll Mode", PdfToolBarMenuItem.SCROLL_MODE, filter)
             if (pdfViewer.pageScrollMode.let { it == PdfViewer.PageScrollMode.VERTICAL || it == PdfViewer.PageScrollMode.HORIZONTAL }
                 && pdfViewer.pageSpreadMode == PageSpreadMode.NONE)
-                addMenu("Single Page Arrangement", PdfToolBarMenuItem.SINGLE_PAGE_ARRANGEMENT)
-            addMenu("Split Mode", PdfToolBarMenuItem.SPREAD_MODE)
-            addMenu("Align Mode", PdfToolBarMenuItem.ALIGN_MODE)
-            addMenu("Snap Page", PdfToolBarMenuItem.SNAP_PAGE)
-            addMenu("Properties", PdfToolBarMenuItem.PROPERTIES)
+                addMenu(
+                    "Single Page Arrangement",
+                    PdfToolBarMenuItem.SINGLE_PAGE_ARRANGEMENT,
+                    filter
+                )
+            addMenu("Split Mode", PdfToolBarMenuItem.SPREAD_MODE, filter)
+            addMenu("Align Mode", PdfToolBarMenuItem.ALIGN_MODE, filter)
+            addMenu("Snap Page", PdfToolBarMenuItem.SNAP_PAGE, filter)
+            addMenu("Properties", PdfToolBarMenuItem.PROPERTIES, filter)
         }
     }
 
-    protected open fun validate(item: PdfToolBarMenuItem): Boolean = true
-
-    private fun PopupMenu.addMenu(title: String, item: PdfToolBarMenuItem) {
-        if (validate(item))
+    private fun PopupMenu.addMenu(
+        title: String,
+        item: PdfToolBarMenuItem,
+        filter: (menuItem: PdfToolBarMenuItem) -> Boolean,
+    ) {
+        if (filter(item))
             menu.add(Menu.NONE, item.id, Menu.NONE, title)
     }
 

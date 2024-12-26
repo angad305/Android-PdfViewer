@@ -81,7 +81,7 @@ fun PdfToolBar(
     contentColor: Color? = null,
     backIcon: (@Composable PdfToolBarScope.() -> Unit)?
     = defaultToolBarBackIcon(contentColor, onBack),
-    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
+    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
 ) {
     val toolBarScope = PdfToolBarScope(
         pdfState = pdfState,
@@ -137,12 +137,12 @@ fun PdfToolBar(
                 onDismissRequest = { showMoreOptions = false },
                 shape = RoundedCornerShape(12.dp),
             ) {
-                dropDownMenu({ showMoreOptions = false }) { validator ->
+                dropDownMenu({ showMoreOptions = false }) { filter ->
                     MoreOptions(
                         state = pdfState,
                         fileName = fileName,
                         onDismiss = { showMoreOptions = false },
-                        validator = validator,
+                        filter = filter,
                     )
                 }
             }
@@ -249,7 +249,7 @@ private fun MoreOptions(
     state: PdfState,
     fileName: (() -> String)?,
     onDismiss: () -> Unit,
-    validator: (PdfToolBarMenuItem) -> Boolean,
+    filter: (PdfToolBarMenuItem) -> Boolean,
 ) {
     val pdfViewer = state.pdfViewer ?: return
 
@@ -264,7 +264,7 @@ private fun MoreOptions(
 
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.DOWNLOAD,
-        validator = validator,
+        filter = filter,
         onClick = {
             pdfViewer.downloadFile()
             onDismiss()
@@ -272,7 +272,7 @@ private fun MoreOptions(
     )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.ZOOM,
-        validator = validator,
+        filter = filter,
         text = pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
         onClick = {
             showZoom = true
@@ -281,14 +281,14 @@ private fun MoreOptions(
 
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.GO_TO_PAGE,
-        validator = validator,
+        filter = filter,
         onClick = {
             showGoToPage = true
         }
     )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.ROTATE_CLOCK_WISE,
-        validator = validator,
+        filter = filter,
         onClick = {
             pdfViewer.rotateClockWise()
             onDismiss()
@@ -296,7 +296,7 @@ private fun MoreOptions(
     )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE,
-        validator = validator,
+        filter = filter,
         onClick = {
             pdfViewer.rotateCounterClockWise()
             onDismiss()
@@ -305,7 +305,7 @@ private fun MoreOptions(
 
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.SCROLL_MODE,
-        validator = validator,
+        filter = filter,
         onClick = {
             showScrollMode = true
         }
@@ -318,33 +318,33 @@ private fun MoreOptions(
     if (showSingleArrangementMenu)
         DropdownMenuItem(
             menuItem = PdfToolBarMenuItem.CUSTOM_PAGE_ARRANGEMENT,
-            validator = validator,
+            filter = filter,
             onClick = { showPageSingleArrangement = true }
         )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.SPREAD_MODE,
-        validator = validator,
+        filter = filter,
         onClick = {
             showSplitMode = true
         }
     )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.ALIGN_MODE,
-        validator = validator,
+        filter = filter,
         onClick = {
             showAlignMode = true
         }
     )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.SNAP_PAGE,
-        validator = validator,
+        filter = filter,
         onClick = {
             showSnapPage = true
         }
     )
     DropdownMenuItem(
         menuItem = PdfToolBarMenuItem.PROPERTIES,
-        validator = validator,
+        filter = filter,
         onClick = {
             showDocumentProperties = true
         }
@@ -798,7 +798,7 @@ internal fun defaultToolBarBackIcon(
     }
 }
 
-internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (validator: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit {
+internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit {
     return { _, defaultMenus ->
         defaultMenus { true }
     }
@@ -808,10 +808,10 @@ internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, d
 private fun DropdownMenuItem(
     menuItem: PdfToolBarMenuItem,
     onClick: () -> Unit,
-    validator: (PdfToolBarMenuItem) -> Boolean,
+    filter: (PdfToolBarMenuItem) -> Boolean,
     text: String = menuItem.displayName,
 ) {
-    if (validator(menuItem)) DropdownMenuItem(
+    if (filter(menuItem)) DropdownMenuItem(
         text = {
             Text(
                 text = text,
