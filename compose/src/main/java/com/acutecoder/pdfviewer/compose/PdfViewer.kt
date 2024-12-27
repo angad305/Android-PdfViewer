@@ -14,24 +14,6 @@ fun PdfViewer(
     pdfState: PdfState,
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
-    afterLoadSource: (PdfViewer.() -> Unit)? = null,
-) {
-    PdfViewer(
-        pdfState = pdfState,
-        modifier = modifier,
-        containerColor = containerColor,
-        onReady = { loadSource ->
-            loadSource()
-            afterLoadSource?.invoke(this)
-        }
-    )
-}
-
-@Composable
-fun PdfViewer(
-    pdfState: PdfState,
-    modifier: Modifier = Modifier,
-    containerColor: Color? = null,
     onReady: (PdfViewer.(loadSource: () -> Unit) -> Unit) = { loadSource -> loadSource() },
 ) {
     LaunchedEffect(pdfState.source) {

@@ -51,20 +51,6 @@ fun PdfViewerContainer(
 fun PdfContainerBoxScope.PdfViewer(
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
-    afterLoadSource: (PdfViewer.() -> Unit)? = null,
-) {
-    com.acutecoder.pdfviewer.compose.PdfViewer(
-        pdfState = pdfState,
-        modifier = modifier,
-        containerColor = containerColor,
-        afterLoadSource = afterLoadSource,
-    )
-}
-
-@Composable
-fun PdfContainerBoxScope.PdfViewer(
-    modifier: Modifier = Modifier,
-    containerColor: Color? = null,
     onReady: (PdfViewer.(loadSource: () -> Unit) -> Unit) = { loadSource -> loadSource() },
 ) {
     com.acutecoder.pdfviewer.compose.PdfViewer(
