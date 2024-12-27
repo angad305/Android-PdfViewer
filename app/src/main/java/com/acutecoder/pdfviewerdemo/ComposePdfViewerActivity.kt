@@ -168,7 +168,7 @@ private fun Activity.MainScreen(
             PdfViewer(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                onReady = {
+                afterLoadSource = {
                     pdfSettingsManager.restore(this)
                     setPdfViewer(this)
                     addListener(object : PdfListener {
@@ -412,7 +412,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
             PdfViewer(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = Color.Transparent,
-                onReady = {
+                afterLoadSource = {
                     showPageButtons = pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE
                     showPageNumber = pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE ||
                             pageScrollMode == PdfViewer.PageScrollMode.HORIZONTAL

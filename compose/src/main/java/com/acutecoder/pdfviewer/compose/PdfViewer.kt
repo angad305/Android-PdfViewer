@@ -11,25 +11,42 @@ import com.acutecoder.pdf.PdfViewer
 
 @Composable
 fun PdfViewer(
-    state: PdfState,
+    pdfState: PdfState,
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
-    onReady: (PdfViewer.() -> Unit)? = null,
+    afterLoadSource: (PdfViewer.() -> Unit)? = null,
 ) {
-    LaunchedEffect(state.source) {
-        state.pdfViewer?.run {
+    PdfViewer(
+        pdfState = pdfState,
+        modifier = modifier,
+        containerColor = containerColor,
+        onReady = { loadSource ->
+            loadSource()
+            afterLoadSource?.invoke(this)
+        }
+    )
+}
+
+@Composable
+fun PdfViewer(
+    pdfState: PdfState,
+    modifier: Modifier = Modifier,
+    containerColor: Color? = null,
+    onReady: (PdfViewer.(loadSource: () -> Unit) -> Unit) = { loadSource -> loadSource() },
+) {
+    LaunchedEffect(pdfState.source) {
+        pdfState.pdfViewer?.run {
             if (isInitialized)
-                load(source = state.source)
+                load(source = pdfState.source)
         }
     }
 
     AndroidView(
         factory = { context ->
             PdfViewer(context).also {
-                state.setPdfViewerTo(it)
+                pdfState.setPdfViewerTo(it)
                 it.onReady {
-                    load(state.source)
-                    onReady?.invoke(it)
+                    onReady(this) { load(pdfState.source) }
                 }
 
                 it.layoutParams = FrameLayout.LayoutParams(
@@ -43,7 +60,7 @@ fun PdfViewer(
         },
         onRelease = {
             it.clearAllListeners()
-            state.clearPdfViewer()
+            pdfState.clearPdfViewer()
         },
         onReset = {
             it.clearAllListeners()
