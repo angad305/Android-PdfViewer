@@ -40,7 +40,7 @@ fun PdfViewerContainer(
                 }
             }
 
-            if (pdfState.isLoading || !pdfState.isInitialized) loadingIndicator?.invoke(
+            if (pdfState.loadingState.isLoading) loadingIndicator?.invoke(
                 PdfContainerBoxScope(pdfState, this)
             )
         }
@@ -51,12 +51,14 @@ fun PdfViewerContainer(
 fun PdfContainerBoxScope.PdfViewer(
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
+    onCreateViewer: (PdfViewer.() -> Unit)? = null,
     onReady: (PdfViewer.(loadSource: () -> Unit) -> Unit) = { loadSource -> loadSource() },
 ) {
     com.acutecoder.pdfviewer.compose.PdfViewer(
         pdfState = pdfState,
         modifier = modifier,
         containerColor = containerColor,
+        onCreateViewer = onCreateViewer,
         onReady = onReady,
     )
 }

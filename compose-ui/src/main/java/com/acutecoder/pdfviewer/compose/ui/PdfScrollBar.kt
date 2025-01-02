@@ -1,29 +1,21 @@
 package com.acutecoder.pdfviewer.compose.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +39,7 @@ fun PdfContainerBoxScope.PdfScrollBar(
     handleColor: Color = Color(0xfff1f1f1),
     interactiveScrolling: Boolean = true,
     useVerticalScrollBarForHorizontalMode: Boolean = false,
+    animationSpec: FiniteAnimationSpec<Float> = spring(stiffness = Spring.StiffnessMediumLow),
 ) {
     var visible by remember { mutableStateOf(true) }
     var mySize by remember { mutableStateOf(IntSize(1, 1)) }
@@ -73,16 +66,16 @@ fun PdfContainerBoxScope.PdfScrollBar(
             isHorizontalScroll = newValue
     }
 
-    LaunchedEffect(pdfState.isInitialized) {
-        if (pdfState.isInitialized) {
+    LaunchedEffect(pdfState.loadingState.isInitialized) {
+        if (pdfState.loadingState.isInitialized) {
             pdfState.pdfViewer?.ui?.viewerScrollbar = false
         }
     }
 
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(),
-        exit = fadeOut(),
+        enter = fadeIn(animationSpec),
+        exit = fadeOut(animationSpec),
         modifier = modifier
             .align(if (isHorizontalScroll) Alignment.BottomStart else Alignment.TopEnd)
             .offset {

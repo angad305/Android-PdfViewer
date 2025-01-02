@@ -14,6 +14,7 @@ fun PdfViewer(
     pdfState: PdfState,
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
+    onCreateViewer: (PdfViewer.() -> Unit)? = null,
     onReady: (PdfViewer.(loadSource: () -> Unit) -> Unit) = { loadSource -> loadSource() },
 ) {
     LaunchedEffect(pdfState.source) {
@@ -27,6 +28,7 @@ fun PdfViewer(
         factory = { context ->
             PdfViewer(context).also {
                 pdfState.setPdfViewerTo(it)
+                onCreateViewer?.invoke(it)
                 it.onReady {
                     onReady(this) { load(pdfState.source) }
                 }

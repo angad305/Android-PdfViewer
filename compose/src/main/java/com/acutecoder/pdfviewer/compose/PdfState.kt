@@ -21,10 +21,8 @@ class PdfState(source: String) {
 
     var source by mutableStateOf(source); internal set
     var pdfViewer: PdfViewer? by mutableStateOf(null); internal set
-    var isInitialized by mutableStateOf(false); internal set
+    var loadingState: PdfLoadingState by mutableStateOf(PdfLoadingState.Initializing); internal set
 
-    var isLoading by mutableStateOf(false); internal set
-    var errorMessage by mutableStateOf<String?>(null); internal set
     var pagesCount by mutableIntStateOf(0); internal set
     var currentPage by mutableIntStateOf(0); internal set
     var currentScale by mutableFloatStateOf(0f); internal set
@@ -57,11 +55,14 @@ class PdfState(source: String) {
 
         this.pdfViewer = viewer
         viewer.addListener(Listener())
-        viewer.onReady { this@PdfState.isInitialized = true }
+        viewer.onReady { this@PdfState.loadingState = PdfLoadingState.Loading }
 
-        isInitialized = viewer.isInitialized
-        isLoading = viewer.pagesCount == 0
-        errorMessage = null
+        if (viewer.isInitialized) {
+            if (viewer.pagesCount == 0)
+                this@PdfState.loadingState = PdfLoadingState.Loading
+            else this@PdfState.loadingState = PdfLoadingState.Finished(viewer.pagesCount)
+        } else this@PdfState.loadingState = PdfLoadingState.Initializing
+
         pagesCount = viewer.pagesCount
         currentPage = viewer.currentPage
         currentScale = viewer.currentPageScale
@@ -96,18 +97,17 @@ class PdfState(source: String) {
 
     inner class Listener internal constructor() : PdfListener {
         override fun onPageLoadStart() {
-            this@PdfState.isLoading = true
-            this@PdfState.errorMessage = null
+            this@PdfState.loadingState = PdfLoadingState.Loading
         }
 
         override fun onPageLoadSuccess(pagesCount: Int) {
-            this@PdfState.isLoading = false
+            this@PdfState.loadingState = PdfLoadingState.Finished(pagesCount)
             this@PdfState.pagesCount = pagesCount
             this@PdfState.currentPage = 1
         }
 
         override fun onPageLoadFailed(errorMessage: String) {
-            this@PdfState.errorMessage = errorMessage
+            this@PdfState.loadingState = PdfLoadingState.Error(errorMessage)
         }
 
         override fun onPageChange(pageNumber: Int) {
@@ -202,6 +202,16 @@ class PdfState(source: String) {
             this@PdfState.scrollSpeedLimit = appliedLimit
         }
     }
+}
+
+sealed interface PdfLoadingState {
+    data object Initializing : PdfLoadingState
+    data object Loading : PdfLoadingState
+    data class Finished(val pagesCount: Int) : PdfLoadingState
+    data class Error(val errorMessage: String) : PdfLoadingState
+
+    val isLoading: Boolean get() = this is Initializing || this is Loading
+    val isInitialized: Boolean get() = this !is Initializing
 }
 
 data class ScrollState(

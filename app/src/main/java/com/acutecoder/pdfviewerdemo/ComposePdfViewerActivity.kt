@@ -64,6 +64,7 @@ import com.acutecoder.pdf.callIfScrollSpeedLimitIsEnabled
 import com.acutecoder.pdf.callWithScrollSpeedLimitDisabled
 import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.sharedPdfSettingsManager
+import com.acutecoder.pdfviewer.compose.PdfLoadingState
 import com.acutecoder.pdfviewer.compose.PdfState
 import com.acutecoder.pdfviewer.compose.rememberPdfState
 import com.acutecoder.pdfviewer.compose.ui.PdfScrollBar
@@ -138,10 +139,12 @@ private fun Activity.MainScreen(
     val toolBarState = rememberToolBarState()
     var fullscreen by remember { mutableStateOf(false) }
 
-    LaunchedEffect(pdfState.errorMessage) {
-        pdfState.errorMessage?.let {
-            toast(it)
-            finish()
+    LaunchedEffect(pdfState.loadingState) {
+        pdfState.loadingState.let {
+            if (it is PdfLoadingState.Error) {
+                toast(it.errorMessage)
+                finish()
+            }
         }
     }
 
@@ -396,17 +399,19 @@ private fun RangeSlider(rangeSliderState: RangeSliderState) {
 
 @Composable
 private fun Activity.MainScreenWithScrollModeSupport() {
-    val state = rememberPdfState("file:///android_asset/test.pdf")
+    val pdfState = rememberPdfState("file:///android_asset/test.pdf")
 
-    LaunchedEffect(state.errorMessage) {
-        state.errorMessage?.let {
-            toast(it)
-            finish()
+    LaunchedEffect(pdfState.loadingState) {
+        pdfState.loadingState.let {
+            if (it is PdfLoadingState.Error) {
+                toast(it.errorMessage)
+                finish()
+            }
         }
     }
 
     PdfViewerContainer(
-        pdfState = state,
+        pdfState = pdfState,
         pdfViewer = {
             var showPageButtons by remember { mutableStateOf(false) }
             var showPageNumber by remember { mutableStateOf(false) }
@@ -444,10 +449,10 @@ private fun Activity.MainScreenWithScrollModeSupport() {
                             .padding(12.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f))
-                            .clickable { state.pdfViewer?.goToPreviousPage() }
+                            .clickable { pdfState.pdfViewer?.goToPreviousPage() }
                             .padding(8.dp)
                     )
-                    Text(text = "${state.currentPage} of ${state.pagesCount}")
+                    Text(text = "${pdfState.currentPage} of ${pdfState.pagesCount}")
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
@@ -455,7 +460,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
                             .padding(12.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f))
-                            .clickable { state.pdfViewer?.goToNextPage() }
+                            .clickable { pdfState.pdfViewer?.goToNextPage() }
                             .padding(8.dp)
                     )
                 }
@@ -465,7 +470,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
                         .align(Alignment.BottomCenter)
                         .padding(12.dp)
                 ) {
-                    Text(text = "${state.currentPage} of ${state.pagesCount}")
+                    Text(text = "${pdfState.currentPage} of ${pdfState.pagesCount}")
                 }
             }
         },

@@ -119,7 +119,7 @@ fun PdfToolBar(
 
         toolBarScope.ToolBarIcon(
             icon = Icons.Default.Search,
-            isEnabled = !pdfState.isLoading && pdfState.isInitialized,
+            isEnabled = !pdfState.loadingState.isLoading,
             onClick = { toolBarState.isFindBarOpen = true },
             tint = contentColor ?: Color.Unspecified,
         )
@@ -127,7 +127,7 @@ fun PdfToolBar(
             var showMoreOptions by remember { mutableStateOf(false) }
             toolBarScope.ToolBarIcon(
                 icon = Icons.Default.MoreVert,
-                isEnabled = !pdfState.isLoading && pdfState.isInitialized,
+                isEnabled = !pdfState.loadingState.isLoading,
                 onClick = { showMoreOptions = true },
                 tint = contentColor ?: Color.Unspecified,
             )
