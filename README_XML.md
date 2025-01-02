@@ -12,9 +12,9 @@ For setup see [Setup](README.md#1-setup)
 ### Simple Pdf Viewer
 ```xml
 <com.acutecoder.pdf.PdfViewer
-android:id="@+id/pdf_viewer"
-android:layout_width="match_parent"
-android:layout_height="match_parent" />
+    android:id="@+id/pdf_viewer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
 ```
 ```kotlin
 val pdfViewer = findViewById<PdfViewer>(R.id.pdf_viewer)
@@ -36,10 +36,10 @@ PdfUtil.onReady(pdfViewer, () -> {
 ### Changing container color
 ```xml
 <com.acutecoder.pdf.PdfViewer
-android:id="@+id/pdf_viewer"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-app:containerBackgroundColor="@android:color/transparent" />
+    android:id="@+id/pdf_viewer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:containerBackgroundColor="@android:color/transparent" />
 ```
 
 ### onReady callback
