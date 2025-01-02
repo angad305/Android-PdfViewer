@@ -1,7 +1,7 @@
 
-# PdfViewer (Early stage)
+# PdfViewer
 
-A lightweight **Android PDF viewer library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features.
+A lightweight **Android PDF viewer library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features. Supports both Jetpack Compose and Xml.
 
 ## Screenshots
 <img src="screenshots/1.png" width="190" alt="ScreenShot1"/> <img src="screenshots/2.png" width="190" alt="ScreenShot2"/>
@@ -15,11 +15,9 @@ You can download apk from [here](/app/release/app-release.apk)
    1.1. [Setup - Kotlin DSL](#11-kotlin-dsl)<br>
    1.2. [Setup - Groovy DSL](#12-groovy-dsl)<br>
 2. [Usage](#2-usage)<br>
-   2.1. [Core PdfViewer](#21-core-pdfviewer)<br>
-   2.2. [Full UI](#22-full-ui)<br>
-   2.3. [Without PdfViewerContainer](#23-without-pdfviewercontainer)<br>
-   2.4. [Listener](#24-listener)<br>
-   2.5. [Adding extra menu to PdfToolBar](#25-adding-extra-menu-to-pdftoolbar)<br>
+   2.1. [XML PdfViewer](#21-xml-pdfviewer)<br>
+   2.2 [Jetpack Compose PdfViewer](#22-jetpack-compose-pdfviewer)<br>
+   2.3. [More Examples](#23-more-examples)<br>
 3. [See also](#3-see-also)<br>
 4. [Public Members](#4-public-members)<br>
 5. [License](#5-license)
@@ -29,7 +27,7 @@ You can download apk from [here](/app/release/app-release.apk)
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle.kts or settings.gradle.kts at the end of repositories:
-<pre>
+```kotlin
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
@@ -37,13 +35,13 @@ dependencyResolutionManagement {
     maven("https://jitpack.io")
   }
 }
-</pre>
+```
 Step 2. Add the dependency
-<pre>
+```kotlin
 dependencies {
     implementation("com.github.bhuvaneshw.pdfviewer:$module:$version")
 }
-</pre>
+```
 Replace <b>$module</b> with <b>core</b>, <b>ui</b>, <b>compose</b> and  <b>compose-ui</b>
 Replace <b>$version</b> with latest version<br> 
 Latest Version: <br>
@@ -53,30 +51,30 @@ Latest Version: <br>
 Example:
 
 Only core PdfViewer
-<pre>
+```kotlin
 implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
-</pre>
-With UI
-<pre>
+```
+With PdfViewerContainer, PdfToolBar and PdfScrollBar
+```kotlin
 implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
 implementation("com.github.bhuvaneshw.pdfviewer:ui:1.0.0")
-</pre>
+```
 
 Only core Compose PdfViewer
-<pre>
+```kotlin
 implementation("com.github.bhuvaneshw.pdfviewer:compose:1.0.0")
-</pre>
-With Compose UI
-<pre>
+```
+With Compose PdfViewerContainer, PdfToolBar and PdfScrollBar
+```kotlin
 implementation("com.github.bhuvaneshw.pdfviewer:compose:1.0.0")
 implementation("com.github.bhuvaneshw.pdfviewer:compose-ui:1.0.0")
-</pre>
+```
 
 ## 1.2. Groovy DSL
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle or settings.gradle at the end of repositories:
-<pre>
+```groovy
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
@@ -84,37 +82,38 @@ dependencyResolutionManagement {
       maven { url 'https://jitpack.io' }
   }
 }
-</pre>
+```
 Step 2. Add the dependency
-<pre>
+```groovy
 dependencies {
     implementation 'com.github.bhuvaneshw.pdfviewer:$module:$version'
 }
-</pre>
+```
 
 ## 2. Usage
-### 2.1 Core PdfViewer
+### 2.1 XML PdfViewer
 Include PdfViewer in your xml
-<pre>
-&lt;com.acutecoder.pdf.PdfViewer
+```xml
+<com.acutecoder.pdf.PdfViewer
     android:id="@+id/pdf_viewer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/md_theme_primaryContainer"
-    app:containerBackgroundColor="@android:color/transparent" /&gt;
-</pre>
+    app:containerBackgroundColor="@android:color/transparent" />
+```
 Then call load function
-<pre>
+```kotlin
   // Kotlin
   pdfViewer.onReady {
     load(source)
   }
-
+```
+```java
   // Java
   PdfUtil.onReady(pdfViewer, () -> {
     pdfViewer.load(source);
   });
-</pre>
+```
 
 source can be
  1. Asset Path like "file:///android_asset/sample.pdf"
@@ -122,20 +121,11 @@ source can be
  3. Network url like "https://example.com/sample.pdf"
  4. ~~Direct file path  like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf"(not recommended)~~
 
-> [!WARNING]
-> You should not call below members before the PdfViewer is initialized!
-> 1. PdfViewer.load()
-> 2. PdfViewer.ui or getUi()
-> 3. PdfViewer.findController or getFindController()
-> 4. PdfViewer.pageScrollMode or getPageScrollMode()
-> 5. PdfViewer.pageSpreadMode or getPageSpreadMode()
-> 6. PdfViewer.cursorToolMode or getCursorToolMode()
-
-**With Compose**
+### 2.2 Jetpack Compose PdfViewer
 
 Include compose dependency
 
-<pre>
+```
 val pdfState = rememberPdfState(source = source)
 PdfViewer(  
     pdfState = pdfState,  
@@ -145,175 +135,27 @@ PdfViewer(
       // Optional work
   }  
 )
-</pre>
+```
 
-### 2.2 Full UI
-Include core and ui dependencies
+> [!WARNING]
+> You should not access below members before the PdfViewer is initialized!
+> 1. PdfViewer.load()
+> 2. PdfViewer.ui
+> 3. PdfViewer.findController
+> 4. PdfViewer.pageScrollMode
+> 5. PdfViewer.pageSpreadMode
+> 6. PdfViewer.cursorToolMode
+> 7. PdfViewer.pageRotation
+> 8. PdfViewer.doubleClickThreshold
+> 9. PdfViewer.longClickThreshold
+> 10. PdfViewer.snapPage
+> 11. PdfViewer.pageAlignMode
+> 12. PdfViewer.singlePageArrangement
+> 13. PdfViewer.scrollSpeedLimit
 
-<pre>
-&lt;com.acutecoder.pdf.ui.PdfViewerContainer xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:app="http://schemas.android.com/apk/res-auto"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:id="@+id/container"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  tools:context=".MainActivity"&gt;
-
-&lt;!-- id is mandatory, if not random int will be assigned by PdfViewerContainer--&gt;
-  &lt;com.acutecoder.pdf.ui.PdfToolBar
-      android:id="@+id/toolbar"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      app:contentColor="@color/md_theme_onBackground" /&gt;
-
-  &lt;com.acutecoder.pdf.PdfViewer
-      android:id="@+id/pdf_viewer"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:background="@color/md_theme_primaryContainer"
-      app:containerBackgroundColor="@android:color/transparent" /&gt;
-
-  &lt;com.acutecoder.pdf.ui.PdfScrollBar
-      android:id="@+id/pdf_scroll_bar"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      app:contentColor="@color/md_theme_onBackground"
-      app:handleColor="@color/md_theme_background" /&gt;
-
-  &lt;LinearLayout
-      android:id="@+id/loading_indicator"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:layout_below="@id/toolbar"
-      android:background="@color/md_theme_background"
-      android:gravity="center"
-      android:visibility="gone"&gt;
-
-      &lt;ProgressBar
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content" /&gt;
-
-  &lt;/LinearLayout&gt;
-
-&lt;/com.acutecoder.pdf.ui.PdfViewerContainer&gt;
-</pre>
-
-Then load the file
-<pre>
-pdfViewer.onReady {
-    load(source)
-    toolbar.setFileName(fileName) // or toolbar.setTitle(title)
-}
-container.setAsLoadingIndicator(loadingIndicator)
-</pre>
-
-**With Compose**
-
-Include compose and compose-ui dependencies
-
-<pre>
-val pdfState = rememberPdfState(source = source)  
-
-PdfViewerContainer(  
-   pdfState = pdfState,  
-   pdfViewer = {  
-      PdfViewer(  
-         modifier = Modifier.fillMaxSize(),  
-         containerColor = Color.Transparent, 
-      )  
-   },  
-   pdfToolBar = {  
-      PdfToolBar(  
-         title = title,  
-         onBack = { finish() },  
-         contentColor = MaterialTheme.colorScheme.onBackground
-      )  
-   },  
-   pdfScrollBar = { parentHeight ->  
-      PdfScrollBar(  
-         parentHeight = parentHeight,  
-         contentColor = MaterialTheme.colorScheme.onBackground,  
-         handleColor = MaterialTheme.colorScheme.background  
-      )  
-   },  
-   loadingIndicator = {  
-      Column(  
-         modifier = Modifier  
-            .fillMaxSize()  
-            .background(MaterialTheme.colorScheme.background),  
-         verticalArrangement = Arrangement.Center,  
-         horizontalAlignment = Alignment.CenterHorizontally,  
-      ) { 
-         CircularProgressIndicator()  
-         Text(text = "Loading...")  
-      }  
- })
-</pre>
-
-### 2.3 Without PdfViewerContainer
-<pre>
-&lt;RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity"&gt;
-
-    &lt;com.acutecoder.pdf.ui.PdfToolBar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:contentColor="@color/md_theme_onBackground" /&gt;
-
-&lt;!--    add below toolbar--&gt;
-    &lt;com.acutecoder.pdf.PdfViewer
-        android:id="@+id/pdf_viewer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/toolbar"
-        android:background="@color/md_theme_primaryContainer"
-        app:containerBackgroundColor="@android:color/transparent" /&gt;
-
-&lt;!--    set align parent right, don't add below toolbar--&gt;
-    &lt;com.acutecoder.pdf.ui.PdfScrollBar
-        android:id="@+id/pdf_scroll_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        app:contentColor="@color/md_theme_onBackground"
-        app:handleColor="@color/md_theme_background" /&gt;
-
-&lt;/RelativeLayout&gt;
-</pre>
-
-And then 
-<pre>
-pdfToolBar.setupWith(pdfViewer)
-pdfScrollBar.setupWith(pdfViewer, pdfToolBar)
-pdfViewer.onReady {
-  load(source)
-  toolbar.setFileName(fileName) // or toolbar.setTitle(title)
-}
-</pre>
-
-### 2.4 Listener
-You can add listener like
-<pre>
-pdfViewer.addListener(PdfOnPageLoadFailed {  // Specific listener (Extension functions)
-})
-</pre>
-or 
-<pre>
-pdfViewer.addListener(object: PdfListener {
-  // implement required methods
-})
-</pre>
-> [!NOTE]
-> For Download listener see implementation in [PdfViewerActivity.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/PdfViewerActivity.kt)
-
-### 2.5 Adding extra menu to PdfToolBar
- See [ExtendedToolBar.kt](/app/src/main/java/com/acutecoder/pdfviewerdemo/ExtendedToolBar.kt)
+### 2.3 More Examples
+1. For XML examples see [XML Examples](README_XML.md)
+2. For Jetpack Compose examples see [Jetpack Compose Examples](README_COMPOSE.md)
 
 ## 3. See also
 > [!NOTE]
