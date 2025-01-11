@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdfviewer.compose.DefaultOnReadyCallback
+import com.acutecoder.pdfviewer.compose.OnReadyCallback
 import com.acutecoder.pdfviewer.compose.PdfState
 
 @Composable
@@ -52,7 +54,7 @@ fun PdfContainerBoxScope.PdfViewer(
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
     onCreateViewer: (PdfViewer.() -> Unit)? = null,
-    onReady: (PdfViewer.(loadSource: () -> Unit) -> Unit) = { loadSource -> loadSource() },
+    onReady: OnReadyCallback = DefaultOnReadyCallback(),
 ) {
     com.acutecoder.pdfviewer.compose.PdfViewer(
         pdfState = pdfState,

@@ -15,7 +15,7 @@ fun PdfViewer(
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
     onCreateViewer: (PdfViewer.() -> Unit)? = null,
-    onReady: (PdfViewer.(loadSource: () -> Unit) -> Unit) = { loadSource -> loadSource() },
+    onReady: OnReadyCallback = DefaultOnReadyCallback(),
 ) {
     LaunchedEffect(pdfState.source) {
         pdfState.pdfViewer?.run {
@@ -30,7 +30,7 @@ fun PdfViewer(
                 pdfState.setPdfViewerTo(it)
                 onCreateViewer?.invoke(it)
                 it.onReady {
-                    onReady(this) { load(pdfState.source) }
+                    onReady.onReady(this) { load(pdfState.source) }
                 }
 
                 it.layoutParams = FrameLayout.LayoutParams(
@@ -56,4 +56,25 @@ fun PdfViewer(
         },
         modifier = modifier
     )
+}
+
+sealed interface OnReadyCallback {
+    fun onReady(pdfViewer: PdfViewer, loadSource: () -> Unit)
+}
+
+data class DefaultOnReadyCallback(
+    private val callback: (PdfViewer.() -> Unit)? = null
+) : OnReadyCallback {
+    override fun onReady(pdfViewer: PdfViewer, loadSource: () -> Unit) {
+        loadSource()
+        callback?.invoke(pdfViewer)
+    }
+}
+
+data class CustomOnReadyCallback(
+    private val callback: PdfViewer.(loadSource: () -> Unit) -> Unit
+) : OnReadyCallback {
+    override fun onReady(pdfViewer: PdfViewer, loadSource: () -> Unit) {
+        callback(pdfViewer, loadSource)
+    }
 }

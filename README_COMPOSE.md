@@ -35,16 +35,32 @@ fun PdfViewerContainerColor() {
 }
 ```
 
-### onReady callback
+### Default onReady callback
 ```kotlin
 @Composable
-fun PdfViewerOnReadyCallback() {
+fun PdfViewerDefaultOnReadyCallback() {
     val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
 
     PdfViewer(
         pdfState = pdfState,
         modifier = Modifier,
-        onReady = { loadSource ->  // this: PdfViewer
+        onReady = DefaultOnReadyCallback { // this: PdfViewer
+            // loadSource is called before this callback
+        }
+    )
+}
+```
+
+### Custom onReady callback
+```kotlin
+@Composable
+fun PdfViewerCustomOnReadyCallback() {
+    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+
+    PdfViewer(
+        pdfState = pdfState,
+        modifier = Modifier,
+        onReady = CustomOnReadyCallback { loadSource ->  // this: PdfViewer
             loadSource()           // Mandatory to call
         }
     )

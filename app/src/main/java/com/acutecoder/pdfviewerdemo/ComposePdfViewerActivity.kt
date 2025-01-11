@@ -64,6 +64,8 @@ import com.acutecoder.pdf.callIfScrollSpeedLimitIsEnabled
 import com.acutecoder.pdf.callWithScrollSpeedLimitDisabled
 import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.sharedPdfSettingsManager
+import com.acutecoder.pdfviewer.compose.CustomOnReadyCallback
+import com.acutecoder.pdfviewer.compose.DefaultOnReadyCallback
 import com.acutecoder.pdfviewer.compose.PdfLoadingState
 import com.acutecoder.pdfviewer.compose.PdfState
 import com.acutecoder.pdfviewer.compose.rememberPdfState
@@ -171,11 +173,10 @@ private fun Activity.MainScreen(
             PdfViewer(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                onReady = { loadSource ->
-                    loadSource()
-
+                onReady = DefaultOnReadyCallback {
                     pdfSettingsManager.restore(this)
                     setPdfViewer(this)
+
                     addListener(object : PdfListener {
                         @OptIn(PdfUnstableApi::class)
                         override fun onSingleClick() {
@@ -419,7 +420,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
             PdfViewer(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = Color.Transparent,
-                onReady = { loadSource ->
+                onReady = CustomOnReadyCallback { loadSource ->
                     loadSource()
 
                     showPageButtons = pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE
