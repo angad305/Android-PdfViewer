@@ -8,10 +8,16 @@ fun Context.sharedPdfSettingsManager(name: String, mode: Int = Context.MODE_PRIV
     PdfSettingsManager(SharedPreferencePdfSettingsSaver(this, name, mode))
 
 @PdfUnstableApi
-fun PdfViewer.callWithScrollSpeedLimitDisabled(block: DisableScrollSpeedLimitScope.() -> Unit) {
-    val scope = DisableScrollSpeedLimitScope()
+fun PdfViewer.callSafely(
+    checkScrollSpeedLimit: Boolean = true,
+    checkEditing: Boolean = true,
+    block: ScrollSpeedLimitScope.() -> Unit
+) {
+    if (checkEditing && editor.isEditing) return
 
-    if (scrollSpeedLimit != PdfViewer.ScrollSpeedLimit.None) {
+    val scope = ScrollSpeedLimitScope()
+
+    if (checkScrollSpeedLimit && scrollSpeedLimit != PdfViewer.ScrollSpeedLimit.None) {
         val originalScrollSpeedLimit = scrollSpeedLimit
         scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
         block.invoke(scope)
@@ -20,8 +26,8 @@ fun PdfViewer.callWithScrollSpeedLimitDisabled(block: DisableScrollSpeedLimitSco
     } else block.invoke(scope)
 }
 
-fun DisableScrollSpeedLimitScope.callIfScrollSpeedLimitIsEnabled(onEnabled: () -> Unit) {
+fun ScrollSpeedLimitScope.callIfScrollSpeedLimitIsEnabled(onEnabled: () -> Unit) {
     this.onEnabled = onEnabled
 }
 
-class DisableScrollSpeedLimitScope internal constructor(var onEnabled: (() -> Unit)? = null)
+class ScrollSpeedLimitScope internal constructor(internal var onEnabled: (() -> Unit)? = null)

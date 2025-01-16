@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.graphics.Color
+import android.os.Build
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.Menu
@@ -16,7 +17,10 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
+import android.widget.PopupWindow
 import android.widget.ProgressBar
+import android.widget.SeekBar
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.ColorInt
@@ -43,6 +47,16 @@ open class PdfToolBar @JvmOverloads constructor(
 
     @SuppressLint("InflateParams")
     private val root = layoutInflater.inflate(R.layout.pdf_toolbar, null)
+
+    @ColorInt
+    var contentColor: Int = Color.BLACK
+        set(value) {
+            field = value
+            applyContentColor(value)
+        }
+    var popupBackgroundColor: Int = Color.WHITE
+    var pickColor: ((onPickColor: (Int) -> Unit) -> Unit)? = null
+
     val back: ImageView = root.findViewById(R.id.back)
     val title: TextView = root.findViewById(R.id.title)
     val find: ImageView = root.findViewById(R.id.find)
@@ -53,6 +67,27 @@ open class PdfToolBar @JvmOverloads constructor(
     val findInfo: TextView = root.findViewById(R.id.find_info)
     val findPrevious: ImageView = root.findViewById(R.id.find_previous)
     val findNext: ImageView = root.findViewById(R.id.find_next)
+    val edit: ImageView = root.findViewById(R.id.edit)
+    val editorBar: LinearLayout = root.findViewById(R.id.editor_bar)
+    val highlightBar: LinearLayout = root.findViewById(R.id.highlight_bar)
+    val freeTextBar: LinearLayout = root.findViewById(R.id.free_text_bar)
+    val inkBar: LinearLayout = root.findViewById(R.id.ink_bar)
+    val undo: ImageView = root.findViewById(R.id.undo)
+    val redo: ImageView = root.findViewById(R.id.redo)
+    val editTitle: TextView = root.findViewById(R.id.edit_title)
+    val highlight: ImageView = root.findViewById(R.id.highlight)
+    val freeText: ImageView = root.findViewById(R.id.free_text)
+    val ink: ImageView = root.findViewById(R.id.ink)
+
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
+    val showAllHighlights: Switch = root.findViewById(R.id.show_all_highlights)
+    val highlightThickness: ImageView = root.findViewById(R.id.highlight_thickness)
+    val highlightColor: ColorItemView = root.findViewById(R.id.highlight_color)
+    val freeFontSize: ImageView = root.findViewById(R.id.free_font_size)
+    val freeFontColor: ColorItemView = root.findViewById(R.id.free_font_color)
+    val inkThickness: ImageView = root.findViewById(R.id.ink_thickness)
+    val inkOpacity: ImageView = root.findViewById(R.id.ink_opacity)
+    val inkColor: ColorItemView = root.findViewById(R.id.ink_color)
 
     init {
         initListeners()
@@ -64,7 +99,11 @@ open class PdfToolBar @JvmOverloads constructor(
                 R.styleable.PdfToolBar_contentColor,
                 Color.BLACK
             )
-            setContentColor(contentColor)
+            val showEditor = typedArray.getBoolean(R.styleable.PdfToolBar_showEditor, false)
+            this.contentColor = contentColor
+            edit.run { visibility = if (showEditor) VISIBLE else GONE }
+            popupBackgroundColor =
+                typedArray.getColor(R.styleable.PdfToolBar_popupBackgroundColor, Color.WHITE)
             typedArray.recycle()
         }
     }
@@ -86,12 +125,14 @@ open class PdfToolBar @JvmOverloads constructor(
             override fun onPageLoadStart() {
                 find.isEnabled = false
                 more.isEnabled = false
+                edit.isEnabled = false
                 setFindBarVisible(false)
             }
 
             override fun onPageLoadSuccess(pagesCount: Int) {
                 find.isEnabled = true
                 more.isEnabled = true
+                edit.isEnabled = true
             }
 
             override fun onLoadProperties(properties: PdfDocumentProperties) {
@@ -117,6 +158,12 @@ open class PdfToolBar @JvmOverloads constructor(
 
         find.isEnabled = false
         more.isEnabled = false
+        edit.isEnabled = false
+
+        showAllHighlights.isChecked = pdfViewer.editor.showAllHighlights
+        showAllHighlights.setOnCheckedChangeListener { _, isChecked ->
+            pdfViewer.editor.showAllHighlights = isChecked
+        }
     }
 
     fun setFileName(name: String, setAsTitle: Boolean = true) {
@@ -143,7 +190,82 @@ open class PdfToolBar @JvmOverloads constructor(
         }
     }
 
-    fun setContentColor(@ColorInt contentColor: Int) {
+    fun setEditorBarVisible(visible: Boolean) {
+        editorBar.visibility = if (visible) VISIBLE else GONE
+        setEditorMainIconsVisible(mainIconsVisible = true, undoRedoVisible = false)
+        highlightBar.visibility = GONE
+        freeTextBar.visibility = GONE
+        inkBar.visibility = GONE
+        pdfViewer.editor.textHighlighterOn = false
+        pdfViewer.editor.freeTextOn = false
+        pdfViewer.editor.inkOn = false
+    }
+
+    fun isEditorBarVisible() = editorBar.visibility == VISIBLE
+
+    @SuppressLint("SetTextI18n")
+    fun setHighlightBarVisible(visible: Boolean) {
+        editTitle.text = "Highlight"
+        highlightBar.visibility = if (visible) VISIBLE else GONE
+        pdfViewer.editor.textHighlighterOn = visible
+        freeTextBar.visibility = GONE
+        inkBar.visibility = GONE
+        showAllHighlights.isChecked = pdfViewer.editor.showAllHighlights
+        highlightColor.color = pdfViewer.editor.highlightColor
+        setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
+    }
+
+    fun isHighlightBarVisible() = highlightBar.visibility == VISIBLE
+
+    @SuppressLint("SetTextI18n")
+    fun setFreeTextBarVisible(visible: Boolean) {
+        editTitle.text = "Text"
+        highlightBar.visibility = GONE
+        freeTextBar.visibility = if (visible) VISIBLE else GONE
+        pdfViewer.editor.freeTextOn = visible
+        inkBar.visibility = GONE
+        freeFontColor.color = pdfViewer.editor.freeFontColor
+        setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
+    }
+
+    fun isFreeTextBarVisible() = freeTextBar.visibility == VISIBLE
+
+    @SuppressLint("SetTextI18n")
+    fun setInkBarVisible(visible: Boolean) {
+        editTitle.text = "Draw"
+        highlightBar.visibility = GONE
+        freeTextBar.visibility = GONE
+        inkBar.visibility = if (visible) VISIBLE else GONE
+        pdfViewer.editor.inkOn = visible
+        highlightColor.color = pdfViewer.editor.highlightColor
+        inkColor.color = pdfViewer.editor.inkColor
+        setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
+    }
+
+    fun isInkBarVisible() = inkBar.visibility == VISIBLE
+
+    @SuppressLint("SetTextI18n")
+    private fun setEditorMainIconsVisible(mainIconsVisible: Boolean, undoRedoVisible: Boolean) {
+        if (mainIconsVisible) {
+            editTitle.text = "Edit"
+            highlight.visibility = VISIBLE
+            freeText.visibility = VISIBLE
+            ink.visibility = VISIBLE
+        } else {
+            highlight.visibility = GONE
+            freeText.visibility = GONE
+            ink.visibility = GONE
+        }
+        if (undoRedoVisible) {
+            undo.visibility = VISIBLE
+            redo.visibility = VISIBLE
+        } else {
+            undo.visibility = GONE
+            redo.visibility = GONE
+        }
+    }
+
+    private fun applyContentColor(@ColorInt contentColor: Int) {
         find.setTintModes(contentColor)
         more.setTintModes(contentColor)
         back.setTintModes(contentColor)
@@ -151,23 +273,54 @@ open class PdfToolBar @JvmOverloads constructor(
         findEditText.setTextColor(contentColor)
         findNext.setTintModes(contentColor)
         findPrevious.setTintModes(contentColor)
+        edit.setTintModes(contentColor)
+        undo.setTintModes(contentColor)
+        redo.setTintModes(contentColor)
+        editTitle.setTextColor(contentColor)
+        highlight.setTintModes(contentColor)
+        freeText.setTintModes(contentColor)
+        ink.setTintModes(contentColor)
+        highlightThickness.setTintModes(contentColor)
+        freeFontSize.setTintModes(contentColor)
+        inkThickness.setTintModes(contentColor)
+        inkOpacity.setTintModes(contentColor)
+        highlightColor.borderColor = contentColor
+        freeFontColor.borderColor = contentColor
+        inkColor.borderColor = contentColor
     }
 
+    @SuppressLint("SetTextI18n")
     private fun initListeners() {
         back.setOnClickListener {
-            if (isFindBarVisible()) setFindBarVisible(false)
-            else onBack?.invoke()
+            when {
+                isHighlightBarVisible() -> {
+                    setHighlightBarVisible(false)
+                    setEditorBarVisible(true)
+                }
+
+                isFreeTextBarVisible() -> {
+                    setFreeTextBarVisible(false)
+                    setEditorBarVisible(true)
+                }
+
+                isInkBarVisible() -> {
+                    setInkBarVisible(false)
+                    setEditorBarVisible(true)
+                }
+
+                isEditorBarVisible() -> setEditorBarVisible(false)
+                isFindBarVisible() -> setFindBarVisible(false)
+                else -> onBack?.invoke()
+            }
         }
 
-        find.setOnClickListener {
-            setFindBarVisible(true)
-        }
-        findNext.setOnClickListener {
-            pdfViewer.findController.findNext()
-        }
-        findPrevious.setOnClickListener {
-            pdfViewer.findController.findPrevious()
-        }
+        find.setOnClickListener { setFindBarVisible(true) }
+        findNext.setOnClickListener { pdfViewer.findController.findNext() }
+        findPrevious.setOnClickListener { pdfViewer.findController.findPrevious() }
+        edit.setOnClickListener { setEditorBarVisible(true) }
+        highlight.setOnClickListener { setHighlightBarVisible(true) }
+        freeText.setOnClickListener { setFreeTextBarVisible(true) }
+        ink.setOnClickListener { setInkBarVisible(true) }
 
         findEditText.setOnEditorActionListener { textView, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -178,6 +331,157 @@ open class PdfToolBar @JvmOverloads constructor(
                 }
                 true
             } else false
+        }
+
+        undo.setOnClickListener { pdfViewer.editor.undo() }
+        redo.setOnClickListener { pdfViewer.editor.redo() }
+
+        highlightThickness.setOnClickListener {
+            popup(it, popupBackgroundColor) {
+                val paddingValue = context.dpToPx(12)
+                addView(TextView(context).apply {
+                    text = "Thickness"
+                    setTextColor(contentColor)
+                    setPadding(paddingValue, paddingValue, paddingValue, paddingValue)
+                })
+                addView(
+                    SeekBar(context).apply {
+                        max = 16
+                        progress = pdfViewer.editor.highlightThickness - 8
+                        setOnSeekBarChangeListener(onSeekBarChangeListener { newProgress ->
+                            pdfViewer.editor.highlightThickness = newProgress + 8
+                        })
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            outlineSpotShadowColor = contentColor
+                            outlineAmbientShadowColor = contentColor
+                        }
+                        setPadding(paddingValue, 0, paddingValue, paddingValue)
+                    },
+                    LinearLayout.LayoutParams(
+                        context.dpToPx(220),
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                )
+            }
+        }
+
+        highlightColor.setOnClickListener {
+            popup(it, popupBackgroundColor) { dismiss ->
+                val paddingValue = context.dpToPx(12)
+                addView(TextView(context).apply {
+                    text = "Highlight Color"
+                    setTextColor(contentColor)
+                    setPadding(paddingValue, paddingValue, paddingValue, paddingValue)
+                })
+                addView(
+                    ColorItemGrid(context, pdfViewer.highlightEditorColors, contentColor) { color ->
+                        pdfViewer.editor.highlightColor = color
+                        highlightColor.color = color
+                        dismiss()
+                    }
+                )
+            }
+        }
+
+        freeFontSize.setOnClickListener {
+            popup(it, popupBackgroundColor) {
+                val paddingValue = context.dpToPx(12)
+                addView(TextView(context).apply {
+                    text = "Font Size"
+                    setTextColor(contentColor)
+                    setPadding(paddingValue, paddingValue, paddingValue, paddingValue)
+                })
+                addView(
+                    SeekBar(context).apply {
+                        max = 95
+                        progress = pdfViewer.editor.freeFontSize - 5
+                        setOnSeekBarChangeListener(onSeekBarChangeListener { newProgress ->
+                            pdfViewer.editor.freeFontSize = newProgress + 5
+                        })
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            outlineSpotShadowColor = contentColor
+                            outlineAmbientShadowColor = contentColor
+                        }
+                        setPadding(paddingValue, 0, paddingValue, paddingValue)
+                    },
+                    LinearLayout.LayoutParams(
+                        context.dpToPx(220),
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                )
+            }
+        }
+
+        freeFontColor.setOnClickListener {
+            pickColor?.invoke { color ->
+                pdfViewer.editor.freeFontColor = color
+                freeFontColor.color = color
+            }
+        }
+
+        inkThickness.setOnClickListener {
+            popup(it, popupBackgroundColor) {
+                val paddingValue = context.dpToPx(12)
+                addView(TextView(context).apply {
+                    text = "Thickness"
+                    setTextColor(contentColor)
+                    setPadding(paddingValue, paddingValue, paddingValue, paddingValue)
+                })
+                addView(
+                    SeekBar(context).apply {
+                        max = 19
+                        progress = pdfViewer.editor.inkThickness - 1
+                        setOnSeekBarChangeListener(onSeekBarChangeListener { newProgress ->
+                            pdfViewer.editor.inkThickness = newProgress + 1
+                        })
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            outlineSpotShadowColor = contentColor
+                            outlineAmbientShadowColor = contentColor
+                        }
+                        setPadding(paddingValue, 0, paddingValue, paddingValue)
+                    },
+                    LinearLayout.LayoutParams(
+                        context.dpToPx(220),
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                )
+            }
+        }
+
+        inkOpacity.setOnClickListener {
+            popup(it, popupBackgroundColor) {
+                val paddingValue = context.dpToPx(12)
+                addView(TextView(context).apply {
+                    text = "Opacity"
+                    setTextColor(contentColor)
+                    setPadding(paddingValue, paddingValue, paddingValue, paddingValue)
+                })
+                addView(
+                    SeekBar(context).apply {
+                        max = 99
+                        progress = pdfViewer.editor.inkOpacity - 1
+                        setOnSeekBarChangeListener(onSeekBarChangeListener { newProgress ->
+                            pdfViewer.editor.inkOpacity = newProgress + 1
+                        })
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            outlineSpotShadowColor = contentColor
+                            outlineAmbientShadowColor = contentColor
+                        }
+                        setPadding(paddingValue, 0, paddingValue, paddingValue)
+                    },
+                    LinearLayout.LayoutParams(
+                        context.dpToPx(220),
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                )
+            }
+        }
+
+        inkColor.setOnClickListener {
+            pickColor?.invoke { color ->
+                pdfViewer.editor.inkColor = color
+                inkColor.color = color
+            }
         }
     }
 
@@ -487,4 +791,37 @@ open class PdfToolBar @JvmOverloads constructor(
 private inline fun View.find(id: Int): TextView {
     return findViewById(id)
 }
+
+private fun popup(
+    view: View,
+    backgroundColor: Int,
+    content: LinearLayout.(dismiss: () -> Unit) -> Unit
+) {
+    val popup = PopupWindow(view.context)
+    popup.contentView = LinearLayout(view.context).apply {
+        setBackgroundResource(R.drawable.pdf_popup_bg)
+        setBgTintModes(backgroundColor)
+        orientation = LinearLayout.VERTICAL
+        val paddingValue = context.dpToPx(12)
+        setPadding(paddingValue, paddingValue, paddingValue, paddingValue)
+        content(popup::dismiss)
+    }
+    popup.isOutsideTouchable = true
+    popup.setBackgroundDrawable(null)
+    popup.showAsDropDown(view)
+}
+
+private fun onSeekBarChangeListener(callback: (newProgress: Int) -> Unit) =
+    object : SeekBar.OnSeekBarChangeListener {
+        override fun onProgressChanged(
+            seekBar: SeekBar?,
+            progress: Int,
+            fromUser: Boolean
+        ) {
+            callback(progress)
+        }
+
+        override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+        override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+    }
 

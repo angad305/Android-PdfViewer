@@ -11,4 +11,8 @@ fun rememberToolBarState() = remember { PdfToolBarState() }
 
 class PdfToolBarState {
     var isFindBarOpen by mutableStateOf(false)
+    var isEditorOpen by mutableStateOf(false)
+    var isTextHighlighterOn by mutableStateOf(false)
+    var isEditorFreeTextOn by mutableStateOf(false)
+    var isEditorInkOn by mutableStateOf(false)
 }

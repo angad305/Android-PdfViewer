@@ -52,6 +52,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -61,7 +62,7 @@ import com.acutecoder.pdf.PdfOnScrollModeChange
 import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdf.callIfScrollSpeedLimitIsEnabled
-import com.acutecoder.pdf.callWithScrollSpeedLimitDisabled
+import com.acutecoder.pdf.callSafely
 import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.sharedPdfSettingsManager
 import com.acutecoder.pdfviewer.compose.CustomOnReadyCallback
@@ -76,6 +77,8 @@ import com.acutecoder.pdfviewer.compose.ui.PdfViewer
 import com.acutecoder.pdfviewer.compose.ui.PdfViewerContainer
 import com.acutecoder.pdfviewer.compose.ui.rememberToolBarState
 import com.acutecoder.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
+import io.mhssn.colorpicker.ColorPickerDialog
+import io.mhssn.colorpicker.ColorPickerType
 
 class ComposePdfViewerActivity : ComponentActivity() {
     private lateinit var pdfSettingsManager: PdfSettingsManager
@@ -109,9 +112,7 @@ class ComposePdfViewerActivity : ComponentActivity() {
                             title = fileName,
                             url = filePath,
                             pdfSettingsManager = pdfSettingsManager,
-                            setPdfViewer = {
-                                pdfViewer = it
-                            }
+                            setPdfViewer = { pdfViewer = it }
                         )
                     }
                 }
@@ -130,11 +131,12 @@ class ComposePdfViewerActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun Activity.MainScreen(
     title: String,
     url: String,
-    pdfSettingsManager: PdfSettingsManager,
+    pdfSettingsManager: PdfSettingsManager?,
     setPdfViewer: (PdfViewer?) -> Unit,
 ) {
     val pdfState = rememberPdfState(source = url)
@@ -156,7 +158,7 @@ private fun Activity.MainScreen(
 
     DisposableEffect(Unit) {
         onDispose {
-            pdfState.pdfViewer?.let { pdfSettingsManager.save(it) }
+            pdfState.pdfViewer?.let { pdfSettingsManager?.save(it) }
             setPdfViewer(null)
         }
     }
@@ -174,20 +176,20 @@ private fun Activity.MainScreen(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 onReady = DefaultOnReadyCallback {
-                    pdfSettingsManager.restore(this)
+                    pdfSettingsManager?.restore(this)
                     setPdfViewer(this)
 
                     addListener(object : PdfListener {
                         @OptIn(PdfUnstableApi::class)
                         override fun onSingleClick() {
-                            callWithScrollSpeedLimitDisabled {  // Required only if you are using scrollSpeedLimit
+                            callSafely {  // Helpful if you are using scrollSpeedLimit or skip if editing pdf
                                 fullscreen = !fullscreen
                             }
                         }
 
                         @OptIn(PdfUnstableApi::class)
                         override fun onDoubleClick() {
-                            callWithScrollSpeedLimitDisabled { // Required only if you are using scrollSpeedLimit
+                            callSafely { // Helpful if you are using scrollSpeedLimit or skip if editing pdf
                                 val originalCurrentPage = currentPage
 
                                 if (!isZoomInMinScale()) zoomToMinimum()
@@ -208,11 +210,14 @@ private fun Activity.MainScreen(
                 enter = fadeIn() + slideInVertically { -it },
                 exit = fadeOut() + slideOutVertically { -it },
             ) {
+                var onPickColorCallback by remember { mutableStateOf<((Color) -> Unit)?>(null) }
+
                 PdfToolBar(
                     title = title,
                     toolBarState = toolBarState,
                     onBack = { finish() },
                     contentColor = MaterialTheme.colorScheme.onBackground,
+                    showEditor = true,
                     dropDownMenu = { onDismiss, defaultMenus ->
                         ExtendedTooBarMenus(
                             pdfState,
@@ -220,6 +225,21 @@ private fun Activity.MainScreen(
                             defaultMenus
                         )
                     },
+                    pickColor = { onPickColor ->
+                        onPickColorCallback = onPickColor
+                    },
+                )
+
+                ColorPickerDialog(
+                    show = onPickColorCallback != null,
+                    type = ColorPickerType.Classic(),
+                    onDismissRequest = {
+                        onPickColorCallback = null
+                    },
+                    onPickedColor = {
+                        onPickColorCallback?.invoke(it)
+                        onPickColorCallback = null
+                    }
                 )
             }
         },

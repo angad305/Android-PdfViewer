@@ -1,6 +1,7 @@
 package com.acutecoder.pdfviewer.compose
 
-import androidx.annotation.FloatRange
+import androidx.annotation.ColorInt
+import androidx.annotation.IntRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -8,16 +9,32 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import com.acutecoder.pdf.PdfDocumentProperties
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.PdfViewer
-import com.acutecoder.pdf.PdfViewer.Zoom
 
 @Composable
-fun rememberPdfState(source: String): PdfState = remember { PdfState(source = source) }
+fun rememberPdfState(
+    source: String,
+    highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
+    defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
+        ?: PdfViewerDefaults.highlightEditorColors[0].second,
+): PdfState = remember {
+    PdfState(
+        source = source,
+        highlightEditorColors = highlightEditorColors,
+        defaultHighlightColor = defaultHighlightColor
+    )
+}
 
-class PdfState(source: String) {
+class PdfState(
+    source: String,
+    val highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
+    val defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
+        ?: PdfViewerDefaults.highlightEditorColors[0].second,
+) {
 
     var source by mutableStateOf(source); internal set
     var pdfViewer: PdfViewer? by mutableStateOf(null); internal set
@@ -41,6 +58,22 @@ class PdfState(source: String) {
 
     @PdfUnstableApi
     var scrollSpeedLimit: PdfViewer.ScrollSpeedLimit by mutableStateOf(PdfViewer.ScrollSpeedLimit.None); internal set
+    val editor = Editor()
+
+    inner class Editor internal constructor() {
+        var highlightColor by mutableStateOf(
+            highlightEditorColors.firstOrNull()?.second
+                ?: PdfViewerDefaults.highlightEditorColors.first().second
+        )
+            internal set
+        var highlightThickness by mutableIntStateOf(12); internal set
+        var showAllHighlights by mutableStateOf(true); internal set
+        var freeFontColor by mutableStateOf(Color.Black); internal set
+        var freeFontSize by mutableIntStateOf(10); internal set
+        var inkThickness by mutableIntStateOf(1); internal set
+        var inkColor by mutableStateOf(Color.Black); internal set
+        var inkOpacity by mutableIntStateOf(100); internal set
+    }
 
     fun load(source: String) {
         this.source = source
@@ -89,6 +122,15 @@ class PdfState(source: String) {
 
         @OptIn(PdfUnstableApi::class)
         scrollSpeedLimit = viewer.scrollSpeedLimit
+
+        editor.highlightColor = Color(viewer.editor.highlightColor)
+        editor.highlightThickness = viewer.editor.highlightThickness
+        editor.showAllHighlights = viewer.editor.showAllHighlights
+        editor.freeFontColor = Color(viewer.editor.freeFontColor)
+        editor.freeFontSize = viewer.editor.freeFontSize
+        editor.inkThickness = viewer.editor.inkThickness
+        editor.inkColor = Color(viewer.editor.inkColor)
+        editor.inkOpacity = viewer.editor.inkOpacity
     }
 
     internal fun clearPdfViewer() {
@@ -201,6 +243,38 @@ class PdfState(source: String) {
             @OptIn(PdfUnstableApi::class)
             this@PdfState.scrollSpeedLimit = appliedLimit
         }
+
+        override fun onEditorHighlightColorChange(@ColorInt highlightColor: Int) {
+            this@PdfState.editor.highlightColor = Color(highlightColor)
+        }
+
+        override fun onEditorShowAllHighlightsChange(showAll: Boolean) {
+            this@PdfState.editor.showAllHighlights = showAll
+        }
+
+        override fun onEditorHighlightThicknessChange(@IntRange(from = 8, to = 24) thickness: Int) {
+            this@PdfState.editor.highlightThickness = thickness
+        }
+
+        override fun onEditorFreeFontColorChange(@ColorInt fontColor: Int) {
+            this@PdfState.editor.freeFontColor = Color(fontColor)
+        }
+
+        override fun onEditorFreeFontSizeChange(fontSize: Int) {
+            this@PdfState.editor.freeFontSize = fontSize
+        }
+
+        override fun onEditorInkColorChange(color: Int) {
+            this@PdfState.editor.inkColor = Color(color)
+        }
+
+        override fun onEditorInkThicknessChange(thickness: Int) {
+            this@PdfState.editor.inkThickness = thickness
+        }
+
+        override fun onEditorInkOpacityChange(opacity: Int) {
+            this@PdfState.editor.inkOpacity = opacity
+        }
     }
 }
 
@@ -230,15 +304,3 @@ sealed class MatchState(val current: Int = 0, val total: Int = 0) {
 
     val isLoading: Boolean get() = this is Started || this is Progress
 }
-
-data class ScaleLimit(
-    @FloatRange(-4.0, 10.0) val minPageScale: Float = 0.1f,
-    @FloatRange(-4.0, 10.0) val maxPageScale: Float = 10f,
-    @FloatRange(-4.0, 10.0) val defaultPageScale: Float = Zoom.AUTOMATIC.floatValue,
-)
-
-data class ActualScaleLimit(
-    @FloatRange(0.0, 10.0) val minPageScale: Float = 0.1f,
-    @FloatRange(0.0, 10.0) val maxPageScale: Float = 10f,
-    @FloatRange(0.0, 10.0) val defaultPageScale: Float = 0f,
-)

@@ -11,7 +11,9 @@
         android:id="@+id/pdf_tool_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:contentColor="@color/md_theme_onBackground" />
+        app:contentColor="@color/md_theme_onBackground"
+        app:popupBackgroundColor="@color/md_theme_background"
+        app:showEditor="true" />
 
     <com.acutecoder.pdf.PdfViewer
         android:id="@+id/pdf_viewer"

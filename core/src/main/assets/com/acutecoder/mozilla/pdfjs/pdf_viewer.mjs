@@ -3750,6 +3750,7 @@ const DEFAULT_SCALE = 1.0;
 const DEFAULT_SCALE_DELTA = 1.1;
 window.MIN_SCALE = 0.1;
 window.MAX_SCALE = 10.0;
+window.highlightEditorColorsString="yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F";
 const UNKNOWN_SCALE = 0;
 const MAX_AUTO_SCALE = 1.25;
 const SCROLLBAR_PADDING = 40;
@@ -4387,7 +4388,7 @@ const defaultOptions = {
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   highlightEditorColors: {
-    value: "yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F",
+    value: JWI.getHighlightEditorColorsString().toLowerCase(),
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   historyUpdateUrl: {

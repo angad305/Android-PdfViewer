@@ -855,6 +855,152 @@ function nearest(currentPoint, point1, point2) {
     } else return point2;
 }
 
+function openTextHighlighter() {
+    let toggleButton = $("#editorHighlightButton");
+    if (toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function closeTextHighlighter() {
+    let toggleButton = $("#editorHighlightButton");
+    if (!toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function openEditorFreeText() {
+    let toggleButton = $("#editorFreeTextButton");
+    if (toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function closeEditorFreeText() {
+    let toggleButton = $("#editorFreeTextButton");
+    if (!toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function openEditorInk() {
+    let toggleButton = $("#editorInkButton");
+    if (toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function closeEditorInk() {
+    let toggleButton = $("#editorInkButton");
+    if (!toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function openEditorStamp() {
+    let toggleButton = $("#editorStampButton");
+    if (toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function closeEditorStamp() {
+    let toggleButton = $("#editorStampButton");
+    if (!toggleButton.classList.contains("toggled")) return;
+    toggleButton.click();
+}
+
+function setHighlighterThickness(thickness) {
+    let thicknessInput = $("#editorFreeHighlightThickness");
+    thicknessInput.value = thickness;
+    thicknessInput.dispatchEvent(new Event("input"));
+    thicknessInput.dispatchEvent(new Event("change"));
+}
+
+function showAllHighlights() {
+    let toggleButton = $("#editorHighlightShowAll");
+    if (toggleButton.getAttribute("aria-pressed") == "true") return;
+    toggleButton.click();
+}
+
+function hideAllHighlights() {
+    let toggleButton = $("#editorHighlightShowAll");
+    if (toggleButton.getAttribute("aria-pressed") == "false") return;
+    toggleButton.click();
+}
+
+function setFreeTextFontSize(fontSize) {
+    let fontSizeInput = $("#editorFreeTextFontSize");
+    fontSizeInput.value = fontSize;
+    fontSizeInput.dispatchEvent(new Event("input"));
+    fontSizeInput.dispatchEvent(new Event("change"));
+}
+
+function setFreeTextFontColor(fontColor) {
+    let fontColorInput = $("#editorFreeTextColor");
+    fontColorInput.value = fontColor;
+    fontColorInput.dispatchEvent(new Event("input"));
+    fontColorInput.dispatchEvent(new Event("change"));
+}
+
+function setInkColor(color) {
+    let colorInput = $("#editorInkColor");
+    colorInput.value = color;
+    colorInput.dispatchEvent(new Event("input"));
+    colorInput.dispatchEvent(new Event("change"));
+}
+
+function setInkThickness(thickness) {
+    let thicknessInput = $("#editorInkThickness");
+    thicknessInput.value = thickness;
+    thicknessInput.dispatchEvent(new Event("input"));
+    thicknessInput.dispatchEvent(new Event("change"));
+}
+
+function setInkOpacity(opacity) {
+    let opacityInput = $("#editorInkOpacity");
+    opacityInput.value = opacity;
+    opacityInput.dispatchEvent(new Event("input"));
+    opacityInput.dispatchEvent(new Event("change"));
+}
+
+function selectHighlighterColor(color) {
+    $(`[data-color="${color.toLowerCase()}"]`).click();
+
+    $all(".editToolbar .colorPicker").forEach((colorPicker) => {
+        if (!colorPicker.parentElement.parentElement.classList.contains("hidden")) {
+            if (colorPicker.querySelectorAll(".dropdown").length == 0) {
+                colorPicker.click();
+                colorPicker.querySelector(`[data-color="${color.toLowerCase()}"]`).click();
+                colorPicker.click();
+            } else colorPicker.querySelector(`[data-color="${color.toLowerCase()}"]`).click();
+        }
+    });
+}
+
+function requestStampInsert(image) {
+    let imageInput = $("#editorStampAddImage");
+    imageInput.value = image;
+    imageInput.dispatchEvent(new Event("input"));
+}
+
+function undo() {
+    const undoEvent = new KeyboardEvent("keydown", {
+        key: "z",
+        code: "KeyZ",
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true,
+    });
+
+    document.dispatchEvent(undoEvent);
+}
+
+function redo() {
+    const undoEvent = new KeyboardEvent("keydown", {
+        key: "y",
+        code: "KeyY",
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true,
+    });
+
+    document.dispatchEvent(undoEvent);
+}
+
 function $(query) {
     return document.querySelector(query);
 }

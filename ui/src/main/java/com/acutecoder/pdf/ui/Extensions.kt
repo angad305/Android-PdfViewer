@@ -2,6 +2,7 @@ package com.acutecoder.pdf.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
@@ -114,4 +115,10 @@ internal fun View.removeFromParent() {
         if (it is ViewGroup)
             it.removeView(this)
     }
+}
+
+internal fun Context.dpToPx(dp: Int): Int {
+    return TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), resources.displayMetrics
+    ).roundToInt()
 }

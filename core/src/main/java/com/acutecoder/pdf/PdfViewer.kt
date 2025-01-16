@@ -28,8 +28,9 @@ import com.acutecoder.pdf.js.callDirectly
 import com.acutecoder.pdf.js.invoke
 import com.acutecoder.pdf.js.set
 import com.acutecoder.pdf.js.setDirectly
+import com.acutecoder.pdf.js.toJsHex
+import com.acutecoder.pdf.js.toJsRgba
 import com.acutecoder.pdf.js.toJsString
-import com.acutecoder.pdf.js.toRgba
 import com.acutecoder.pdf.js.with
 import com.acutecoder.pdf.setting.UiSettings
 import kotlin.math.abs
@@ -37,7 +38,7 @@ import kotlin.math.abs
 class PdfViewer @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     var isInitialized = false; private set
@@ -47,6 +48,11 @@ class PdfViewer @JvmOverloads constructor(
     var currentPageScale: Float = 0f; private set
     var currentPageScaleValue: String = ""; private set
     var properties: PdfDocumentProperties? = null; private set
+
+    /**
+     * Changes require reinitializing PdfViewer
+     */
+    var highlightEditorColors: List<Pair<String, Int>> = defaultHighlightEditorColors
 
     private val listeners = mutableListOf<PdfListener>()
     private val webInterface = WebInterface()
@@ -258,6 +264,8 @@ class PdfViewer @JvmOverloads constructor(
             field = dispatchScrollSpeedLimit(value)
         }
 
+    val editor = Editor()
+
     init {
         val containerBgColor = attrs?.let {
             val typedArray =
@@ -428,7 +436,7 @@ class PdfViewer @JvmOverloads constructor(
         }
         if (tempBackgroundColor != null) tempBackgroundColor = null
 
-        webView with Body set "style.backgroundColor"(color.toRgba().toJsString())
+        webView with Body set "style.backgroundColor"(color.toJsRgba().toJsString())
     }
 
     fun saveState(outState: Bundle) {
@@ -536,6 +544,104 @@ class PdfViewer @JvmOverloads constructor(
                 } else false
             webView callDirectly if (newValue) "applySinglePageArrangement"() else "removeSinglePageArrangement"()
             newValue
+        }
+    }
+
+    private fun dispatchHighlightColor(
+        highlightColor: Int,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorHighlightColorChange(highlightColor) }
+        ) {
+            webView callDirectly "selectHighlighterColor"(highlightColor.toJsHex().toJsString())
+        }
+    }
+
+    private fun dispatchShowAllHighlights(
+        showAll: Boolean,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorShowAllHighlightsChange(showAll) }
+        ) {
+            webView callDirectly if (showAll) "showAllHighlights"() else "hideAllHighlights"()
+        }
+    }
+
+    private fun dispatchHighlightThickness(
+        @IntRange(from = 8, to = 24) thickness: Int,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorHighlightThicknessChange(thickness) }
+        ) {
+            webView callDirectly "setHighlighterThickness"(thickness)
+        }
+    }
+
+    private fun dispatchFreeFontColor(
+        @ColorInt fontColor: Int,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorFreeFontColorChange(fontColor) }
+        ) {
+            webView callDirectly "setFreeTextFontColor"(
+                fontColor.toJsHex(includeAlpha = false).toJsString()
+            )
+        }
+    }
+
+    private fun dispatchFreeFontSize(
+        @IntRange(from = 5, to = 100) fontSize: Int,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorFreeFontSizeChange(fontSize) }
+        ) {
+            webView callDirectly "setFreeTextFontSize"(fontSize)
+        }
+    }
+
+    private fun dispatchInkColor(
+        @ColorInt color: Int,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorInkColorChange(color) }
+        ) {
+            webView callDirectly "setInkColor"(color.toJsHex(includeAlpha = false).toJsString())
+        }
+    }
+
+    private fun dispatchInkThickness(
+        @IntRange(from = 1, to = 20) thickness: Int,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorInkThicknessChange(thickness) }
+        ) {
+            webView callDirectly "setInkThickness"(thickness)
+        }
+    }
+
+    private fun dispatchInkOpacity(
+        @IntRange(from = 1, to = 100) opacity: Int,
+        dispatchToListener: Boolean = true,
+    ) {
+        dispatch(
+            dispatchToListener = dispatchToListener,
+            callListener = { onEditorInkOpacityChange(opacity) }
+        ) {
+            webView callDirectly "setInkOpacity"(opacity)
         }
     }
 
@@ -719,11 +825,112 @@ class PdfViewer @JvmOverloads constructor(
         ) : ScrollSpeedLimit()
     }
 
+    inner class Editor internal constructor() {
+        var textHighlighterOn = false
+            set(value) {
+                field = value
+                webView callDirectly if (value) "openTextHighlighter"() else "closeTextHighlighter"()
+            }
+
+        var freeTextOn = false
+            set(value) {
+                field = value
+                webView callDirectly if (value) "openEditorFreeText"() else "closeEditorFreeText"()
+            }
+
+        var inkOn = false
+            set(value) {
+                field = value
+                webView callDirectly if (value) "openEditorInk"() else "closeEditorInk"()
+            }
+
+        var stampOn = false
+            set(value) {
+                field = value
+                webView callDirectly if (value) "openEditorStamp"() else "closeEditorStamp"()
+            }
+
+        var highlightColor =
+            highlightEditorColors.firstOrNull()?.second
+                ?: defaultHighlightEditorColors.first().second
+            set(value) {
+                field = value
+                dispatchHighlightColor(value)
+            }
+
+        var showAllHighlights = true
+            set(value) {
+                field = value
+                dispatchShowAllHighlights(value)
+            }
+
+        @IntRange(from = 8, to = 24)
+        var highlightThickness = 12
+            set(value) {
+                field = value
+                dispatchHighlightThickness(value)
+            }
+
+        @ColorInt
+        var freeFontColor = Color.BLACK
+            set(value) {
+                field = value
+                dispatchFreeFontColor(value)
+            }
+
+        @IntRange(from = 5, to = 100)
+        var freeFontSize = 10
+            set(value) {
+                field = value
+                dispatchFreeFontSize(value)
+            }
+
+        @ColorInt
+        var inkColor = Color.BLACK
+            set(value) {
+                field = value
+                dispatchInkColor(value)
+            }
+
+        @IntRange(from = 1, to = 20)
+        var inkThickness = 1
+            set(value) {
+                field = value
+                dispatchInkThickness(value)
+            }
+
+        @IntRange(from = 1, to = 100)
+        var inkOpacity = 100
+            set(value) {
+                field = value
+                dispatchInkOpacity(value)
+            }
+
+        val isEditing: Boolean get() = textHighlighterOn || freeTextOn || inkOn || stampOn
+
+        fun undo() {
+            webView callDirectly "undo"()
+        }
+
+        fun redo() {
+            webView callDirectly "redo"()
+        }
+
+    }
+
     companion object {
         private const val PDF_VIEWER_URL =
             "file:///android_asset/com/acutecoder/mozilla/pdfjs/pdf_viewer.html"
         private const val COLOR_NOT_FOUND = 11
         private val Zoom_SCALE_RANGE = -4f..-1f
+
+        val defaultHighlightEditorColors = listOf(
+            "yellow" to Color.parseColor("#FFFF98"),
+            "green" to Color.parseColor("#53FFBC"),
+            "blue" to Color.parseColor("#80EBFF"),
+            "pink" to Color.parseColor("#FFCBE6"),
+            "red" to Color.parseColor("#FF4F5F"),
+        )
     }
 
     @Suppress("Unused")
@@ -824,6 +1031,10 @@ class PdfViewer @JvmOverloads constructor(
             if (!link.startsWith(PDF_VIEWER_URL))
                 listeners.forEach { it.onLinkClick(link) }
         }
+
+        @JavascriptInterface
+        fun getHighlightEditorColorsString() = highlightEditorColors
+            .joinToString(separator = ",") { "${it.first}=${it.second.toJsHex()}" }
 
         @JavascriptInterface
         fun onLoadProperties(

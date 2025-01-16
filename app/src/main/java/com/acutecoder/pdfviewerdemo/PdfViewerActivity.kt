@@ -2,6 +2,7 @@ package com.acutecoder.pdfviewerdemo
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.addCallback
@@ -15,11 +16,13 @@ import com.acutecoder.pdf.PdfOnLinkClick
 import com.acutecoder.pdf.PdfOnPageLoadFailed
 import com.acutecoder.pdf.PdfUnstableApi
 import com.acutecoder.pdf.callIfScrollSpeedLimitIsEnabled
-import com.acutecoder.pdf.callWithScrollSpeedLimitDisabled
+import com.acutecoder.pdf.callSafely
 import com.acutecoder.pdf.setting.PdfSettingsManager
 import com.acutecoder.pdf.sharedPdfSettingsManager
 import com.acutecoder.pdfviewerdemo.databinding.ActivityPdfViewerBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.jaredrummler.android.colorpicker.ColorPickerDialog
+import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -71,6 +74,22 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
         view.pdfToolBar.alertDialogBuilder = { MaterialAlertDialogBuilder(this) }
+        var selectedColor = Color.WHITE
+        view.pdfToolBar.pickColor = { onPickColor ->
+            ColorPickerDialog.newBuilder()
+                .setColor(selectedColor)
+                .create().apply {
+                    setColorPickerDialogListener(object : ColorPickerDialogListener {
+                        override fun onColorSelected(dialogId: Int, color: Int) {
+                            selectedColor = color
+                            onPickColor(color)
+                        }
+
+                        override fun onDialogDismissed(dialogId: Int) {}
+                    })
+                    show(supportFragmentManager, "color-picker-dialog")
+                }
+        }
         view.container.alertDialogBuilder = view.pdfToolBar.alertDialogBuilder
         view.pdfViewer.addListener(DownloadPdfListener(fileName))
         view.container.setAsLoadingIndicator(view.loader)
@@ -81,6 +100,8 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
         view.pdfViewer.run {
+            highlightEditorColors = listOf("blue" to Color.BLUE, "black" to Color.BLACK)
+            editor.highlightColor = Color.BLUE
             addListener(PdfOnPageLoadFailed {
                 toast(it)
                 finish()
@@ -93,7 +114,7 @@ class PdfViewerActivity : AppCompatActivity() {
         view.pdfViewer.addListener(object : PdfListener {
             @OptIn(PdfUnstableApi::class)
             override fun onSingleClick() {
-                view.pdfViewer.callWithScrollSpeedLimitDisabled { // Required only if you are using scrollSpeedLimit
+                view.pdfViewer.callSafely { // Helpful if you are using scrollSpeedLimit or skip if editing pdf
                     fullscreen = !fullscreen
                     setFullscreen(fullscreen)
                     view.container.animateToolBar(!fullscreen)
@@ -103,7 +124,7 @@ class PdfViewerActivity : AppCompatActivity() {
             @OptIn(PdfUnstableApi::class)
             override fun onDoubleClick() {
                 view.pdfViewer.run {
-                    callWithScrollSpeedLimitDisabled { // Required only if you are using scrollSpeedLimit
+                    callSafely { // Helpful if you are using scrollSpeedLimit or skip if editing pdf
                         val originalCurrentPage = currentPage
 
                         if (!isZoomInMinScale()) zoomToMinimum()

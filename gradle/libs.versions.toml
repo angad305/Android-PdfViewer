@@ -1,5 +1,8 @@
 [versions]
 agp = "8.7.3"
+colorpickerCompose = "1.0.0"
+colorpicker = "1.1.0"
+rangeseekbar = "1.0.6"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -9,12 +12,15 @@ appcompat = "1.7.0"
 material = "1.12.0"
 activity = "1.9.3"
 annotationJvm = "1.9.1"
-rangeseekbar = "1.0.6"
 activityCompose = "1.9.3"
 composeBom = "2024.12.01"
 lifecycleRuntimeKtx = "2.8.7"
 
 [libraries]
+rangeseekbar = { module = "com.github.MohammedAlaaMorsi:RangeSeekBar", version.ref = "rangeseekbar" }
+colorpicker = { module = "com.jaredrummler:colorpicker", version.ref = "colorpicker" }
+colorpicker-compose = { module = "io.mhssn:colorpicker", version.ref = "colorpickerCompose" }
+
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -24,7 +30,6 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-annotation-jvm = { group = "androidx.annotation", name = "annotation-jvm", version.ref = "annotationJvm" }
-rangeseekbar = { module = "com.github.MohammedAlaaMorsi:RangeSeekBar", version.ref = "rangeseekbar" }
 
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }

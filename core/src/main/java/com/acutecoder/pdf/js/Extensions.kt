@@ -55,10 +55,20 @@ internal fun WebView.execute(
 
 internal fun String.toJsString() = "`$this`"
 
-internal fun Int.toRgba(): String {
+internal fun Int.toJsRgba(): String {
     val alpha = (this shr 24) and 0xFF
     val red = (this shr 16) and 0xFF
     val green = (this shr 8) and 0xFF
     val blue = this and 0xFF
     return "rgba($red, $green, $blue, ${alpha / 255f})"
+}
+
+internal fun Int.toJsHex(includeAlpha: Boolean = true): String {
+    val alpha = (this shr 24) and 0xFF
+    val red = (this shr 16) and 0xFF
+    val green = (this shr 8) and 0xFF
+    val blue = this and 0xFF
+
+    return if (includeAlpha) String.format("#%02X%02X%02X%02X", red, green, blue, alpha)
+    else String.format("#%02X%02X%02X", red, green, blue)
 }
