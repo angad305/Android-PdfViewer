@@ -27,15 +27,17 @@ fun PdfViewer(
     AndroidView(
         factory = { context ->
             PdfViewer(context).also {
-                it.highlightEditorColors = pdfState.highlightEditorColors.map { colorPair ->
-                    colorPair.first to colorPair.second.toArgb()
-                }
-                it.editor.highlightColor = pdfState.defaultHighlightColor.toArgb()
-                pdfState.setPdfViewerTo(it)
-                onCreateViewer?.invoke(it)
-                it.onReady {
-                    onReady.onReady(this) { load(pdfState.source) }
-                }
+                if (!it.isInEditMode) {
+                    it.highlightEditorColors = pdfState.highlightEditorColors.map { colorPair ->
+                        colorPair.first to colorPair.second.toArgb()
+                    }
+                    it.editor.highlightColor = pdfState.defaultHighlightColor.toArgb()
+                    pdfState.setPdfViewerTo(it)
+                    onCreateViewer?.invoke(it)
+                    it.onReady {
+                        onReady.onReady(this) { load(pdfState.source) }
+                    }
+                } else pdfState.loadingState = PdfLoadingState.Finished(3)
 
                 it.layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,

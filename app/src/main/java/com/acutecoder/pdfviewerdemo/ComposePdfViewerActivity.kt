@@ -56,6 +56,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfOnScrollModeChange
@@ -128,6 +129,17 @@ class ComposePdfViewerActivity : ComponentActivity() {
     override fun onDestroy() {
         pdfViewer?.let { pdfSettingsManager.save(it) }
         super.onDestroy()
+    }
+
+    @Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
+    @Composable
+    private fun MainScreenPreview() {
+        MainScreen(
+            title = "Preview",
+            url = "",
+            pdfSettingsManager = null,
+            setPdfViewer = {}
+        )
     }
 }
 
