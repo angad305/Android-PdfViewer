@@ -66,6 +66,7 @@ function doOnLast() {
 
 function setupHelper() {
     PDFViewerApplication.findBar.highlightAll.click();
+    PDFViewerApplication.pdfSidebar.close();
 
     PDFViewerApplication.eventBus.on("scalechanging", (event) => {
         const { scale } = event;
