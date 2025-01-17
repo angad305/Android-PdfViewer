@@ -1,17 +1,41 @@
 package com.acutecoder.pdfviewer.compose.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.acutecoder.pdf.PdfViewer
 import com.acutecoder.pdfviewer.compose.DefaultOnReadyCallback
 import com.acutecoder.pdfviewer.compose.OnReadyCallback
@@ -47,6 +71,9 @@ fun PdfViewerContainer(
             )
         }
     }
+
+    if (pdfState.passwordRequired)
+        PasswordDialog(pdfState)
 }
 
 @Composable
@@ -110,5 +137,73 @@ fun PdfContainerBoxScope.PdfScrollBar(
         handleColor = handleColor,
         interactiveScrolling = interactiveScrolling,
         useVerticalScrollBarForHorizontalMode = useVerticalScrollBarForHorizontalMode,
+    )
+}
+
+@Composable
+private fun PasswordDialog(pdfState: PdfState) {
+    var title by remember { mutableStateOf("Enter Password") }
+    var password by remember { mutableStateOf("") }
+
+    val select: () -> Unit = {
+        if (password.isEmpty()) password = ""
+        else pdfState.pdfViewer?.ui?.passwordDialog?.submitPassword(password)
+    }
+
+    LaunchedEffect(Unit) {
+        pdfState.pdfViewer?.ui?.passwordDialog?.getLabelText {
+            if (it != null) title = it.replace("\"", "")
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = { pdfState.pdfViewer?.ui?.passwordDialog?.cancel() },
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+        },
+        confirmButton = { TextButton(onClick = select) { Text("Done") } },
+        dismissButton = {
+            TextButton(onClick = { pdfState.pdfViewer?.ui?.passwordDialog?.cancel() }) {
+                Text(text = "Cancel")
+            }
+        },
+        text = {
+            BasicTextField(
+                value = password,
+                onValueChange = { password = it },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardActions = KeyboardActions(onDone = { select() }),
+                singleLine = true,
+                textStyle = TextStyle(fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp),
+                decorationBox = {
+                    Box(Modifier.fillMaxWidth()) {
+                        it()
+                        AnimatedVisibility(
+                            visible = password.isEmpty(),
+                            enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
+                            exit = slideOut { IntOffset(0, -it.height) } + fadeOut(),
+                        ) {
+                            Text(
+                                text = "Password",
+                                modifier = Modifier.alpha(0.6f),
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                }
+            )
+        }
     )
 }

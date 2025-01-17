@@ -469,7 +469,7 @@ class PdfViewer @JvmOverloads constructor(
             dispatchToListener = dispatchToListener,
             callListener = { onRotationChange(pageRotation) }
         ) {
-            webView set "pdfViewer.pagesRotation"(pageRotation)
+            webView set "pdfViewer.pagesRotation"(pageRotation.degree)
         }
     }
 
