@@ -57,7 +57,9 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
 
                 save(minScaleIncluded, KEY_MIN_SCALE, minPageScale)
                 save(maxScaleIncluded, KEY_MAX_SCALE, maxPageScale)
-                save(defaultScaleIncluded, KEY_DEFAULT_SCALE, currentPageScale)
+                PdfViewer.Zoom.entries.find { it.value == currentPageScaleValue }?.let {
+                    save(defaultScaleIncluded, KEY_DEFAULT_SCALE, it.floatValue)
+                } ?: save(defaultScaleIncluded, KEY_DEFAULT_SCALE, currentPageScale)
 
                 save(scrollModeIncluded, KEY_SCROLL_MODE, pageScrollMode)
                 save(spreadModeIncluded, KEY_SPREAD_MODE, pageSpreadMode)

@@ -173,7 +173,7 @@ class PdfViewer @JvmOverloads constructor(
         set(value) {
             field = value
             if (isInitialized) {
-                if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
+                if (value in ZOOM_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
                     actualMinPageScale = it ?: actualMinPageScale
                 } else actualMinPageScale = value
             }
@@ -188,7 +188,7 @@ class PdfViewer @JvmOverloads constructor(
                 listeners.forEach { it.onScaleLimitChange(minPageScale, value, defaultPageScale) }
             field = value
             if (isInitialized) {
-                if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
+                if (value in ZOOM_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
                     actualMaxPageScale = it ?: actualMaxPageScale
                 } else actualMaxPageScale = value
             }
@@ -201,7 +201,7 @@ class PdfViewer @JvmOverloads constructor(
                 listeners.forEach { it.onScaleLimitChange(minPageScale, maxPageScale, value) }
             field = value
             if (isInitialized) {
-                if (value in Zoom_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
+                if (value in ZOOM_SCALE_RANGE) getActualScaleFor(Zoom.entries[abs(value.toInt()) - 1]) {
                     actualDefaultPageScale = it ?: actualDefaultPageScale
                     scalePageTo(actualDefaultPageScale)
                 } else {
@@ -352,7 +352,7 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun scalePageTo(@FloatRange(from = -4.0, to = 10.0) scale: Float) {
-        if (scale in Zoom_SCALE_RANGE)
+        if (scale in ZOOM_SCALE_RANGE)
             zoomTo(Zoom.entries[abs(scale.toInt()) - 1])
         else {
             if (actualMaxPageScale < actualMinPageScale)
@@ -720,7 +720,7 @@ class PdfViewer @JvmOverloads constructor(
             if (isMinSet && isMaxSet && isDefaultSet) callback()
         }
 
-        if (minPageScale in Zoom_SCALE_RANGE)
+        if (minPageScale in ZOOM_SCALE_RANGE)
             getActualScaleFor(Zoom.entries[abs(minPageScale.toInt()) - 1]) {
                 actualMinPageScale = it ?: actualMinPageScale
                 isMinSet = true
@@ -732,7 +732,7 @@ class PdfViewer @JvmOverloads constructor(
             checkAndCall()
         }
 
-        if (maxPageScale in Zoom_SCALE_RANGE)
+        if (maxPageScale in ZOOM_SCALE_RANGE)
             getActualScaleFor(Zoom.entries[abs(maxPageScale.toInt()) - 1]) {
                 actualMaxPageScale = it ?: actualMaxPageScale
                 isMaxSet = true
@@ -744,7 +744,7 @@ class PdfViewer @JvmOverloads constructor(
             checkAndCall()
         }
 
-        if (defaultPageScale in Zoom_SCALE_RANGE)
+        if (defaultPageScale in ZOOM_SCALE_RANGE)
             getActualScaleFor(Zoom.entries[abs(defaultPageScale.toInt()) - 1]) {
                 actualDefaultPageScale = it ?: actualDefaultPageScale
                 isDefaultSet = true
@@ -922,7 +922,7 @@ class PdfViewer @JvmOverloads constructor(
         private const val PDF_VIEWER_URL =
             "file:///android_asset/com/acutecoder/mozilla/pdfjs/pdf_viewer.html"
         private const val COLOR_NOT_FOUND = 11
-        private val Zoom_SCALE_RANGE = -4f..-1f
+        private val ZOOM_SCALE_RANGE = -4f..-1f
 
         val defaultHighlightEditorColors = listOf(
             "yellow" to Color.parseColor("#FFFF98"),

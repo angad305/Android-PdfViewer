@@ -25,17 +25,6 @@ class MainActivity : AppCompatActivity() {
 
         pref = getSharedPreferences("pref", MODE_PRIVATE)
 
-        // View from other apps (from intent filter)
-        if (intent.action == Intent.ACTION_VIEW && intent.data != null) {
-            startActivity(
-                Intent(this, getViewerActivityClass()).apply {
-                    putExtra("fileUri", intent.data.toString())
-                }
-            )
-            finish()
-            return
-        }
-
         view = ActivityMainBinding.inflate(layoutInflater)
         setContentView(view.root)
 

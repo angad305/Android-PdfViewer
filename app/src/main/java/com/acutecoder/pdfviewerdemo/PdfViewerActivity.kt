@@ -49,19 +49,11 @@ class PdfViewerActivity : AppCompatActivity() {
         pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
             .also { it.includeAll() }
 
-        // Path from asset, url or android uri
-        val filePath = intent.extras?.getString("filePath")
-            ?: intent.extras?.getString("fileUrl")
-            ?: intent.extras?.getString("fileUri")
-            ?: run {
-                toast("No source available!")
-                finish()
-                return
-            }
-
-        val fileName = intent.extras?.getString("fileUri")
-            ?.let { uri -> Uri.parse(uri).getFileName(this) }
-            ?: intent.extras?.getString("fileName") ?: ""
+        val (filePath, fileName) = getDataFromIntent() ?: run {
+            toast("No source available!")
+            finish()
+            return
+        }
 
         view.pdfViewer.onReady {
 //            minPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
