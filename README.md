@@ -21,6 +21,7 @@ You can download apk from [here](/app/release/app-release.apk)
 3. [See also](#3-see-also)<br>
 4. [Public Members](#4-public-members)<br>
 5. [License](#5-license)
+6. [External Libraries used](#6-external-libraries-used)
 
 ## 1. Setup
 ### 1.1. Kotlin DSL
@@ -289,3 +290,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+## 6. External Libraries used
+1. [MohammedAlaaMorsi/RangeSeekBar](https://github.com/MohammedAlaaMorsi/RangeSeekBar)
+2. [jaredrummler/ColorPicker](https://github.com/jaredrummler/ColorPicker)
+3. [mhssn95/compose-color-picker](https://github.com/mhssn95/compose-color-picker)
