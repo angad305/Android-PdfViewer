@@ -61,7 +61,9 @@ import androidx.compose.ui.unit.dp
 import com.acutecoder.pdf.PdfListener
 import com.acutecoder.pdf.PdfOnScrollModeChange
 import com.acutecoder.pdf.PdfUnstableApi
+import com.acutecoder.pdf.PdfUnstablePrintApi
 import com.acutecoder.pdf.PdfViewer
+import com.acutecoder.pdf.SimplePdfPrintAdapter
 import com.acutecoder.pdf.callIfScrollSpeedLimitIsEnabled
 import com.acutecoder.pdf.callSafely
 import com.acutecoder.pdf.setting.PdfSettingsManager
@@ -136,7 +138,7 @@ class ComposePdfViewerActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, PdfUnstablePrintApi::class)
 @Composable
 private fun Activity.MainScreen(
     title: String,
@@ -183,6 +185,7 @@ private fun Activity.MainScreen(
                 onReady = DefaultOnReadyCallback {
                     pdfSettingsManager?.restore(this)
                     setPdfViewer(this)
+                    pdfPrintAdapter = SimplePdfPrintAdapter()
 
                     addListener(object : PdfListener {
                         @OptIn(PdfUnstableApi::class)
@@ -293,6 +296,14 @@ private fun Activity.ExtendedTooBarMenus(
                 )
             }
         )
+
+    DropdownMenuItem(
+        text = { Text(text = "Print", modifier = dropDownModifier) },
+        onClick = {
+            onDismiss()
+            state.pdfViewer?.printFile()
+        }
+    )
     DropdownMenuItem(
         text = { Text(text = "Zoom Limit", modifier = dropDownModifier) },
         onClick = { showZoomLimitDialog = true }

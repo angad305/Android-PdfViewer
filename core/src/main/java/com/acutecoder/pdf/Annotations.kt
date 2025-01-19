@@ -51,3 +51,23 @@ annotation class PdfEditorModeApi
     TYPEALIAS,
 )
 annotation class PdfUnstableApi
+
+@RequiresOptIn(
+    level = RequiresOptIn.Level.WARNING,
+    message = "This won't work if the pdf is modified with Highlight, Text or Ink!"
+)
+@Retention(AnnotationRetention.BINARY)
+@Target(
+    CLASS,
+    ANNOTATION_CLASS,
+    PROPERTY,
+    FIELD,
+    LOCAL_VARIABLE,
+    VALUE_PARAMETER,
+    CONSTRUCTOR,
+    FUNCTION,
+    PROPERTY_GETTER,
+    PROPERTY_SETTER,
+    TYPEALIAS,
+)
+annotation class PdfUnstablePrintApi

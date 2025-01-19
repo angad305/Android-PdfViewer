@@ -8,6 +8,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.print.PrintAttributes
+import android.print.PrintDocumentAdapter
+import android.print.PrintManager
 import android.util.AttributeSet
 import android.util.Base64
 import android.view.Gravity
@@ -53,6 +56,7 @@ class PdfViewer @JvmOverloads constructor(
      * Changes require reinitializing PdfViewer
      */
     var highlightEditorColors: List<Pair<String, Int>> = defaultHighlightEditorColors
+    var pdfPrintAdapter: PrintDocumentAdapter? = null
 
     private val listeners = mutableListOf<PdfListener>()
     private val webInterface = WebInterface()
@@ -1077,6 +1081,31 @@ class PdfViewer @JvmOverloads constructor(
                 isXFAPresent = isXFAPresent,
                 customJson = customJson,
             ).apply { listeners.forEach { it.onLoadProperties(this) } }
+        }
+
+        @JavascriptInterface
+        fun createPrintJob() = post {
+            pdfPrintAdapter?.let { pdfPrintAdapter ->
+                val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
+                val jobName = "${context.packageName} Document"
+
+                if (pdfPrintAdapter is PdfPrintAdapter)
+                    pdfPrintAdapter.webView = webView
+
+                printManager.print(
+                    jobName,
+                    pdfPrintAdapter,
+                    PrintAttributes.Builder().build()
+                )
+            }
+        }
+
+        @JavascriptInterface
+        fun conveyMessage(message: String) = post {
+            pdfPrintAdapter?.let { pdfPrintAdapter ->
+                if (pdfPrintAdapter is PdfPrintAdapter)
+                    pdfPrintAdapter.onMessage(message)
+            }
         }
 
         @JavascriptInterface

@@ -137,6 +137,11 @@ function setupHelper() {
     });
 }
 
+ window.originalPrint = window.print;
+ window.print = () => {
+     JWI.createPrintJob();
+ };
+
 function setEditorModeButtonsEnabled(enabled) {
     $("#editorModeButtons").style.display = enabled ? "inline flex" : "none";
 }
