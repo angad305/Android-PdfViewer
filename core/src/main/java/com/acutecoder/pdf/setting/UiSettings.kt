@@ -7,6 +7,7 @@ import com.acutecoder.pdf.js.PdfSideBar
 import com.acutecoder.pdf.js.call
 import com.acutecoder.pdf.js.callDirectly
 import com.acutecoder.pdf.js.invoke
+import com.acutecoder.pdf.js.set
 import com.acutecoder.pdf.js.toJsString
 import com.acutecoder.pdf.js.with
 
@@ -220,6 +221,7 @@ class UiSettings internal constructor(private val webView: WebView) {
         set(value) {
             field = value
             webView with PdfSideBar call if (value) "open"() else "close"()
+            webView with PdfSideBar set "sidebarContainer.style.display"((if (value) "" else "none").toJsString())
         }
     var isFindBarOpen: Boolean = false
         set(value) {
