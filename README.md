@@ -126,7 +126,7 @@ source can be
 
 Include compose dependency
 
-```
+```kotlin
 val pdfState = rememberPdfState(source = source)
 PdfViewer(  
     pdfState = pdfState,  
