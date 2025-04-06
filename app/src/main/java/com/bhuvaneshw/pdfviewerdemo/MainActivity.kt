@@ -2,12 +2,13 @@ package com.bhuvaneshw.pdfviewerdemo
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import android.webkit.URLUtil
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bhuvaneshw.pdfviewerdemo.databinding.ActivityMainBinding
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         view.useCompose.run {
             isChecked = pref.getBoolean("use_compose", false)
             setOnCheckedChangeListener { _, isChecked ->
-                pref.edit().putBoolean("use_compose", isChecked).apply()
+                pref.edit { putBoolean("use_compose", isChecked) }
             }
         }
 
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         val openLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            result?.data?.data?.let { uri ->
+            result.data?.data?.let { uri ->
                 startActivity(
                     Intent(this, getViewerActivityClass()).apply {
                         putExtra("fileUri", uri.toString())
@@ -85,7 +86,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         view.link.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(view.link.text.toString())))
+            startActivity(Intent(Intent.ACTION_VIEW, view.link.text.toString().toUri()))
+        }
+        view.librariesUsed.setOnClickListener {
+            startActivity(Intent(this, UsedLibrariesActivity::class.java))
         }
     }
 

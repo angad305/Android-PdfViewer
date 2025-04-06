@@ -59,9 +59,20 @@
         android:id="@+id/link"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="3dp"
         android:background="?android:attr/selectableItemBackground"
-        android:padding="12dp"
+        android:padding="3dp"
         android:text="https://github.com/bhuvaneshw"
+        android:textColor="@color/md_theme_primary" />
+
+    <TextView
+        android:id="@+id/libraries_used"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:padding="3dp"
+        android:text="View Libraries used"
         android:textColor="@color/md_theme_primary" />
 
 </LinearLayout>

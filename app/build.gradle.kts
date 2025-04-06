@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.about.libraries)
 }
 
 android {
@@ -58,6 +59,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    implementation(libs.about.libraries.core)
+    implementation(libs.about.libraries.compose.core)
+    implementation(libs.about.libraries.compose.m3)
 
     implementation(project(":core"))
     implementation(project(":ui"))
