@@ -45,10 +45,10 @@ import com.bhuvaneshw.pdf.compose.PdfState
 fun PdfViewerContainer(
     pdfState: PdfState,
     pdfViewer: @Composable PdfContainerBoxScope.() -> Unit,
+    modifier: Modifier = Modifier,
     pdfToolBar: (@Composable PdfContainerScope.() -> Unit)? = null,
     pdfScrollBar: (@Composable PdfContainerBoxScope.(parentSize: IntSize) -> Unit)? = null,
     loadingIndicator: (@Composable PdfContainerBoxScope.() -> Unit)? = null,
-    modifier: Modifier = Modifier,
 ) {
     var parentSize by remember { mutableStateOf(IntSize(1, 1)) }
 
