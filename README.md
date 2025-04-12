@@ -26,7 +26,9 @@ You can download apk from [here](/app/release/app-release.apk)
 
 ## 1. Setup
 ### 1.1. Kotlin DSL
-<details open><summary>View Kotlin DSL Setup</summary>
+<details open>
+<summary>View Kotlin DSL Setup</summary>
+
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle.kts or settings.gradle.kts at the end of repositories:
@@ -50,7 +52,7 @@ Replace <b>$version</b> with latest version<br/>
 Latest version: [![](https://jitpack.io/v/bhuvaneshw/pdfviewer.svg)](https://jitpack.io/#bhuvaneshw/pdfviewer)
 
 <details>
-<summary> View Module Usage Options</summary>
+<summary>View Module Usage Options</summary>
 
 #### Compose PDF Viewer (Core only)
 Minimal setup for rendering PDFs using Jetpack Compose.
@@ -88,6 +90,7 @@ implementation("com.github.bhuvaneshw.pdfviewer:ui:1.0.0")
 ## 1.2. Groovy DSL
 <details>
 <summary>View Groovy DSL setup</summary>
+
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle or settings.gradle at the end of repositories:
@@ -182,7 +185,9 @@ Then call load function
 > [ExtendedToolBar.kt](/app/src/main/java/com/bhuvaneshw/pdfviewerdemo/ExtendedToolBar.kt)<br>
 
 ## 4. Public Members
-<details><summary>View Public Members</summary>
+<details>
+<summary>View Public Members</summary>
+
 `isInitialized: Boolean`
 Indicates whether the PDF viewer has been initialized.
 
