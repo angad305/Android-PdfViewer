@@ -1,7 +1,7 @@
 
 # PdfViewer
 
-A lightweight **Android PDF viewer library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features. Supports both Jetpack Compose and Xml.
+A lightweight **Android PDF Viewer Library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features. Supports both **Jetpack Compose** and **XML**.
 
 ## Screenshots
 <img src="screenshots/1.png" width="190" alt="ScreenShot1"/> <img src="screenshots/2.png" width="190" alt="ScreenShot2"/>
@@ -15,17 +15,18 @@ You can download apk from [here](/app/release/app-release.apk)
    1.1. [Setup - Kotlin DSL](#11-kotlin-dsl)<br>
    1.2. [Setup - Groovy DSL](#12-groovy-dsl)<br>
 2. [Usage](#2-usage)<br>
-   2.1. [XML PdfViewer](#21-xml-pdfviewer)<br>
-   2.2 [Jetpack Compose PdfViewer](#22-jetpack-compose-pdfviewer)<br>
+   2.1. [Jetpack Compose PdfViewer](#21-jetpack-compose-pdfviewer)<br>
+   2.2. [XML PdfViewer](#22-xml-pdfviewer)<br>
    2.3. [More Examples](#23-more-examples)<br>
 3. [See also](#3-see-also)<br>
 4. [Public Members](#4-public-members)<br>
 5. [License](#5-license)
-6. [External Libraries used](#6-external-libraries-used)
+6. [External Libraries used](#6-external-libraries-used-for-demo-app)
 7. [Contributions](#7-contributions)
 
 ## 1. Setup
 ### 1.1. Kotlin DSL
+<details open><summary>View Kotlin DSL Setup</summary>
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle.kts or settings.gradle.kts at the end of repositories:
@@ -44,37 +45,49 @@ dependencies {
     implementation("com.github.bhuvaneshw.pdfviewer:$module:$version")
 }
 ```
-Replace <b>$module</b> with <b>core</b>, <b>ui</b>, <b>compose</b> or <b>compose-ui</b>
-Replace <b>$version</b> with latest version<br> 
-Latest Version: <br>
-[![](https://jitpack.io/v/bhuvaneshw/pdfviewer.svg)](https://jitpack.io/#bhuvaneshw/pdfviewer)
+Replace <b>$module</b> with <b>compose</b>, <b>compose-ui</b>, <b>core</b> or <b>ui</b>
+Replace <b>$version</b> with latest version<br/>
+Latest version: [![](https://jitpack.io/v/bhuvaneshw/pdfviewer.svg)](https://jitpack.io/#bhuvaneshw/pdfviewer)
 
-> [!NOTE]  
-> **If you are upgrading to v1.1.0 see [Migration](docs/MIGRATION.md)**
+<details>
+<summary> View Module Usage Options</summary>
 
-Example:
-
-Only core PdfViewer
-```kotlin
-implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
-```
-With PdfViewerContainer, PdfToolBar and PdfScrollBar
-```kotlin
-implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
-implementation("com.github.bhuvaneshw.pdfviewer:ui:1.0.0")
-```
-
-Only core Compose PdfViewer
+#### Compose PDF Viewer (Core only)
+Minimal setup for rendering PDFs using Jetpack Compose.
 ```kotlin
 implementation("com.github.bhuvaneshw.pdfviewer:compose:1.0.0")
 ```
-With Compose PdfViewerContainer, PdfToolBar and PdfScrollBar
+#### Compose PDF Viewer with UI Components
+Enhanced Compose viewer setup including PdfViewerContainer, PdfToolBar, and PdfScrollBar.
 ```kotlin
 implementation("com.github.bhuvaneshw.pdfviewer:compose:1.0.0")
 implementation("com.github.bhuvaneshw.pdfviewer:compose-ui:1.0.0")
 ```
 
+#### XML PDF Viewer (Core only)
+Use the minimal setup for rendering PDFs.
+```kotlin
+implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
+```
+
+#### XML PDF Viewer with UI Components
+Includes PdfViewerContainer, PdfToolBar, and PdfScrollBar for a complete viewing experience.
+```kotlin
+implementation("com.github.bhuvaneshw.pdfviewer:core:1.0.0")
+implementation("com.github.bhuvaneshw.pdfviewer:ui:1.0.0")
+```
+</details>
+</details>
+<br/>
+
+> [!NOTE]  
+> **If you are upgrading to v1.1.0 see [Migration](docs/MIGRATION.md)**
+
+<br/>
+
 ## 1.2. Groovy DSL
+<details>
+<summary>View Groovy DSL setup</summary>
 Step 1. Add the JitPack repository to your build file
 
 Add it in your root build.gradle or settings.gradle at the end of repositories:
@@ -93,9 +106,32 @@ dependencies {
     implementation 'com.github.bhuvaneshw.pdfviewer:$module:$version'
 }
 ```
+</details>
 
 ## 2. Usage
-### 2.1 XML PdfViewer
+### 2.1 Jetpack Compose PdfViewer
+
+Include compose dependency
+
+```kotlin
+val pdfState = rememberPdfState(source = "source")
+PdfViewer(
+   pdfState = pdfState,
+   modifier = Modifier,
+   containerColor = Color.Transparent,
+   onReady = {
+      // Optional work
+   }
+)
+```
+
+source can be
+1. Asset Path like "file:///android_asset/sample.pdf"
+2. Android Uri
+3. Network url like "https://example.com/sample.pdf"
+4. ~~Direct file path  like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf"(not recommended)~~
+
+### 2.2 XML PdfViewer
 Include PdfViewer in your xml
 ```xml
 <com.bhuvaneshw.pdf.PdfViewer
@@ -109,36 +145,14 @@ Then call load function
 ```kotlin
   // Kotlin
   pdfViewer.onReady {
-    load(source)
+    load("source")
   }
 ```
 ```java
   // Java
   PdfUtil.onReady(pdfViewer, () -> {
-    pdfViewer.load(source);
+    pdfViewer.load("source");
   });
-```
-
-source can be
- 1. Asset Path like "file:///android_asset/sample.pdf"
- 2. Android Uri
- 3. Network url like "https://example.com/sample.pdf"
- 4. ~~Direct file path  like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf"(not recommended)~~
-
-### 2.2 Jetpack Compose PdfViewer
-
-Include compose dependency
-
-```kotlin
-val pdfState = rememberPdfState(source = source)
-PdfViewer(  
-    pdfState = pdfState,  
-    modifier = Modifier,  
-    containerColor = Color.Transparent,  
-    onReady = {
-      // Optional work
-  }  
-)
 ```
 
 > [!WARNING]
@@ -158,19 +172,17 @@ PdfViewer(
 > 13. PdfViewer.scrollSpeedLimit
 
 ### 2.3 More Examples
-1. For XML examples see [XML Examples](docs/README_XML.md)
-2. For Jetpack Compose examples see [Jetpack Compose Examples](docs/README_COMPOSE.md)
+1. For Jetpack Compose examples see [Jetpack Compose Examples](docs/README_COMPOSE.md)
+2. For XML examples see [XML Examples](docs/README_XML.md)
 
 ## 3. See also
 > [!NOTE]
-> [PdfViewerActivity.kt](/app/src/main/java/com/bhuvaneshw/pdfviewerdemo/PdfViewerActivity.kt) <br>
 > [ComposePdfViewerActivity.kt](/app/src/main/java/com/bhuvaneshw/pdfviewerdemo/ComposePdfViewerActivity.kt)<br>
-> [PdfViewerContainer.kt](/ui/src/main/java/com/bhuvaneshw/pdf/ui/PdfViewerContainer.kt)<br>
-> [PdfScrollBar.kt](/ui/src/main/java/com/bhuvaneshw/pdf/ui/PdfScrollBar.kt)<br>
-> [PdfToolBar.kt](/ui/src/main/java/com/bhuvaneshw/pdf/ui/PdfToolBar.kt)<br>
+> [PdfViewerActivity.kt](/app/src/main/java/com/bhuvaneshw/pdfviewerdemo/PdfViewerActivity.kt)<br>
 > [ExtendedToolBar.kt](/app/src/main/java/com/bhuvaneshw/pdfviewerdemo/ExtendedToolBar.kt)<br>
 
 ## 4. Public Members
+<details><summary>View Public Members</summary>
 `isInitialized: Boolean`
 Indicates whether the PDF viewer has been initialized.
 
@@ -193,7 +205,7 @@ The current scale value of the PDF page (e.g., `page-fit`, `auto`).
 The properties of the currently loaded PDF document, such as title, author, etc.
 
 `ui: UiSettings`
-Returns the `UiSettings` for the PDF viewer. Provides settings related to the UI provided by Mozill's PDF.js.
+Returns the `UiSettings` for the PDF viewer. Provides settings related to the UI provided by Mozilla's PDF.js.
 
 `findController: FindController`
 Returns the `FindController` for the PDF viewer. Provides functionality for finding text in the PDF.
@@ -276,8 +288,10 @@ Re-initializes the PDF viewer, reloading the webview.
 `setContainerBackgroundColor(color: Int)`
 Sets the background color of the PDF viewer container.
 
+</details>
+
 ## 5. License
-[PDF.js License](LICENSE_PDF_JS.md)
+[Also see PDF.js License](LICENSE_PDF_JS.md)
 ```
 Copyright 2025 Bhuvaneshwaran
 
@@ -294,7 +308,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-## 6. External Libraries used
+## 6. External Libraries used for demo app
 1. [MohammedAlaaMorsi/RangeSeekBar](https://github.com/MohammedAlaaMorsi/RangeSeekBar)
 2. [jaredrummler/ColorPicker](https://github.com/jaredrummler/ColorPicker)
 3. [mhssn95/compose-color-picker](https://github.com/mhssn95/compose-color-picker)
