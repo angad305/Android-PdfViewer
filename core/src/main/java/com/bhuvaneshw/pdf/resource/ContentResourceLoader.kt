@@ -6,14 +6,17 @@ import android.net.Uri
 import android.webkit.WebResourceResponse
 import androidx.webkit.WebViewAssetLoader
 
-internal class ContentResourceLoader(context: Context) : ResourceLoader {
+internal class ContentResourceLoader(
+    context: Context,
+    onError: (String) -> Unit,
+) : ResourceLoader {
 
     private val path = "/content/"
     private val assetLoader = WebViewAssetLoader.Builder()
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
             path,
-            ContentUriPathHandler(context)
+            ContentUriPathHandler(context, onError)
         )
         .build()
 
@@ -28,6 +31,7 @@ internal class ContentResourceLoader(context: Context) : ResourceLoader {
 
 private class ContentUriPathHandler(
     private val context: Context,
+    private val onError: (String) -> Unit,
 ) : WebViewAssetLoader.PathHandler {
 
     @SuppressLint("UseKtx")
@@ -38,7 +42,7 @@ private class ContentUriPathHandler(
             val inputStream = context.contentResolver.openInputStream(uri)
             WebResourceResponse(mimeType, "UTF-8", inputStream)
         } catch (e: Exception) {
-            throw e
+            onError(e.message ?: "$e")
             null
         }
     }

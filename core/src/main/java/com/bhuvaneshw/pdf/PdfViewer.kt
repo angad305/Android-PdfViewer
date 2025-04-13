@@ -74,8 +74,8 @@ class PdfViewer @JvmOverloads constructor(
     private val resourceLoaders = listOf(
         PdfViewerResourceLoader(context),
         AssetResourceLoader(context),
-        ContentResourceLoader(context),
-        NetworkResourceLoader()
+        ContentResourceLoader(context, webInterface::onLoadFailed),
+        NetworkResourceLoader(webInterface::onLoadFailed)
     )
 
     @SuppressLint("SetJavaScriptEnabled")

@@ -7,14 +7,16 @@ import androidx.webkit.WebViewAssetLoader
 import java.net.HttpURLConnection
 import java.net.URL
 
-internal class NetworkResourceLoader : ResourceLoader {
+internal class NetworkResourceLoader(
+    onError: (String) -> Unit,
+) : ResourceLoader {
 
     private val path = "/network/"
     private val assetLoader = WebViewAssetLoader.Builder()
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
             path,
-            NetworkUriPathHandler()
+            NetworkUriPathHandler(onError)
         )
         .build()
 
@@ -27,7 +29,9 @@ internal class NetworkResourceLoader : ResourceLoader {
 
 }
 
-private class NetworkUriPathHandler : WebViewAssetLoader.PathHandler {
+private class NetworkUriPathHandler(
+    private val onError: (String) -> Unit,
+) : WebViewAssetLoader.PathHandler {
 
     @SuppressLint("UseKtx")
     override fun handle(path: String): WebResourceResponse? {
@@ -42,7 +46,7 @@ private class NetworkUriPathHandler : WebViewAssetLoader.PathHandler {
 
             WebResourceResponse(mimeType, "UTF-8", inputStream)
         } catch (e: Exception) {
-            throw e
+            onError(e.message ?: "$e")
             null
         }
     }
