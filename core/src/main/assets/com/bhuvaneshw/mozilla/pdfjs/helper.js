@@ -98,16 +98,15 @@ function setupHelper() {
     viewerContainer.addEventListener("scroll", () => {
         let currentOffset;
         let totalScrollable;
-        let isHorizontalScroll = false;
+        let isHorizontalScroll = PDFViewerApplication.pdfViewer._scrollMode === ScrollMode.HORIZONTAL;
 
-        if (viewerContainer.scrollHeight > viewerContainer.clientHeight) {
-            currentOffset = viewerContainer.scrollTop;
-            totalScrollable = viewerContainer.scrollHeight - viewerContainer.clientHeight;
-        } else if (viewerContainer.scrollWidth > viewerContainer.clientWidth) {
+       if (isHorizontalScroll) {
             currentOffset = viewerContainer.scrollLeft;
             totalScrollable = viewerContainer.scrollWidth - viewerContainer.clientWidth;
-            isHorizontalScroll = true;
-        }
+       } else {
+            currentOffset = viewerContainer.scrollTop;
+            totalScrollable = viewerContainer.scrollHeight - viewerContainer.clientHeight;
+       }
 
         JWI.onScroll(Math.round(currentOffset), totalScrollable, isHorizontalScroll);
     });
@@ -479,14 +478,14 @@ function getActualScaleFor(value) {
     if (!currentPage) return -1;
     let hPadding = SCROLLBAR_PADDING,
         vPadding = VERTICAL_PADDING;
-    if (this.isInPresentationMode) {
+    if (PDFViewerApplication.pdfViewer.isInPresentationMode) {
         hPadding = vPadding = 4;
-        if (this._spreadMode !== SpreadMode.NONE) {
+        if (PDFViewerApplication.pdfViewer._spreadMode !== SpreadMode.NONE) {
             hPadding *= 2;
         }
-    } else if (this.removePageBorders) {
+    } else if (PDFViewerApplication.pdfViewer.removePageBorders) {
         hPadding = vPadding = 0;
-    } else if (this._scrollMode === ScrollMode.HORIZONTAL) {
+    } else if (PDFViewerApplication.pdfViewer._scrollMode === ScrollMode.HORIZONTAL) {
         [hPadding, vPadding] = [vPadding, hPadding];
     }
     const pageWidthScale = (((PDFViewerApplication.pdfViewer.container.clientWidth - hPadding) / currentPage.width) * currentPage.scale) / PDFViewerApplication.pdfViewer.pageWidthScaleFactor();
