@@ -332,63 +332,50 @@ class PdfViewer @JvmOverloads constructor(
         } else setPreviews(context, containerBgColor)
     }
 
-    @JvmOverloads
     @Suppress("NOTHING_TO_INLINE")
-    inline fun load(source: Uri, originalUrl: String = source.toString()) {
-        load(source.toString(), originalUrl)
+    inline fun load(source: Uri) {
+        load(source.toString())
     }
 
-    @JvmOverloads
-    fun load(source: String, originalUrl: String = source) {
+    fun load(source: String) {
         when {
             source.startsWith("file:///android_asset/") ->
-                loadFromAsset(source.replaceFirst("file:///android_asset/", ""), originalUrl)
+                loadFromAsset(source.replaceFirst("file:///android_asset/", ""))
 
             source.startsWith("asset://") ->
-                loadFromAsset(source.replaceFirst("asset://", ""), originalUrl)
+                loadFromAsset(source.replaceFirst("asset://", ""))
 
             source.startsWith("content://") ->
-                loadFromFileUri(source, originalUrl)
+                loadFromFileUri(source)
 
             source.startsWith("https://") || source.startsWith("http://") ->
-                loadFromUrl(source, originalUrl)
+                loadFromUrl(source)
 
             else ->
                 throw IllegalArgumentException("No resource loader is available for provided source! $source")
         }
     }
 
-    @JvmOverloads
-    fun loadFromAsset(assetPath: String, originalUrl: String = assetPath) {
-        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/assets/$assetPath", originalUrl)
+    fun loadFromAsset(assetPath: String) {
+        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/assets/$assetPath")
     }
 
-    @JvmOverloads
     @Suppress("NOTHING_TO_INLINE")
-    inline fun loadFromFileUri(contentUri: Uri, originalUrl: String = contentUri.toString()) {
-        loadFromFileUri(contentUri.toString(), originalUrl)
+    inline fun loadFromFileUri(contentUri: Uri) {
+        loadFromFileUri(contentUri.toString())
     }
 
-    @JvmOverloads
-    fun loadFromFileUri(contentUri: String, originalUrl: String = contentUri) {
-        openUrl(
-            "https://${ResourceLoader.RESOURCE_DOMAIN}/content/${Uri.encode(contentUri)}",
-            originalUrl
-        )
+    fun loadFromFileUri(contentUri: String) {
+        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/content/${Uri.encode(contentUri)}")
     }
 
-    @JvmOverloads
     @Suppress("NOTHING_TO_INLINE")
-    inline fun loadFromUrl(url: Uri, originalUrl: String = url.toString()) {
-        loadFromUrl(url.toString(), originalUrl)
+    inline fun loadFromUrl(url: Uri) {
+        loadFromUrl(url.toString())
     }
 
-    @JvmOverloads
-    fun loadFromUrl(url: String, originalUrl: String = url) {
-        openUrl(
-            "https://${ResourceLoader.RESOURCE_DOMAIN}/network/${Uri.encode(url)}",
-            originalUrl
-        )
+    fun loadFromUrl(url: String) {
+        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/network/${Uri.encode(url)}")
     }
 
     private fun openUrl(url: String, originalUrl: String = url) {
