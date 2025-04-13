@@ -102,10 +102,6 @@ class PdfState(
         var inkOpacity by mutableIntStateOf(100); internal set
     }
 
-    fun load(source: String) {
-        this.source = source
-    }
-
     fun clearFind() {
         matchState = MatchState.Initialized()
     }
