@@ -1,4 +1,4 @@
-function openFile(args) {
+function openUrl(args) {
     PDFViewerApplication.open(args)
         .then(() => sendDocumentProperties())
         .catch((e) => JWI.onLoadFailed(e.message));

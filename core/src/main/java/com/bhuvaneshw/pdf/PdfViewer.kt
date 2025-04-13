@@ -1,8 +1,10 @@
+@file:SuppressLint("UseKtx")
+@file:Suppress("unused")
+
 package com.bhuvaneshw.pdf
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -16,8 +18,8 @@ import android.util.Base64
 import android.view.Gravity
 import android.view.View
 import android.webkit.JavascriptInterface
-import android.webkit.URLUtil
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.LinearLayout
@@ -35,6 +37,11 @@ import com.bhuvaneshw.pdf.js.toJsHex
 import com.bhuvaneshw.pdf.js.toJsRgba
 import com.bhuvaneshw.pdf.js.toJsString
 import com.bhuvaneshw.pdf.js.with
+import com.bhuvaneshw.pdf.resource.AssetResourceLoader
+import com.bhuvaneshw.pdf.resource.ContentResourceLoader
+import com.bhuvaneshw.pdf.resource.NetworkResourceLoader
+import com.bhuvaneshw.pdf.resource.PdfViewerResourceLoader
+import com.bhuvaneshw.pdf.resource.ResourceLoader
 import com.bhuvaneshw.pdf.setting.UiSettings
 import kotlin.math.abs
 
@@ -64,6 +71,13 @@ class PdfViewer @JvmOverloads constructor(
     private var onReadyListeners = mutableListOf<PdfViewer.() -> Unit>()
     private var tempBackgroundColor: Int? = null
 
+    private val resourceLoaders = listOf(
+        PdfViewerResourceLoader(context),
+        AssetResourceLoader(context),
+        ContentResourceLoader(context),
+        NetworkResourceLoader()
+    )
+
     @SuppressLint("SetJavaScriptEnabled")
     private val webView: WebView = WebView(context).apply {
         setBackgroundColor(Color.TRANSPARENT)
@@ -72,26 +86,30 @@ class PdfViewer @JvmOverloads constructor(
 
         settings.run {
             javaScriptEnabled = true
-            allowFileAccess = true
+
+            allowFileAccess = false
+            allowContentAccess = false
             @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = true
+            allowFileAccessFromFileURLs = false
+            @Suppress("DEPRECATION")
+            allowUniversalAccessFromFileURLs = false
         }
 
         webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): Boolean {
-                val url = request?.url.toString()
-
-                if (url.startsWith("file:///android_asset/"))
-                    return super.shouldOverrideUrlLoading(view, request)
-
-                if (URLUtil.isValidUrl(url))
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-
-                return true
-            }
+//            override fun shouldOverrideUrlLoading(
+//                view: WebView?,
+//                request: WebResourceRequest?
+//            ): Boolean {
+//                val url = request?.url.toString()
+//
+//                if (url.startsWith("file:///android_asset/"))
+//                    return super.shouldOverrideUrlLoading(view, request)
+//
+//                if (URLUtil.isValidUrl(url))
+//                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+//
+//                return true
+//            }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -107,6 +125,30 @@ class PdfViewer @JvmOverloads constructor(
                     }
                 }
             }
+
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest
+            ): WebResourceResponse? {
+                val uri = request.url
+
+                return resourceLoaders
+                    .firstOrNull { it.canHandle(uri) }
+                    ?.shouldInterceptRequest(uri)
+            }
+
+            @Suppress("deprecation")
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                url: String?
+            ): WebResourceResponse? {
+                val uri = Uri.parse(url)
+
+                return resourceLoaders
+                    .firstOrNull { it.canHandle(uri) }
+                    ?.shouldInterceptRequest(uri)
+            }
+
         }
 
         setDownloadListener { url, _, _, _, _ ->
@@ -291,17 +333,75 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     @JvmOverloads
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun load(source: Uri, originalUrl: String = source.toString()) {
+        load(source.toString(), originalUrl)
+    }
+
+    @JvmOverloads
     fun load(source: String, originalUrl: String = source) {
+        when {
+            source.startsWith("file:///android_asset/") ->
+                loadFromAsset(source.replaceFirst("file:///android_asset/", ""), originalUrl)
+
+            source.startsWith("asset://") ->
+                loadFromAsset(source.replaceFirst("asset://", ""), originalUrl)
+
+            source.startsWith("content://") ->
+                loadFromFileUri(source, originalUrl)
+
+            source.startsWith("https://") || source.startsWith("http://") ->
+                loadFromUrl(source, originalUrl)
+
+            else ->
+                throw IllegalArgumentException("No resource loader is available for provided source! $source")
+        }
+    }
+
+    @JvmOverloads
+    fun loadFromAsset(assetPath: String, originalUrl: String = assetPath) {
+        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/assets/$assetPath", originalUrl)
+    }
+
+    @JvmOverloads
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun loadFromFileUri(contentUri: Uri, originalUrl: String = contentUri.toString()) {
+        loadFromFileUri(contentUri.toString(), originalUrl)
+    }
+
+    @JvmOverloads
+    fun loadFromFileUri(contentUri: String, originalUrl: String = contentUri) {
+        openUrl(
+            "https://${ResourceLoader.RESOURCE_DOMAIN}/content/${Uri.encode(contentUri)}",
+            originalUrl
+        )
+    }
+
+    @JvmOverloads
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun loadFromUrl(url: Uri, originalUrl: String = url.toString()) {
+        loadFromUrl(url.toString(), originalUrl)
+    }
+
+    @JvmOverloads
+    fun loadFromUrl(url: String, originalUrl: String = url) {
+        openUrl(
+            "https://${ResourceLoader.RESOURCE_DOMAIN}/network/${Uri.encode(url)}",
+            originalUrl
+        )
+    }
+
+    private fun openUrl(url: String, originalUrl: String = url) {
         checkViewer()
         currentPage = 1
         pagesCount = 0
         currentPageScale = 0f
         currentPageScaleValue = ""
         properties = null
-        currentSource = source
+        currentSource = url
 
         listeners.forEach { it.onPageLoadStart() }
-        webView callDirectly "openFile"("{url: '$source', originalUrl: '$originalUrl'}")
+        webView callDirectly "openUrl"("{url: '$url', originalUrl: '$originalUrl'}")
     }
 
     fun onReady(onReady: PdfViewer.() -> Unit) {
@@ -800,7 +900,7 @@ class PdfViewer @JvmOverloads constructor(
         CENTER_BOTH(true, true),
     }
 
-    sealed class ScrollSpeedLimit private constructor() {
+    sealed class ScrollSpeedLimit {
 
         /**
          * Default behavior. No limit is applied.
@@ -924,7 +1024,7 @@ class PdfViewer @JvmOverloads constructor(
 
     companion object {
         private const val PDF_VIEWER_URL =
-            "file:///android_asset/com/bhuvaneshw/mozilla/pdfjs/pdf_viewer.html"
+            "https://${ResourceLoader.RESOURCE_DOMAIN}/pdfviewer/com/bhuvaneshw/mozilla/pdfjs/pdf_viewer.html"
         private const val COLOR_NOT_FOUND = 11
         private val ZOOM_SCALE_RANGE = -4f..-1f
 

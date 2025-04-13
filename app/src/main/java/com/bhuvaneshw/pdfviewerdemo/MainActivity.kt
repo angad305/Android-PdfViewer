@@ -47,10 +47,7 @@ class MainActivity : AppCompatActivity() {
                 Intent(this, getViewerActivityClass()).apply {
                     putExtra("fileName", "sample.pdf")
                     putExtra("fileSize", 271804L)
-                    putExtra("filePath", "file:///android_asset/sample.pdf")
-
-//                    Direct file access is not allowed in latest Android versions unless you have Manifest.permission.MANAGE_EXTERNAL_STORAGE permission
-//                    putExtra("filePath", "file://Download/sample.pdf")
+                    putExtra("filePath", "asset://sample.pdf")
                 }
             )
         }
