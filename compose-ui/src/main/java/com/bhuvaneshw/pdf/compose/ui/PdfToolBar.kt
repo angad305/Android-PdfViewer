@@ -899,7 +899,11 @@ private fun GoToPageDialog(state: PdfState, onDismiss: () -> Unit) {
                 ),
                 keyboardActions = KeyboardActions(onGo = { select() }),
                 singleLine = true,
-                textStyle = TextStyle(fontSize = 16.sp),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 6.dp),
