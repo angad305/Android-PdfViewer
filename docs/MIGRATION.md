@@ -25,10 +25,12 @@ In version `v1.1.0`, the library packages have been renamed to reflect the new n
 
 ### 🔁 Migration Note for `PdfViewer.load("file://")`
 
-The generic `PdfViewer.load(...)` method is **still available** and can be used. However:
+PdfState.load() is removed
+
+The generic `PdfViewer.load(...)` method is **still available** and can be used.
 
 - ✅ `file:///android_asset/...` is still supported and will now be internally transformed to `"asset://..."`, so it continues to work.
-- ❌ Other `file://` paths are **no longer supported** when passed to `load(...)` directly.
+- ❌ However other `file://` paths are **no longer supported** when passed to `load(...)` directly.
 
 ### 🛠 What You Need to Do
 
