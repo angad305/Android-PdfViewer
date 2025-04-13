@@ -1,5 +1,6 @@
 package com.bhuvaneshw.pdf.compose
 
+import android.net.Uri
 import androidx.annotation.ColorInt
 import androidx.annotation.IntRange
 import androidx.compose.runtime.Composable
@@ -14,6 +15,32 @@ import com.bhuvaneshw.pdf.PdfDocumentProperties
 import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfViewer
+
+@Composable
+@Suppress("NOTHING_TO_INLINE")
+inline fun rememberAssetPdfState(
+    assetPath: String,
+    highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
+    defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
+        ?: PdfViewerDefaults.highlightEditorColors[0].second,
+): PdfState = rememberPdfState(
+    source = "asset://$assetPath",
+    highlightEditorColors = highlightEditorColors,
+    defaultHighlightColor = defaultHighlightColor
+)
+
+@Composable
+@Suppress("NOTHING_TO_INLINE")
+inline fun rememberPdfState(
+    uri: Uri,
+    highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
+    defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
+        ?: PdfViewerDefaults.highlightEditorColors[0].second,
+): PdfState = rememberPdfState(
+    source = uri.toString(),
+    highlightEditorColors = highlightEditorColors,
+    defaultHighlightColor = defaultHighlightColor
+)
 
 @Composable
 fun rememberPdfState(
