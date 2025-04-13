@@ -18,7 +18,7 @@ For setup see [Setup](../README.md#1-setup)
 ```
 ```kotlin
 val pdfViewer = findViewById<PdfViewer>(R.id.pdf_viewer)
-val source = "file:///android_asset/sample.pdf"
+val source = "asset://sample.pdf"
 
 // Kotlin
 pdfViewer.onReady {
@@ -239,7 +239,7 @@ pdfContainer.setAsLoadingIndicator(loadingIndicator)
 
 ```kotlin
 val pdfViewer = findViewById<PdfViewer>(R.id.pdf_viewer)
-val source = "file:///android_asset/sample.pdf"
+val source = "asset://sample.pdf"
 
 val pdfScrollBar = findViewById<PdfScrollBar>(R.id.pdf_scroll_bar)
 val pdfToolBar = findViewById<PdfToolBar>(R.id.pdf_tool_bar)

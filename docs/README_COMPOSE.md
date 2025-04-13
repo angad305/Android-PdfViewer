@@ -12,7 +12,7 @@ For setup see [Setup](../README.md#1-setup)
 ```kotlin
 @Composable
 fun SimplePdfViewer() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewer(
         pdfState = pdfState,
@@ -25,7 +25,7 @@ fun SimplePdfViewer() {
 ```kotlin
 @Composable
 fun PdfViewerContainerColor() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewer(
         pdfState = pdfState,
@@ -39,7 +39,7 @@ fun PdfViewerContainerColor() {
 ```kotlin
 @Composable
 fun PdfViewerDefaultOnReadyCallback() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewer(
         pdfState = pdfState,
@@ -55,7 +55,7 @@ fun PdfViewerDefaultOnReadyCallback() {
 ```kotlin
 @Composable
 fun PdfViewerCustomOnReadyCallback() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewer(
         pdfState = pdfState,
@@ -71,7 +71,7 @@ fun PdfViewerCustomOnReadyCallback() {
 ```kotlin
 @Composable
 fun PdfViewerWithContainer() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewerContainer(
         pdfState = pdfState,
@@ -88,7 +88,7 @@ fun PdfViewerWithContainer() {
 ```kotlin
 @Composable
 fun PdfViewerWithToolBarAndScrollBar() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewerContainer(
         pdfState = pdfState,
@@ -115,7 +115,7 @@ fun PdfViewerWithToolBarAndScrollBar() {
 ```kotlin
 @Composable
 fun ToolBarBack() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewerContainer(
         pdfState = pdfState,
@@ -148,7 +148,7 @@ fun ToolBarBack() {
 ```kotlin
 @Composable
 fun ListeningForFindBarState() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
     val toolBarState = rememberToolBarState()
 
     LaunchedEffect(toolBarState.isFindBarOpen) {
@@ -185,7 +185,7 @@ fun ListeningForFindBarState() {
 ```kotlin
 @Composable
 fun ExtendedToolBar() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewerContainer(
         pdfState = pdfState,
@@ -235,7 +235,7 @@ private fun ExtendedTooBarMenus(
 ```kotlin
 @Composable
 fun Colors() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewerContainer(
         pdfState = pdfState,
@@ -266,7 +266,7 @@ fun Colors() {
 ```kotlin
 @Composable
 fun CustomizeScrollBar() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewerContainer(
         pdfState = pdfState,
@@ -295,7 +295,7 @@ fun CustomizeScrollBar() {
 ```kotlin
 @Composable
 fun PdfViewerOnCreateViewerCallback() {
-    val pdfState = rememberPdfState("file:///android_asset/sample.pdf")
+    val pdfState = rememberPdfState("asset://sample.pdf")
 
     PdfViewer(
         pdfState = pdfState,
