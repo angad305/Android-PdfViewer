@@ -128,11 +128,11 @@ PdfViewer(
 )
 ```
 
-source can be
-1. Asset Path like "file:///android_asset/sample.pdf"
-2. Android Uri
-3. Network url like "https://example.com/sample.pdf"
-4. ~~Direct file path  like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf"(not recommended)~~
+source (string) can be
+1. Asset Path, like "asset://sample.pdf" or "file:///android_asset/sample.pdf"
+2. Android Uri, like uri starting with "content://" from Document Picker
+3. Network url, like "https://example.com/sample.pdf"
+4. ~~Direct file path like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf" (Removed)~~
 
 ### 2.2 XML PdfViewer
 Include PdfViewer in your xml
@@ -161,18 +161,21 @@ Then call load function
 > [!WARNING]
 > You should not access below members before the PdfViewer is initialized!
 > 1. PdfViewer.load()
-> 2. PdfViewer.ui
-> 3. PdfViewer.findController
-> 4. PdfViewer.pageScrollMode
-> 5. PdfViewer.pageSpreadMode
-> 6. PdfViewer.cursorToolMode
-> 7. PdfViewer.pageRotation
-> 8. PdfViewer.doubleClickThreshold
-> 9. PdfViewer.longClickThreshold
-> 10. PdfViewer.snapPage
-> 11. PdfViewer.pageAlignMode
-> 12. PdfViewer.singlePageArrangement
-> 13. PdfViewer.scrollSpeedLimit
+> 2. PdfViewer.loadFromAsset()
+> 3. PdfViewer.loadFromFileUri()
+> 4. PdfViewer.loadFromUrl()
+> 5. PdfViewer.ui
+> 6. PdfViewer.findController
+> 7. PdfViewer.pageScrollMode
+> 8. PdfViewer.pageSpreadMode
+> 9. PdfViewer.cursorToolMode
+> 10. PdfViewer.pageRotation
+> 11. PdfViewer.doubleClickThreshold
+> 12. PdfViewer.longClickThreshold
+> 13. PdfViewer.snapPage
+> 14. PdfViewer.pageAlignMode
+> 15. PdfViewer.singlePageArrangement
+> 16. PdfViewer.scrollSpeedLimit
 
 ### 2.3 More Examples
 1. For Jetpack Compose examples see [Jetpack Compose Examples](docs/README_COMPOSE.md)
