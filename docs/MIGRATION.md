@@ -38,14 +38,24 @@ The generic `PdfViewer.load(...)` method is **still available** and can be used.
 ### ✅ New explicit methods available:
 
 ```kotlin
-// Load from a URL
+// Load from a Url
 PdfViewer.loadFromUrl("https://example.com/sample.pdf")
 
-// Load from an Android system URI (e.g. from a document picker)
+// Load from an Android system Uri (e.g. from a document picker)
 PdfViewer.loadFromFileUri(uri)
 
 // Load from the assets folder
 PdfViewer.loadFromAsset("some_folder/sample.pdf")
+```
+
+For Compose
+
+```kotlin
+//Load from Uri
+val state = rememberPdfState(uri = uri)
+
+// Load from assets folder
+val state = rememberAssetPdfState(assetPath = "some_folder/sample.pdf")
 ```
 
 ### 💬 Why the Change?
