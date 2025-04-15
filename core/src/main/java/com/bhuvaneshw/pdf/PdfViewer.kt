@@ -39,10 +39,12 @@ import com.bhuvaneshw.pdf.js.toJsString
 import com.bhuvaneshw.pdf.js.with
 import com.bhuvaneshw.pdf.resource.AssetResourceLoader
 import com.bhuvaneshw.pdf.resource.ContentResourceLoader
+import com.bhuvaneshw.pdf.resource.FileResourceLoader
 import com.bhuvaneshw.pdf.resource.NetworkResourceLoader
 import com.bhuvaneshw.pdf.resource.PdfViewerResourceLoader
 import com.bhuvaneshw.pdf.resource.ResourceLoader
 import com.bhuvaneshw.pdf.setting.UiSettings
+import java.io.File
 import kotlin.math.abs
 
 class PdfViewer @JvmOverloads constructor(
@@ -75,7 +77,8 @@ class PdfViewer @JvmOverloads constructor(
         PdfViewerResourceLoader(context),
         AssetResourceLoader(context),
         ContentResourceLoader(context, webInterface::onLoadFailed),
-        NetworkResourceLoader(webInterface::onLoadFailed)
+        FileResourceLoader(webInterface::onLoadFailed),
+        NetworkResourceLoader(webInterface::onLoadFailed),
     )
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -332,11 +335,24 @@ class PdfViewer @JvmOverloads constructor(
         } else setPreviews(context, containerBgColor)
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun load(source: Uri) {
+    /**
+     * source uri can be
+     * - "asset://" or "file:///android_asset/" => Asset file
+     * - "content://" => Content uri, like uri from Document picker
+     * - "file://" => Direct file path, like path of file from app's files folder (not recommended for accessing file from internal storage)
+     * - "https://" or "http://" Network url
+     */
+    fun load(source: Uri) {
         load(source.toString())
     }
 
+    /**
+     * source string can be
+     * - "asset://" or "file:///android_asset/" => Asset file
+     * - "content://" => Content uri, like uri from Document picker
+     * - "file://" => Direct file path, like path of file from app's files folder (not recommended for accessing file from internal storage)
+     * - "https://" or "http://" Network url
+     */
     fun load(source: String) {
         when {
             source.startsWith("file:///android_asset/") ->
@@ -346,7 +362,10 @@ class PdfViewer @JvmOverloads constructor(
                 loadFromAsset(source.replaceFirst("asset://", ""))
 
             source.startsWith("content://") ->
-                loadFromFileUri(source)
+                loadFromContentUri(source)
+
+            source.startsWith("file://") ->
+                loadFromFile(source.replaceFirst("file://", ""))
 
             source.startsWith("https://") || source.startsWith("http://") ->
                 loadFromUrl(source)
@@ -360,17 +379,23 @@ class PdfViewer @JvmOverloads constructor(
         openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/assets/$assetPath")
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun loadFromFileUri(contentUri: Uri) {
-        loadFromFileUri(contentUri.toString())
+    fun loadFromContentUri(contentUri: Uri) {
+        loadFromContentUri(contentUri.toString())
     }
 
-    fun loadFromFileUri(contentUri: String) {
+    fun loadFromContentUri(contentUri: String) {
         openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/content/${Uri.encode(contentUri)}")
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun loadFromUrl(url: Uri) {
+    fun loadFromFile(file: File) {
+        loadFromFile(file.absolutePath)
+    }
+
+    fun loadFromFile(filePath: String) {
+        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/file/${Uri.encode(filePath)}")
+    }
+
+    fun loadFromUrl(url: Uri) {
         loadFromUrl(url.toString())
     }
 

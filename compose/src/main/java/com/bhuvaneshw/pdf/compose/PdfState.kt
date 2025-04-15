@@ -15,10 +15,10 @@ import com.bhuvaneshw.pdf.PdfDocumentProperties
 import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfViewer
+import java.io.File
 
 @Composable
-@Suppress("NOTHING_TO_INLINE")
-inline fun rememberAssetPdfState(
+fun rememberAssetPdfState(
     assetPath: String,
     highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
     defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
@@ -30,8 +30,31 @@ inline fun rememberAssetPdfState(
 )
 
 @Composable
-@Suppress("NOTHING_TO_INLINE")
-inline fun rememberPdfState(
+fun rememberFilPdfState(
+    file: File,
+    highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
+    defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
+        ?: PdfViewerDefaults.highlightEditorColors[0].second,
+): PdfState = rememberFilePdfState(
+    filePath = file.absolutePath,
+    highlightEditorColors = highlightEditorColors,
+    defaultHighlightColor = defaultHighlightColor
+)
+
+@Composable
+fun rememberFilePdfState(
+    filePath: String,
+    highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
+    defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
+        ?: PdfViewerDefaults.highlightEditorColors[0].second,
+): PdfState = rememberPdfState(
+    source = "file://$filePath",
+    highlightEditorColors = highlightEditorColors,
+    defaultHighlightColor = defaultHighlightColor
+)
+
+@Composable
+fun rememberPdfState(
     uri: Uri,
     highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
     defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
