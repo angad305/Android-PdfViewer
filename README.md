@@ -132,7 +132,7 @@ source (string) can be
 1. Asset Path, like "asset://sample.pdf" or "file:///android_asset/sample.pdf"
 2. Android Uri, like uri starting with "content://" from Document Picker
 3. Network url, like "https://example.com/sample.pdf"
-4. ~~Direct file path like "/sdcard/Downloads/sample.pdf" or "file:///sdcard/Downloads/sample.pdf" (Removed)~~
+4. Direct file path like "/data/data/<YourPackageName>/files/sample.pdf" or ~~"file:///sdcard/Downloads/sample.pdf" (Not Recommended for accessing file from Internal Storage)~~
 
 ### 2.2 XML PdfViewer
 Include PdfViewer in your xml

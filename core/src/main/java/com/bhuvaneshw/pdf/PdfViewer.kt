@@ -339,8 +339,8 @@ class PdfViewer @JvmOverloads constructor(
      * source uri can be
      * - "asset://" or "file:///android_asset/" => Asset file
      * - "content://" => Content uri, like uri from Document picker
-     * - "file://" => Direct file path, like path of file from app's files folder (not recommended for accessing file from internal storage)
-     * - "https://" or "http://" Network url
+     * - "file://" or "/" => Direct file path, like path of file from app's files folder (not recommended for accessing file from internal storage)
+     * - "https://" or "http://" => Network url
      */
     fun load(source: Uri) {
         load(source.toString())
@@ -350,8 +350,8 @@ class PdfViewer @JvmOverloads constructor(
      * source string can be
      * - "asset://" or "file:///android_asset/" => Asset file
      * - "content://" => Content uri, like uri from Document picker
-     * - "file://" => Direct file path, like path of file from app's files folder (not recommended for accessing file from internal storage)
-     * - "https://" or "http://" Network url
+     * - "file://" or "/" => Direct file path, like path of file from app's files folder (not recommended for accessing file from internal storage)
+     * - "https://" or "http://" => Network url
      */
     fun load(source: String) {
         when {
@@ -366,6 +366,9 @@ class PdfViewer @JvmOverloads constructor(
 
             source.startsWith("file://") ->
                 loadFromFile(source.replaceFirst("file://", ""))
+
+            source.startsWith("/") ->
+                loadFromFile(source)
 
             source.startsWith("https://") || source.startsWith("http://") ->
                 loadFromUrl(source)
