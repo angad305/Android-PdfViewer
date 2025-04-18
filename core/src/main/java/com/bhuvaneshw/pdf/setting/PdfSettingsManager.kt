@@ -1,8 +1,8 @@
 package com.bhuvaneshw.pdf.setting
 
-import com.bhuvaneshw.pdf.PdfOnPageLoadSuccess
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfViewer
+import com.bhuvaneshw.pdf.addListener
 
 class PdfSettingsManager(private val saver: PdfSettingsSaver) {
 
@@ -84,7 +84,7 @@ class PdfSettingsManager(private val saver: PdfSettingsSaver) {
     fun restore(pdfViewer: PdfViewer) {
         saver.run {
             pdfViewer.run {
-                addListener(PdfOnPageLoadSuccess { pagesCount ->
+                addListener(onPageLoadSuccess = { pagesCount ->
                     val currentPage = getInt(KEY_CURRENT_PAGE, -1)
                     if (currentPage != -1 && currentPage <= pagesCount)
                         goToPage(currentPage)

@@ -59,15 +59,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bhuvaneshw.pdf.PdfListener
-import com.bhuvaneshw.pdf.PdfOnScrollModeChange
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfUnstablePrintApi
 import com.bhuvaneshw.pdf.PdfViewer
 import com.bhuvaneshw.pdf.SimplePdfPrintAdapter
+import com.bhuvaneshw.pdf.addListener
 import com.bhuvaneshw.pdf.callIfScrollSpeedLimitIsEnabled
 import com.bhuvaneshw.pdf.callSafely
-import com.bhuvaneshw.pdf.setting.PdfSettingsManager
-import com.bhuvaneshw.pdf.sharedPdfSettingsManager
 import com.bhuvaneshw.pdf.compose.CustomOnReadyCallback
 import com.bhuvaneshw.pdf.compose.DefaultOnReadyCallback
 import com.bhuvaneshw.pdf.compose.PdfLoadingState
@@ -79,6 +77,8 @@ import com.bhuvaneshw.pdf.compose.ui.PdfToolBarMenuItem
 import com.bhuvaneshw.pdf.compose.ui.PdfViewer
 import com.bhuvaneshw.pdf.compose.ui.PdfViewerContainer
 import com.bhuvaneshw.pdf.compose.ui.rememberToolBarState
+import com.bhuvaneshw.pdf.setting.PdfSettingsManager
+import com.bhuvaneshw.pdf.sharedPdfSettingsManager
 import com.bhuvaneshw.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
 import io.mhssn.colorpicker.ColorPickerDialog
 import io.mhssn.colorpicker.ColorPickerType
@@ -311,9 +311,10 @@ private fun Activity.ExtendedTooBarMenus(
     DropdownMenuItem(
         text = {
             Text(
-                text =
-                (if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable" else "Disable")
-                        + " scroll speed limit", modifier = dropDownModifier
+                text = (
+                        if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable"
+                        else "Disable"
+                        ) + " scroll speed limit", modifier = dropDownModifier
             )
         },
         onClick = {
@@ -463,7 +464,7 @@ private fun Activity.MainScreenWithScrollModeSupport() {
                     showPageNumber = pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE ||
                             pageScrollMode == PdfViewer.PageScrollMode.HORIZONTAL
 
-                    addListener(PdfOnScrollModeChange { scrollMode ->
+                    addListener(onScrollModeChange = { scrollMode ->
                         showPageButtons = scrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE
                         showPageNumber = pageScrollMode == PdfViewer.PageScrollMode.SINGLE_PAGE ||
                                 pageScrollMode == PdfViewer.PageScrollMode.HORIZONTAL

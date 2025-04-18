@@ -12,9 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bhuvaneshw.pdf.PdfListener
-import com.bhuvaneshw.pdf.PdfOnLinkClick
-import com.bhuvaneshw.pdf.PdfOnPageLoadFailed
 import com.bhuvaneshw.pdf.PdfUnstableApi
+import com.bhuvaneshw.pdf.addListener
 import com.bhuvaneshw.pdf.callIfScrollSpeedLimitIsEnabled
 import com.bhuvaneshw.pdf.callSafely
 import com.bhuvaneshw.pdf.setting.PdfSettingsManager
@@ -94,13 +93,15 @@ class PdfViewerActivity : AppCompatActivity() {
         view.pdfViewer.run {
             highlightEditorColors = listOf("blue" to Color.BLUE, "black" to Color.BLACK)
             editor.highlightColor = Color.BLUE
-            addListener(PdfOnPageLoadFailed {
-                toast(it)
-                finish()
-            })
-            addListener(PdfOnLinkClick { link ->
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
-            })
+            addListener(
+                onPageLoadFailed = {
+                    toast(it)
+                    finish()
+                },
+                onLinkClick = { link ->
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
+                }
+            )
         }
 
         view.pdfViewer.addListener(object : PdfListener {
