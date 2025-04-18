@@ -291,6 +291,24 @@ fun CustomizeScrollBar() {
 }
 ```
 
+### Factory
+```kotlin
+@Composable
+fun PdfViewerFactoryCallback() {
+    val pdfState = rememberPdfState("asset://sample.pdf")
+
+    PdfViewer(
+        pdfState = pdfState,
+        modifier = Modifier,
+        factory = { context ->
+            PdfViewer(context) // return PdfViewer instance.
+        }
+    )
+}
+```
+
+**Use `factory` for create PdfViewer instance and use `onCreateViewer` for configuring**
+
 ### Listener and onCreateViewer callback
 ```kotlin
 @Composable

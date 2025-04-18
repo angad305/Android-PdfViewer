@@ -1,5 +1,6 @@
 package com.bhuvaneshw.pdf.compose
 
+import android.content.Context
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,6 +15,7 @@ fun PdfViewer(
     pdfState: PdfState,
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
+    factory: ((context: Context) -> PdfViewer)? = null,
     onCreateViewer: (PdfViewer.() -> Unit)? = null,
     onReady: OnReadyCallback = DefaultOnReadyCallback(),
 ) {
@@ -26,7 +28,7 @@ fun PdfViewer(
 
     AndroidView(
         factory = { context ->
-            PdfViewer(context).also {
+            (factory?.invoke(context) ?: PdfViewer(context)).also {
                 if (!it.isInEditMode) {
                     it.highlightEditorColors = pdfState.highlightEditorColors.map { colorPair ->
                         colorPair.first to colorPair.second.toArgb()
