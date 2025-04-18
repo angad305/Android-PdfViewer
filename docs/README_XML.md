@@ -253,9 +253,9 @@ pdfViewer.onReady {
 ```
 
 ### Listener
-You can add listener like
+You can add listener with extension like
 ```kotlin
-pdfViewer.addListener(PdfOnPageLoadFailed {  // Specific listener (Extension functions)
+pdfViewer.addListener(onPageLoadFailed = {  // Specific listener (Extension functions)
 })
 ```
 or

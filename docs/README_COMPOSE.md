@@ -301,7 +301,8 @@ fun PdfViewerOnCreateViewerCallback() {
         pdfState = pdfState,
         modifier = Modifier,
         onCreateViewer = { // this: PdfViewer
-            addListener(PdfOnPageLoadFailed {  // Specific listener (Extension functions)
+            // You can add listener with extension like
+            addListener(onPageLoadFailed = {
             })
             // or
             addListener(object: PdfListener {

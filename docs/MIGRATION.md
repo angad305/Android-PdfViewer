@@ -15,12 +15,16 @@ In version `v1.1.0`, the library packages have been renamed to reflect the new n
 | `com.acutecoder.pdfviewer.compose`    | `com.bhuvaneshw.pdf.compose`    |  
 | `com.acutecoder.pdfviewer.compose.ui` | `com.bhuvaneshw.pdf.compose.ui` |  
 
+In addition to package renaming, all previous extension functions for adding PDF event listeners (such as `PdfOnPageLoadStart`) have been removed and replaced with a more streamlined and unified approach.
+
 ### 🛠 What You Need to Do
 
 - Open your project
 - Search for any imports starting with `com.acutecoder.`
 - Replace them with the shiny new `com.bhuvaneshw.` equivalents
 - Also update any usage of `pdfviewer` (`com.acutecoder.pdfviewer`) in package paths or module references to just `pdf` (`com.bhuvaneshw.pdf`)
+- For adding listeners use new extension function PdfViewer.addListener()
+- For example, replace `pdfviewer.addListener(PdfOnPageLoadStart { })` with `pdfviewer.addListener(onPageLoadStart = { })`
 - That’s it—you’re good to go! 🚀
 
 ### 💬 Why the Change?
