@@ -7,7 +7,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,7 +15,6 @@ import android.print.PrintDocumentAdapter
 import android.print.PrintManager
 import android.util.AttributeSet
 import android.util.Base64
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.webkit.JavascriptInterface
@@ -159,12 +157,11 @@ class PdfViewer @JvmOverloads constructor(
                 view: WebView?,
                 detail: RenderProcessGoneDetail?
             ): Boolean {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Log.e("PdfViewer", "On Render Process Gone. Did crash? ${detail?.didCrash()}.")
-                } else {
-                    Log.e("PdfViewer", "On Render Process Gone.")
+                var handled = false
+                listeners.forEach {
+                    handled = it.onRenderProcessGone(detail) || handled
                 }
-                return true
+                return handled
             }
         }
 

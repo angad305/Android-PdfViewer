@@ -1,5 +1,6 @@
 package com.bhuvaneshw.pdf
 
+import android.webkit.RenderProcessGoneDetail
 import androidx.annotation.ColorInt
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
@@ -35,6 +36,7 @@ interface PdfListener {
     fun onEditorInkColorChange(@ColorInt color: Int) {}
     fun onEditorInkThicknessChange(@IntRange(from = 1, to = 20) thickness: Int) {}
     fun onEditorInkOpacityChange(@IntRange(from = 1, to = 100) opacity: Int) {}
+    fun onRenderProcessGone(detail: RenderProcessGoneDetail?): Boolean = false
 
     fun onScaleLimitChange(
         @FloatRange(-4.0, 10.0) minPageScale: Float,

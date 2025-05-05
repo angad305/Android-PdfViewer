@@ -1,6 +1,7 @@
 package com.bhuvaneshw.pdf
 
 import android.content.Context
+import android.webkit.RenderProcessGoneDetail
 import com.bhuvaneshw.pdf.setting.PdfSettingsManager
 import com.bhuvaneshw.pdf.setting.SharedPreferencePdfSettingsSaver
 
@@ -62,6 +63,7 @@ fun PdfViewer.addListener(
     onEditorInkColorChange: ((color: Int) -> Unit)? = null,
     onEditorInkThicknessChange: ((thickness: Int) -> Unit)? = null,
     onEditorInkOpacityChange: ((opacity: Int) -> Unit)? = null,
+    onRenderProcessGone: ((detail: RenderProcessGoneDetail?) -> Boolean)? = null,
     onScaleLimitChange: ((minPageScale: Float, maxPageScale: Float, defaultPageScale: Float) -> Unit)? = null,
     onActualScaleLimitChange: ((minPageScale: Float, maxPageScale: Float, defaultPageScale: Float) -> Unit)? = null,
     onAlignModeChange: ((requestedMode: PdfViewer.PageAlignMode, appliedMode: PdfViewer.PageAlignMode) -> Unit)? = null,
@@ -189,6 +191,10 @@ fun PdfViewer.addListener(
 
         override fun onEditorInkOpacityChange(opacity: Int) {
             onEditorInkOpacityChange?.invoke(opacity)
+        }
+
+        override fun onRenderProcessGone(detail: RenderProcessGoneDetail?): Boolean {
+            return onRenderProcessGone?.invoke(detail) == true
         }
 
         override fun onScaleLimitChange(
