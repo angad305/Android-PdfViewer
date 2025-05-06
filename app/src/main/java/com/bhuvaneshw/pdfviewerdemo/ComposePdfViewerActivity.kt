@@ -1,11 +1,13 @@
 package com.bhuvaneshw.pdfviewerdemo
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -80,9 +82,14 @@ import com.bhuvaneshw.pdf.sharedPdfSettingsManager
 import com.bhuvaneshw.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
 import io.mhssn.colorpicker.ColorPickerDialog
 import io.mhssn.colorpicker.ColorPickerType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class ComposePdfViewerActivity : ComponentActivity() {
     private lateinit var pdfSettingsManager: PdfSettingsManager
+    private lateinit var downloadPdfListener: DownloadPdfListener
     private lateinit var imagePickerListener: ImagePickerListener
     private var pdfViewer: PdfViewer? = null
 
@@ -90,7 +97,6 @@ class ComposePdfViewerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        imagePickerListener = ImagePickerListener(this)
         pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
             .also { it.includeAll() }
 
@@ -99,6 +105,9 @@ class ComposePdfViewerActivity : ComponentActivity() {
             finish()
             return
         }
+
+        downloadPdfListener = DownloadPdfListener(fileName)
+        imagePickerListener = ImagePickerListener(this)
 
         setContent {
             PdfViewerComposeDemoTheme {
@@ -109,6 +118,7 @@ class ComposePdfViewerActivity : ComponentActivity() {
                             url = filePath,
                             pdfSettingsManager = pdfSettingsManager,
                             setPdfViewer = { pdfViewer = it },
+                            downloadPdfListener = downloadPdfListener,
                             imagePickerListener = imagePickerListener,
                         )
                     }
@@ -135,9 +145,42 @@ class ComposePdfViewerActivity : ComponentActivity() {
             url = "",
             pdfSettingsManager = null,
             setPdfViewer = {},
+            downloadPdfListener = downloadPdfListener,
             imagePickerListener = imagePickerListener,
         )
     }
+
+    inner class DownloadPdfListener(private val pdfTitle: String) : PdfListener {
+        private var bytes: ByteArray? = null
+        private val saveFileLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                bytes?.let { pdfAsBytes ->
+                    if (result.resultCode == RESULT_OK) {
+                        result.data?.data?.let { uri ->
+                            try {
+                                contentResolver.openOutputStream(uri)?.use { it.write(pdfAsBytes) }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        override fun onSavePdf(pdfAsBytes: ByteArray) {
+            bytes = pdfAsBytes
+
+            saveFileLauncher.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/pdf"
+                putExtra(Intent.EXTRA_TITLE, pdfTitle)
+            })
+        }
+    }
+
 }
 
 @OptIn(ExperimentalComposeUiApi::class, PdfUnstablePrintApi::class)
@@ -147,6 +190,7 @@ private fun Activity.MainScreen(
     url: String,
     pdfSettingsManager: PdfSettingsManager?,
     setPdfViewer: (PdfViewer?) -> Unit,
+    downloadPdfListener: ComposePdfViewerActivity.DownloadPdfListener,
     imagePickerListener: ImagePickerListener,
 ) {
     val pdfState = rememberPdfState(source = url)
@@ -190,6 +234,7 @@ private fun Activity.MainScreen(
                     setPdfViewer(this)
                     pdfPrintAdapter = SimplePdfPrintAdapter()
 
+                    addListener(downloadPdfListener)
                     addListener(imagePickerListener)
                     addListener(object : PdfListener {
                         @OptIn(PdfUnstableApi::class)
