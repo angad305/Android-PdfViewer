@@ -18,6 +18,7 @@ import com.bhuvaneshw.pdf.PdfViewer
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.math.roundToInt
+import androidx.core.content.withStyledAttributes
 
 class PdfScrollBar @JvmOverloads constructor(
     context: Context,
@@ -60,23 +61,22 @@ class PdfScrollBar @JvmOverloads constructor(
         addView(root)
 
         attrs?.let {
-            val typedArray =
-                context.obtainStyledAttributes(it, R.styleable.PdfScrollBar, defStyleAttr, 0)
-            val contentColor = typedArray.getColor(
-                R.styleable.PdfScrollBar_contentColor,
-                Color.BLACK
-            )
-            val handleColor = typedArray.getColor(
-                R.styleable.PdfScrollBar_handleColor,
-                0xfff1f1f1.toInt()
-            )
-            val useVerticalScrollBarForHorizontalMode = typedArray.getBoolean(
-                R.styleable.PdfScrollBar_useVerticalScrollBarForHorizontalMode,
-                useVerticalScrollBarForHorizontalMode
-            )
-            setContentColor(contentColor, handleColor)
-            this.useVerticalScrollBarForHorizontalMode = useVerticalScrollBarForHorizontalMode
-            typedArray.recycle()
+            context.withStyledAttributes(it, R.styleable.PdfScrollBar, defStyleAttr, 0) {
+                val contentColor = getColor(
+                    R.styleable.PdfScrollBar_contentColor,
+                    Color.BLACK
+                )
+                val handleColor = getColor(
+                    R.styleable.PdfScrollBar_handleColor,
+                    0xfff1f1f1.toInt()
+                )
+                val useVerticalScrollBarForHorizontalMode = getBoolean(
+                    R.styleable.PdfScrollBar_useVerticalScrollBarForHorizontalMode,
+                    useVerticalScrollBarForHorizontalMode
+                )
+                setContentColor(contentColor, handleColor)
+                this@PdfScrollBar.useVerticalScrollBarForHorizontalMode = useVerticalScrollBarForHorizontalMode
+            }
         }
 
         @SuppressLint("SetTextI18n")

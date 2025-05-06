@@ -1,14 +1,13 @@
 package com.bhuvaneshw.pdfviewerdemo
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bhuvaneshw.pdf.PdfListener
@@ -99,7 +98,7 @@ class PdfViewerActivity : AppCompatActivity() {
                     finish()
                 },
                 onLinkClick = { link ->
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
+                    startActivity(Intent(Intent.ACTION_VIEW, link.toUri()))
                 }
             )
         }
@@ -149,7 +148,7 @@ class PdfViewerActivity : AppCompatActivity() {
         ) { result ->
             CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                 bytes?.let { pdfAsBytes ->
-                    if (result.resultCode == Activity.RESULT_OK) {
+                    if (result.resultCode == RESULT_OK) {
                         result.data?.data?.let { uri ->
                             try {
                                 contentResolver.openOutputStream(uri)?.use { it.write(pdfAsBytes) }

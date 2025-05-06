@@ -2,7 +2,6 @@ package com.bhuvaneshw.pdfviewerdemo
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -58,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfUnstablePrintApi
@@ -287,7 +287,7 @@ private fun Activity.ExtendedTooBarMenus(
         DropdownMenuItem(
             text = { Text(text = "Open in other app", modifier = dropDownModifier) },
             onClick = {
-                val uri = Uri.parse(state.pdfViewer?.currentSource ?: return@DropdownMenuItem)
+                val uri = (state.pdfViewer?.currentSource ?: return@DropdownMenuItem).toUri()
                 startActivity(
                     Intent(Intent.ACTION_VIEW, uri).apply {
                         putExtra(Intent.EXTRA_STREAM, uri)

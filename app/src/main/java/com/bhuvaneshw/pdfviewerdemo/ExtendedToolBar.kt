@@ -2,13 +2,13 @@ package com.bhuvaneshw.pdfviewerdemo
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.PopupMenu
+import androidx.core.net.toUri
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfViewer
 import com.bhuvaneshw.pdf.ui.PdfToolBar
@@ -45,7 +45,7 @@ class ExtendedToolBar @JvmOverloads constructor(
 
         return when (item.itemId) {
             11 -> {
-                val uri = Uri.parse(pdfViewer.currentSource)
+                val uri = pdfViewer.currentSource?.toUri()
                 context.startActivity(
                     Intent(Intent.ACTION_VIEW, uri).apply {
                         putExtra(Intent.EXTRA_STREAM, uri)

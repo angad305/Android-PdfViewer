@@ -30,6 +30,8 @@ import com.bhuvaneshw.pdf.PdfDocumentProperties
 import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfViewer
 import com.bhuvaneshw.pdf.PdfViewer.PageSpreadMode
+import androidx.core.view.isVisible
+import androidx.core.content.withStyledAttributes
 
 open class PdfToolBar @JvmOverloads constructor(
     context: Context,
@@ -93,18 +95,17 @@ open class PdfToolBar @JvmOverloads constructor(
         initListeners()
 
         attrs?.let {
-            val typedArray =
-                context.obtainStyledAttributes(it, R.styleable.PdfToolBar, defStyleAttr, 0)
-            val contentColor = typedArray.getColor(
-                R.styleable.PdfToolBar_contentColor,
-                Color.BLACK
-            )
-            val showEditor = typedArray.getBoolean(R.styleable.PdfToolBar_showEditor, false)
-            this.contentColor = contentColor
-            edit.run { visibility = if (showEditor) VISIBLE else GONE }
-            popupBackgroundColor =
-                typedArray.getColor(R.styleable.PdfToolBar_popupBackgroundColor, Color.WHITE)
-            typedArray.recycle()
+            context.withStyledAttributes(it, R.styleable.PdfToolBar, defStyleAttr, 0) {
+                val contentColor = getColor(
+                    R.styleable.PdfToolBar_contentColor,
+                    Color.BLACK
+                )
+                val showEditor = getBoolean(R.styleable.PdfToolBar_showEditor, false)
+                this@PdfToolBar.contentColor = contentColor
+                edit.run { visibility = if (showEditor) VISIBLE else GONE }
+                popupBackgroundColor =
+                    getColor(R.styleable.PdfToolBar_popupBackgroundColor, Color.WHITE)
+            }
         }
     }
 
@@ -176,7 +177,7 @@ open class PdfToolBar @JvmOverloads constructor(
         this.title.text = title
     }
 
-    fun isFindBarVisible() = findBar.visibility == VISIBLE
+    fun isFindBarVisible() = findBar.isVisible
 
     fun setFindBarVisible(visible: Boolean) {
         findBar.visibility = if (visible) VISIBLE else GONE
@@ -201,7 +202,7 @@ open class PdfToolBar @JvmOverloads constructor(
         pdfViewer.editor.inkOn = false
     }
 
-    fun isEditorBarVisible() = editorBar.visibility == VISIBLE
+    fun isEditorBarVisible() = editorBar.isVisible
 
     @SuppressLint("SetTextI18n")
     fun setHighlightBarVisible(visible: Boolean) {
@@ -215,7 +216,7 @@ open class PdfToolBar @JvmOverloads constructor(
         setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
     }
 
-    fun isHighlightBarVisible() = highlightBar.visibility == VISIBLE
+    fun isHighlightBarVisible() = highlightBar.isVisible
 
     @SuppressLint("SetTextI18n")
     fun setFreeTextBarVisible(visible: Boolean) {
@@ -228,7 +229,7 @@ open class PdfToolBar @JvmOverloads constructor(
         setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
     }
 
-    fun isFreeTextBarVisible() = freeTextBar.visibility == VISIBLE
+    fun isFreeTextBarVisible() = freeTextBar.isVisible
 
     @SuppressLint("SetTextI18n")
     fun setInkBarVisible(visible: Boolean) {
@@ -242,7 +243,7 @@ open class PdfToolBar @JvmOverloads constructor(
         setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
     }
 
-    fun isInkBarVisible() = inkBar.visibility == VISIBLE
+    fun isInkBarVisible() = inkBar.isVisible
 
     @SuppressLint("SetTextI18n")
     private fun setEditorMainIconsVisible(mainIconsVisible: Boolean, undoRedoVisible: Boolean) {

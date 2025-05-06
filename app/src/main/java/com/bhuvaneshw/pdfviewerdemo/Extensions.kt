@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.net.toUri
 
 fun Activity.getDataFromIntent(): Pair<String, String>? {
     val filePath: String
@@ -26,8 +27,7 @@ fun Activity.getDataFromIntent(): Pair<String, String>? {
             ?: intent.extras?.getString("fileUri")
             ?: return null
 
-        fileName = intent.extras?.getString("fileUri")
-            ?.let { uri -> Uri.parse(uri).getFileName(this) }
+        fileName = intent.extras?.getString("fileUri")?.toUri()?.getFileName(this)
             ?: intent.extras?.getString("fileName") ?: ""
     }
 
