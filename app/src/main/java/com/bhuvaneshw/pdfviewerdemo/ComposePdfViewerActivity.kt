@@ -1,7 +1,6 @@
 package com.bhuvaneshw.pdfviewerdemo
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -57,7 +56,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfUnstablePrintApi
@@ -282,20 +280,6 @@ private fun Activity.ExtendedTooBarMenus(
 ) {
     var showZoomLimitDialog by remember { mutableStateOf(false) }
     val dropDownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
-
-    if (state.pdfViewer?.currentSource?.startsWith("file:///android_asset") == false)
-        DropdownMenuItem(
-            text = { Text(text = "Open in other app", modifier = dropDownModifier) },
-            onClick = {
-                val uri = (state.pdfViewer?.currentSource ?: return@DropdownMenuItem).toUri()
-                startActivity(
-                    Intent(Intent.ACTION_VIEW, uri).apply {
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                )
-            }
-        )
 
     DropdownMenuItem(
         text = { Text(text = "Print", modifier = dropDownModifier) },

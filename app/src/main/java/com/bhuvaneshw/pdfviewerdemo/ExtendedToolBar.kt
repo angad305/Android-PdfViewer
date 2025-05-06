@@ -1,14 +1,12 @@
 package com.bhuvaneshw.pdfviewerdemo
 
 import android.content.Context
-import android.content.Intent
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.PopupMenu
-import androidx.core.net.toUri
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfViewer
 import com.bhuvaneshw.pdf.ui.PdfToolBar
@@ -25,12 +23,10 @@ class ExtendedToolBar @JvmOverloads constructor(
     override fun getPopupMenu(anchorView: View): PopupMenu {
         return PopupMenu(context, anchorView).apply {
             // Item ids 0-10 are already taken
-            if (pdfViewer.currentSource?.startsWith("file:///android_asset") == false)
-                menu.add(Menu.NONE, 11, Menu.NONE, "Open in other app")
-            menu.add(Menu.NONE, 12, Menu.NONE, "Zoom Limit")
+            menu.add(Menu.NONE, 11, Menu.NONE, "Zoom Limit")
             menu.add(
                 Menu.NONE,
-                13,
+                12,
                 Menu.NONE,
                 (if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable" else "Disable")
                         + " scroll speed limit"
@@ -45,22 +41,11 @@ class ExtendedToolBar @JvmOverloads constructor(
 
         return when (item.itemId) {
             11 -> {
-                val uri = pdfViewer.currentSource?.toUri()
-                context.startActivity(
-                    Intent(Intent.ACTION_VIEW, uri).apply {
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                )
-                true
-            }
-
-            12 -> {
                 showZoomLimitDialog()
                 true
             }
 
-            13 -> {
+            12 -> {
                 if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
                     pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.AdaptiveFling()
                 else pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
