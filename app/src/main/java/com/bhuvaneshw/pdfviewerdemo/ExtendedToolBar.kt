@@ -24,13 +24,13 @@ class ExtendedToolBar @JvmOverloads constructor(
     @OptIn(PdfUnstableApi::class)
     override fun getPopupMenu(anchorView: View): PopupMenu {
         return PopupMenu(context, anchorView).apply {
-            // Item ids 0-9 are already taken
+            // Item ids 0-10 are already taken
             if (pdfViewer.currentSource?.startsWith("file:///android_asset") == false)
-                menu.add(Menu.NONE, 10, Menu.NONE, "Open in other app")
-            menu.add(Menu.NONE, 11, Menu.NONE, "Zoom Limit")
+                menu.add(Menu.NONE, 11, Menu.NONE, "Open in other app")
+            menu.add(Menu.NONE, 12, Menu.NONE, "Zoom Limit")
             menu.add(
                 Menu.NONE,
-                12,
+                13,
                 Menu.NONE,
                 (if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable" else "Disable")
                         + " scroll speed limit"
@@ -44,7 +44,7 @@ class ExtendedToolBar @JvmOverloads constructor(
         if (super.handlePopupMenuItemClick(item)) return true
 
         return when (item.itemId) {
-            10 -> {
+            11 -> {
                 val uri = Uri.parse(pdfViewer.currentSource)
                 context.startActivity(
                     Intent(Intent.ACTION_VIEW, uri).apply {
@@ -55,12 +55,12 @@ class ExtendedToolBar @JvmOverloads constructor(
                 true
             }
 
-            11 -> {
+            12 -> {
                 showZoomLimitDialog()
                 true
             }
 
-            12 -> {
+            13 -> {
                 if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
                     pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.AdaptiveFling()
                 else pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
