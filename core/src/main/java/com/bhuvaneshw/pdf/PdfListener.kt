@@ -1,6 +1,9 @@
 package com.bhuvaneshw.pdf
 
+import android.net.Uri
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient.FileChooserParams
 import androidx.annotation.ColorInt
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
@@ -63,5 +66,10 @@ interface PdfListener {
         appliedLimit: PdfViewer.ScrollSpeedLimit
     ) {
     }
+
+    fun onShowFileChooser(
+        filePathCallback: ValueCallback<Array<out Uri?>?>?,
+        fileChooserParams: FileChooserParams?
+    ): Boolean = false
 
 }

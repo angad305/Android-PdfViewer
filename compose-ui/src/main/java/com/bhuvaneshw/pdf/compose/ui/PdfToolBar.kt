@@ -208,6 +208,9 @@ private fun PdfToolBarScope.Editor(
     LaunchedEffect(toolBarState.isEditorInkOn) {
         pdfState.pdfViewer?.editor?.inkOn = toolBarState.isEditorInkOn
     }
+    LaunchedEffect(toolBarState.isEditorStampOn) {
+        pdfState.pdfViewer?.editor?.stampOn = toolBarState.isEditorStampOn
+    }
 
     Row(
         modifier = modifier,
@@ -239,6 +242,15 @@ private fun PdfToolBarScope.Editor(
             modifier = Modifier.fillMaxWidth(),
         ) {
             InkOptions(popupY, contentColor, pickColor)
+        }
+
+        AnimatedVisibility(
+            visible = toolBarState.isEditorStampOn,
+            enter = slideIn { IntOffset(it.width / 25, 0) } + fadeIn(),
+            exit = slideOut { IntOffset(it.width / 50, 0) } + fadeOut(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            StampOptions(contentColor)
         }
 
         Text(
@@ -418,6 +430,27 @@ private fun PdfToolBarScope.InkOptions(
 }
 
 @Composable
+private fun PdfToolBarScope.StampOptions(contentColor: Color) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Add/Edit Images",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(8.dp),
+            color = contentColor,
+        )
+        Spacer(Modifier.weight(1f))
+
+        UndoRedoButtons()
+    }
+}
+
+@Composable
 private fun PdfToolBarScope.MainIcons(contentColor: Color) {
     ToolBarIcon(
         painter = painterResource(R.drawable.baseline_highlight_24),
@@ -426,6 +459,7 @@ private fun PdfToolBarScope.MainIcons(contentColor: Color) {
             toolBarState.isTextHighlighterOn = true
             toolBarState.isEditorFreeTextOn = false
             toolBarState.isEditorInkOn = false
+            toolBarState.isEditorStampOn = false
         },
         tint = contentColor,
     )
@@ -436,6 +470,7 @@ private fun PdfToolBarScope.MainIcons(contentColor: Color) {
             toolBarState.isTextHighlighterOn = false
             toolBarState.isEditorFreeTextOn = true
             toolBarState.isEditorInkOn = false
+            toolBarState.isEditorStampOn = false
         },
         tint = contentColor,
     )
@@ -446,6 +481,18 @@ private fun PdfToolBarScope.MainIcons(contentColor: Color) {
             toolBarState.isTextHighlighterOn = false
             toolBarState.isEditorFreeTextOn = false
             toolBarState.isEditorInkOn = true
+            toolBarState.isEditorStampOn = false
+        },
+        tint = contentColor,
+    )
+    ToolBarIcon(
+        painter = painterResource(R.drawable.baseline_image_24),
+        isEnabled = true,
+        onClick = {
+            toolBarState.isTextHighlighterOn = false
+            toolBarState.isEditorFreeTextOn = false
+            toolBarState.isEditorInkOn = false
+            toolBarState.isEditorStampOn = true
         },
         tint = contentColor,
     )
@@ -1266,6 +1313,7 @@ internal fun defaultToolBarBackIcon(
                     toolBarState.isTextHighlighterOn -> toolBarState.isTextHighlighterOn = false
                     toolBarState.isEditorFreeTextOn -> toolBarState.isEditorFreeTextOn = false
                     toolBarState.isEditorInkOn -> toolBarState.isEditorInkOn = false
+                    toolBarState.isEditorStampOn -> toolBarState.isEditorStampOn = false
 
                     toolBarState.isEditorOpen -> toolBarState.isEditorOpen = false
                     toolBarState.isFindBarOpen -> toolBarState.isFindBarOpen = false

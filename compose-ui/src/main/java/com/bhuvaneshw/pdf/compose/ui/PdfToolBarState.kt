@@ -15,4 +15,5 @@ class PdfToolBarState {
     var isTextHighlighterOn by mutableStateOf(false)
     var isEditorFreeTextOn by mutableStateOf(false)
     var isEditorInkOn by mutableStateOf(false)
+    var isEditorStampOn by mutableStateOf(false)
 }

@@ -74,12 +74,14 @@ open class PdfToolBar @JvmOverloads constructor(
     val highlightBar: LinearLayout = root.findViewById(R.id.highlight_bar)
     val freeTextBar: LinearLayout = root.findViewById(R.id.free_text_bar)
     val inkBar: LinearLayout = root.findViewById(R.id.ink_bar)
+    val stampBar: LinearLayout = root.findViewById(R.id.stamp_bar)
     val undo: ImageView = root.findViewById(R.id.undo)
     val redo: ImageView = root.findViewById(R.id.redo)
     val editTitle: TextView = root.findViewById(R.id.edit_title)
     val highlight: ImageView = root.findViewById(R.id.highlight)
     val freeText: ImageView = root.findViewById(R.id.free_text)
     val ink: ImageView = root.findViewById(R.id.ink)
+    val stamp: ImageView = root.findViewById(R.id.stamp)
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     val showAllHighlights: Switch = root.findViewById(R.id.show_all_highlights)
@@ -197,6 +199,7 @@ open class PdfToolBar @JvmOverloads constructor(
         highlightBar.visibility = GONE
         freeTextBar.visibility = GONE
         inkBar.visibility = GONE
+        stampBar.visibility = GONE
         pdfViewer.editor.textHighlighterOn = false
         pdfViewer.editor.freeTextOn = false
         pdfViewer.editor.inkOn = false
@@ -211,6 +214,7 @@ open class PdfToolBar @JvmOverloads constructor(
         pdfViewer.editor.textHighlighterOn = visible
         freeTextBar.visibility = GONE
         inkBar.visibility = GONE
+        stampBar.visibility = GONE
         showAllHighlights.isChecked = pdfViewer.editor.showAllHighlights
         highlightColor.color = pdfViewer.editor.highlightColor
         setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
@@ -225,6 +229,7 @@ open class PdfToolBar @JvmOverloads constructor(
         freeTextBar.visibility = if (visible) VISIBLE else GONE
         pdfViewer.editor.freeTextOn = visible
         inkBar.visibility = GONE
+        stampBar.visibility = GONE
         freeFontColor.color = pdfViewer.editor.freeFontColor
         setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
     }
@@ -237,6 +242,7 @@ open class PdfToolBar @JvmOverloads constructor(
         highlightBar.visibility = GONE
         freeTextBar.visibility = GONE
         inkBar.visibility = if (visible) VISIBLE else GONE
+        stampBar.visibility = GONE
         pdfViewer.editor.inkOn = visible
         highlightColor.color = pdfViewer.editor.highlightColor
         inkColor.color = pdfViewer.editor.inkColor
@@ -246,16 +252,31 @@ open class PdfToolBar @JvmOverloads constructor(
     fun isInkBarVisible() = inkBar.isVisible
 
     @SuppressLint("SetTextI18n")
+    fun setStampBarVisible(visible: Boolean) {
+        editTitle.text = "Add/Edit Images"
+        highlightBar.visibility = GONE
+        freeTextBar.visibility = GONE
+        inkBar.visibility = GONE
+        stampBar.visibility = if (visible) VISIBLE else GONE
+        pdfViewer.editor.stampOn = visible
+        setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
+    }
+
+    fun isStampBarVisible() = stampBar.isVisible
+
+    @SuppressLint("SetTextI18n")
     private fun setEditorMainIconsVisible(mainIconsVisible: Boolean, undoRedoVisible: Boolean) {
         if (mainIconsVisible) {
             editTitle.text = "Edit"
             highlight.visibility = VISIBLE
             freeText.visibility = VISIBLE
             ink.visibility = VISIBLE
+            stamp.visibility = VISIBLE
         } else {
             highlight.visibility = GONE
             freeText.visibility = GONE
             ink.visibility = GONE
+            stamp.visibility = GONE
         }
         if (undoRedoVisible) {
             undo.visibility = VISIBLE
@@ -281,6 +302,7 @@ open class PdfToolBar @JvmOverloads constructor(
         highlight.setTintModes(contentColor)
         freeText.setTintModes(contentColor)
         ink.setTintModes(contentColor)
+        stamp.setTintModes(contentColor)
         highlightThickness.setTintModes(contentColor)
         freeFontSize.setTintModes(contentColor)
         inkThickness.setTintModes(contentColor)
@@ -309,6 +331,11 @@ open class PdfToolBar @JvmOverloads constructor(
                     setEditorBarVisible(true)
                 }
 
+                isStampBarVisible() -> {
+                    setStampBarVisible(false)
+                    setEditorBarVisible(true)
+                }
+
                 isEditorBarVisible() -> setEditorBarVisible(false)
                 isFindBarVisible() -> setFindBarVisible(false)
                 else -> onBack?.invoke()
@@ -322,6 +349,7 @@ open class PdfToolBar @JvmOverloads constructor(
         highlight.setOnClickListener { setHighlightBarVisible(true) }
         freeText.setOnClickListener { setFreeTextBarVisible(true) }
         ink.setOnClickListener { setInkBarVisible(true) }
+        stamp.setOnClickListener { setStampBarVisible(true) }
 
         findEditText.setOnEditorActionListener { textView, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {

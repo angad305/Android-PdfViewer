@@ -82,6 +82,7 @@ class PdfViewerActivity : AppCompatActivity() {
         }
         view.container.alertDialogBuilder = view.pdfToolBar.alertDialogBuilder
         view.pdfViewer.addListener(DownloadPdfListener(fileName))
+        view.pdfViewer.addListener(ImagePickerListener(this))
         view.container.setAsLoadingIndicator(view.loader)
 
         onBackPressedDispatcher.addCallback(this) {

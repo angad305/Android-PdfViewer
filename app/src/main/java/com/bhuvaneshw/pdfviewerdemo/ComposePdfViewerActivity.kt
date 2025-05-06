@@ -83,12 +83,14 @@ import io.mhssn.colorpicker.ColorPickerType
 
 class ComposePdfViewerActivity : ComponentActivity() {
     private lateinit var pdfSettingsManager: PdfSettingsManager
+    private lateinit var imagePickerListener: ImagePickerListener
     private var pdfViewer: PdfViewer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        imagePickerListener = ImagePickerListener(this)
         pdfSettingsManager = sharedPdfSettingsManager("PdfSettings", MODE_PRIVATE)
             .also { it.includeAll() }
 
@@ -106,7 +108,8 @@ class ComposePdfViewerActivity : ComponentActivity() {
                             title = fileName,
                             url = filePath,
                             pdfSettingsManager = pdfSettingsManager,
-                            setPdfViewer = { pdfViewer = it }
+                            setPdfViewer = { pdfViewer = it },
+                            imagePickerListener = imagePickerListener,
                         )
                     }
                 }
@@ -131,7 +134,8 @@ class ComposePdfViewerActivity : ComponentActivity() {
             title = "Preview",
             url = "",
             pdfSettingsManager = null,
-            setPdfViewer = {}
+            setPdfViewer = {},
+            imagePickerListener = imagePickerListener,
         )
     }
 }
@@ -143,6 +147,7 @@ private fun Activity.MainScreen(
     url: String,
     pdfSettingsManager: PdfSettingsManager?,
     setPdfViewer: (PdfViewer?) -> Unit,
+    imagePickerListener: ImagePickerListener,
 ) {
     val pdfState = rememberPdfState(source = url)
     val toolBarState = rememberToolBarState()
@@ -185,6 +190,7 @@ private fun Activity.MainScreen(
                     setPdfViewer(this)
                     pdfPrintAdapter = SimplePdfPrintAdapter()
 
+                    addListener(imagePickerListener)
                     addListener(object : PdfListener {
                         @OptIn(PdfUnstableApi::class)
                         override fun onSingleClick() {

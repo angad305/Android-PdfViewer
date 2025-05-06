@@ -19,6 +19,8 @@ import android.view.Gravity
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -97,6 +99,16 @@ class PdfViewer @JvmOverloads constructor(
             allowFileAccessFromFileURLs = false
             @Suppress("DEPRECATION")
             allowUniversalAccessFromFileURLs = false
+        }
+
+        webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(
+                webView: WebView?,
+                filePathCallback: ValueCallback<Array<out Uri?>?>?,
+                fileChooserParams: FileChooserParams?
+            ): Boolean {
+                return listeners.any { it.onShowFileChooser(filePathCallback, fileChooserParams) }
+            }
         }
 
         webViewClient = object : WebViewClient() {

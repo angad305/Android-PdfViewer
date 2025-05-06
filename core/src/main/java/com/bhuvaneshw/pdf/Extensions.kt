@@ -1,7 +1,10 @@
 package com.bhuvaneshw.pdf
 
 import android.content.Context
+import android.net.Uri
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient.FileChooserParams
 import com.bhuvaneshw.pdf.setting.PdfSettingsManager
 import com.bhuvaneshw.pdf.setting.SharedPreferencePdfSettingsSaver
 
@@ -68,6 +71,7 @@ fun PdfViewer.addListener(
     onActualScaleLimitChange: ((minPageScale: Float, maxPageScale: Float, defaultPageScale: Float) -> Unit)? = null,
     onAlignModeChange: ((requestedMode: PdfViewer.PageAlignMode, appliedMode: PdfViewer.PageAlignMode) -> Unit)? = null,
     onScrollSpeedLimitChange: ((requestedLimit: PdfViewer.ScrollSpeedLimit, appliedLimit: PdfViewer.ScrollSpeedLimit) -> Unit)? = null,
+    onShowFileChooser: ((filePathCallback: ValueCallback<Array<out Uri?>?>?, fileChooserParams: FileChooserParams?) -> Boolean)? = null,
 ) {
     addListener(object : PdfListener {
         override fun onPageLoadStart() {
@@ -225,6 +229,13 @@ fun PdfViewer.addListener(
             appliedLimit: PdfViewer.ScrollSpeedLimit
         ) {
             onScrollSpeedLimitChange?.invoke(requestedLimit, appliedLimit)
+        }
+
+        override fun onShowFileChooser(
+            filePathCallback: ValueCallback<Array<out Uri?>?>?,
+            fileChooserParams: FileChooserParams?
+        ): Boolean {
+            return onShowFileChooser?.invoke(filePathCallback, fileChooserParams) == true
         }
     })
 }
