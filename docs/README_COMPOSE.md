@@ -291,6 +291,35 @@ fun CustomizeScrollBar() {
 }
 ```
 
+### Loading Indicator
+```kotlin
+@Composable
+fun LoadingIndicator() {
+    val pdfState = rememberPdfState("asset://sample.pdf")
+
+    PdfViewerContainer(
+        pdfState = pdfState,
+        pdfViewer = {
+            PdfViewer(
+                modifier = Modifier,
+            )
+        },
+        loadingIndicator = {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                CircularProgressIndicator()
+                Text(text = "Loading...")
+            }
+        },
+    )
+}
+```
+
 ### Factory
 ```kotlin
 @Composable
