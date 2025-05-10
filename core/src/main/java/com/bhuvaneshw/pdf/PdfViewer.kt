@@ -5,27 +5,17 @@ package com.bhuvaneshw.pdf
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
-import android.print.PrintManager
 import android.util.AttributeSet
-import android.util.Base64
 import android.view.Gravity
 import android.view.View
-import android.webkit.JavascriptInterface
-import android.webkit.RenderProcessGoneDetail
-import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -57,13 +47,13 @@ class PdfViewer @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    var isInitialized = false; private set
-    var currentSource: String? = null; private set
-    var currentPage: Int = 1; private set
-    var pagesCount: Int = 0; private set
-    var currentPageScale: Float = 0f; private set
-    var currentPageScaleValue: String = ""; private set
-    var properties: PdfDocumentProperties? = null; private set
+    var isInitialized = false; internal set
+    var currentSource: String? = null; internal set
+    var currentPage: Int = 1; internal set
+    var pagesCount: Int = 0; internal set
+    var currentPageScale: Float = 0f; internal set
+    var currentPageScaleValue: String = ""; internal set
+    var properties: PdfDocumentProperties? = null; internal set
 
     /**
      * Changes require reinitializing PdfViewer
@@ -71,13 +61,13 @@ class PdfViewer @JvmOverloads constructor(
     var highlightEditorColors: List<Pair<String, Int>> = defaultHighlightEditorColors
     var pdfPrintAdapter: PrintDocumentAdapter? = null
 
-    private val listeners = mutableListOf<PdfListener>()
-    private val webInterface = WebInterface()
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private var onReadyListeners = mutableListOf<PdfViewer.() -> Unit>()
-    private var tempBackgroundColor: Int? = null
+    internal val listeners = mutableListOf<PdfListener>()
+    internal val webInterface: WebInterface = WebInterface(this)
+    internal val mainHandler = Handler(Looper.getMainLooper())
+    internal var onReadyListeners = mutableListOf<PdfViewer.() -> Unit>()
+    internal var tempBackgroundColor: Int? = null
 
-    private val resourceLoaders = listOf(
+    internal val resourceLoaders = listOf(
         PdfViewerResourceLoader(context),
         AssetResourceLoader(context),
         ContentResourceLoader(context, webInterface::onLoadFailed),
@@ -85,137 +75,7 @@ class PdfViewer @JvmOverloads constructor(
         NetworkResourceLoader(webInterface::onLoadFailed),
     )
 
-    @SuppressLint("SetJavaScriptEnabled")
-    private val webView: WebView = WebView(context).apply {
-        setBackgroundColor(Color.TRANSPARENT)
-
-        if (isInEditMode) return@apply
-
-        settings.run {
-            javaScriptEnabled = true
-
-            allowFileAccess = false
-            allowContentAccess = false
-            @Suppress("DEPRECATION")
-            allowFileAccessFromFileURLs = false
-            @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = false
-        }
-
-        webChromeClient = object : WebChromeClient() {
-            override fun onShowFileChooser(
-                webView: WebView?,
-                filePathCallback: ValueCallback<Array<out Uri?>?>?,
-                fileChooserParams: FileChooserParams?
-            ): Boolean {
-                return listeners.any { it.onShowFileChooser(filePathCallback, fileChooserParams) }
-            }
-        }
-
-        webViewClient = object : WebViewClient() {
-//            override fun shouldOverrideUrlLoading(
-//                view: WebView?,
-//                request: WebResourceRequest?
-//            ): Boolean {
-//                val url = request?.url.toString()
-//
-//                if (url.startsWith("file:///android_asset/"))
-//                    return super.shouldOverrideUrlLoading(view, request)
-//
-//                if (URLUtil.isValidUrl(url))
-//                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-//
-//                return true
-//            }
-
-            override fun onReceivedError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                error: WebResourceError?
-            ) {
-                listeners.forEach {
-                    it.onReceivedError(
-                        WebViewError(
-                            errorCode = error?.errorCode,
-                            description = error?.description?.toString(),
-                            failingUrl = request?.url?.toString(),
-                            isForMainFrame = request?.isForMainFrame
-                        )
-                    )
-                }
-            }
-
-            override fun onReceivedError(
-                view: WebView?,
-                errorCode: Int,
-                description: String?,
-                failingUrl: String?
-            ) {
-                listeners.forEach {
-                    it.onReceivedError(
-                        WebViewError(
-                            errorCode = errorCode,
-                            description = description?.toString(),
-                            failingUrl = failingUrl?.toString(),
-                        )
-                    )
-                }
-            }
-
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                if (view == null) return
-
-                if (!isInitialized) {
-                    view callDirectly "setupHelper" {
-                        post {
-                            isInitialized = true
-                            tempBackgroundColor?.let { setContainerBackgroundColor(it) }
-                            onReadyListeners.forEach { it(this@PdfViewer) }
-                        }
-                    }
-                }
-            }
-
-            override fun shouldInterceptRequest(
-                view: WebView?,
-                request: WebResourceRequest
-            ): WebResourceResponse? {
-                val uri = request.url
-
-                return resourceLoaders
-                    .firstOrNull { it.canHandle(uri) }
-                    ?.shouldInterceptRequest(uri)
-            }
-
-            @Suppress("deprecation")
-            override fun shouldInterceptRequest(
-                view: WebView?,
-                url: String?
-            ): WebResourceResponse? {
-                val uri = Uri.parse(url)
-
-                return resourceLoaders
-                    .firstOrNull { it.canHandle(uri) }
-                    ?.shouldInterceptRequest(uri)
-            }
-
-            override fun onRenderProcessGone(
-                view: WebView?,
-                detail: RenderProcessGoneDetail?
-            ): Boolean {
-                var handled = false
-                listeners.forEach {
-                    handled = it.onRenderProcessGone(detail) || handled
-                }
-                return handled
-            }
-        }
-
-        setDownloadListener { url, _, _, _, _ ->
-            webInterface.getBase64StringFromBlobUrl(url)?.let { evaluateJavascript(it, null) }
-        }
-    }
+    internal val webView: WebView = PdfJsWebView()
 
     val ui = UiSettings(webView)
         get() {
@@ -319,7 +179,7 @@ class PdfViewer @JvmOverloads constructor(
         }
 
     var actualMinPageScale = 0f
-        private set(value) {
+        internal set(value) {
             if (field != value)
                 listeners.forEach {
                     it.onActualScaleLimitChange(value, actualMaxPageScale, actualDefaultPageScale)
@@ -328,7 +188,7 @@ class PdfViewer @JvmOverloads constructor(
             if (value > 0) webView setDirectly "MIN_SCALE"(value)
         }
     var actualMaxPageScale = 0f
-        private set(value) {
+        internal set(value) {
             if (field != value)
                 listeners.forEach {
                     it.onActualScaleLimitChange(actualMinPageScale, value, actualDefaultPageScale)
@@ -337,7 +197,7 @@ class PdfViewer @JvmOverloads constructor(
             if (value > 0) webView setDirectly "MAX_SCALE"(value)
         }
     var actualDefaultPageScale = 0f
-        private set(value) {
+        internal set(value) {
             if (field != value)
                 listeners.forEach {
                     it.onActualScaleLimitChange(actualMinPageScale, actualMaxPageScale, value)
@@ -371,7 +231,7 @@ class PdfViewer @JvmOverloads constructor(
             field = dispatchScrollSpeedLimit(value)
         }
 
-    val editor = Editor()
+    val editor = PdfEditor(this)
 
     init {
         val containerBgColor = attrs?.let {
@@ -630,15 +490,15 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun loadPage() {
+    internal fun loadPage() {
         webView.loadUrl(PDF_VIEWER_URL)
     }
 
-    private fun checkViewer() {
+    internal fun checkViewer() {
         if (!isInitialized) throw PdfViewerNotInitializedException()
     }
 
-    private fun dispatchRotationChange(
+    internal fun dispatchRotationChange(
         pageRotation: PageRotation,
         dispatchToListener: Boolean = true,
     ) {
@@ -650,7 +510,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchSnapChange(
+    internal fun dispatchSnapChange(
         snapPage: Boolean,
         dispatchToListener: Boolean = true,
     ) {
@@ -668,7 +528,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchPageAlignMode(
+    internal fun dispatchPageAlignMode(
         pageAlignMode: PageAlignMode,
         dispatchToListener: Boolean = true,
     ): PageAlignMode {
@@ -686,7 +546,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun adjustAlignMode(alignMode: PageAlignMode): PageAlignMode {
+    internal fun adjustAlignMode(alignMode: PageAlignMode): PageAlignMode {
         if (singlePageArrangement) return alignMode
 
         when (pageScrollMode) {
@@ -706,7 +566,7 @@ class PdfViewer @JvmOverloads constructor(
         return alignMode
     }
 
-    private fun dispatchSinglePageArrangement(
+    internal fun dispatchSinglePageArrangement(
         singlePageArrangement: Boolean,
         dispatchToListener: Boolean = true,
     ): Boolean {
@@ -724,7 +584,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchHighlightColor(
+    internal fun dispatchHighlightColor(
         highlightColor: Int,
         dispatchToListener: Boolean = true,
     ) {
@@ -736,7 +596,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchShowAllHighlights(
+    internal fun dispatchShowAllHighlights(
         showAll: Boolean,
         dispatchToListener: Boolean = true,
     ) {
@@ -748,7 +608,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchHighlightThickness(
+    internal fun dispatchHighlightThickness(
         @IntRange(from = 8, to = 24) thickness: Int,
         dispatchToListener: Boolean = true,
     ) {
@@ -760,7 +620,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchFreeFontColor(
+    internal fun dispatchFreeFontColor(
         @ColorInt fontColor: Int,
         dispatchToListener: Boolean = true,
     ) {
@@ -774,7 +634,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchFreeFontSize(
+    internal fun dispatchFreeFontSize(
         @IntRange(from = 5, to = 100) fontSize: Int,
         dispatchToListener: Boolean = true,
     ) {
@@ -786,7 +646,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchInkColor(
+    internal fun dispatchInkColor(
         @ColorInt color: Int,
         dispatchToListener: Boolean = true,
     ) {
@@ -798,7 +658,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchInkThickness(
+    internal fun dispatchInkThickness(
         @IntRange(from = 1, to = 20) thickness: Int,
         dispatchToListener: Boolean = true,
     ) {
@@ -810,7 +670,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchInkOpacity(
+    internal fun dispatchInkOpacity(
         @IntRange(from = 1, to = 100) opacity: Int,
         dispatchToListener: Boolean = true,
     ) {
@@ -822,7 +682,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun dispatchScrollSpeedLimit(
+    internal fun dispatchScrollSpeedLimit(
         scrollSpeedLimit: ScrollSpeedLimit,
         dispatchToListener: Boolean = true,
     ): ScrollSpeedLimit {
@@ -865,7 +725,7 @@ class PdfViewer @JvmOverloads constructor(
         return result
     }
 
-    private fun adjustAlignModeAndArrangementMode(scrollMode: PageScrollMode) {
+    internal fun adjustAlignModeAndArrangementMode(scrollMode: PageScrollMode) {
         if (singlePageArrangement) {
             if (scrollMode != PageScrollMode.VERTICAL && scrollMode != PageScrollMode.HORIZONTAL)
                 singlePageArrangement = false
@@ -889,7 +749,7 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
-    private fun setUpActualScaleValues(callback: () -> Unit) {
+    internal fun setUpActualScaleValues(callback: () -> Unit) {
         var isMinSet = false
         var isMaxSet = false
         var isDefaultSet = false
@@ -1002,101 +862,8 @@ class PdfViewer @JvmOverloads constructor(
         ) : ScrollSpeedLimit()
     }
 
-    inner class Editor internal constructor() {
-        var textHighlighterOn = false
-            set(value) {
-                field = value
-                webView callDirectly if (value) "openTextHighlighter"() else "closeTextHighlighter"()
-            }
-
-        var freeTextOn = false
-            set(value) {
-                field = value
-                webView callDirectly if (value) "openEditorFreeText"() else "closeEditorFreeText"()
-            }
-
-        var inkOn = false
-            set(value) {
-                field = value
-                webView callDirectly if (value) "openEditorInk"() else "closeEditorInk"()
-            }
-
-        var stampOn = false
-            set(value) {
-                field = value
-                webView callDirectly if (value) "openEditorStamp"() else "closeEditorStamp"()
-            }
-
-        var highlightColor =
-            highlightEditorColors.firstOrNull()?.second
-                ?: defaultHighlightEditorColors.first().second
-            set(value) {
-                field = value
-                dispatchHighlightColor(value)
-            }
-
-        var showAllHighlights = true
-            set(value) {
-                field = value
-                dispatchShowAllHighlights(value)
-            }
-
-        @IntRange(from = 8, to = 24)
-        var highlightThickness = 12
-            set(value) {
-                field = value
-                dispatchHighlightThickness(value)
-            }
-
-        @ColorInt
-        var freeFontColor = Color.BLACK
-            set(value) {
-                field = value
-                dispatchFreeFontColor(value)
-            }
-
-        @IntRange(from = 5, to = 100)
-        var freeFontSize = 10
-            set(value) {
-                field = value
-                dispatchFreeFontSize(value)
-            }
-
-        @ColorInt
-        var inkColor = Color.BLACK
-            set(value) {
-                field = value
-                dispatchInkColor(value)
-            }
-
-        @IntRange(from = 1, to = 20)
-        var inkThickness = 1
-            set(value) {
-                field = value
-                dispatchInkThickness(value)
-            }
-
-        @IntRange(from = 1, to = 100)
-        var inkOpacity = 100
-            set(value) {
-                field = value
-                dispatchInkOpacity(value)
-            }
-
-        val isEditing: Boolean get() = textHighlighterOn || freeTextOn || inkOn || stampOn
-
-        fun undo() {
-            webView callDirectly "undo"()
-        }
-
-        fun redo() {
-            webView callDirectly "redo"()
-        }
-
-    }
-
     companion object {
-        private const val PDF_VIEWER_URL =
+        internal const val PDF_VIEWER_URL =
             "https://${ResourceLoader.RESOURCE_DOMAIN}/pdfviewer/com/bhuvaneshw/mozilla/pdfjs/pdf_viewer.html"
         private const val COLOR_NOT_FOUND = 11
         private val ZOOM_SCALE_RANGE = -4f..-1f
@@ -1110,225 +877,12 @@ class PdfViewer @JvmOverloads constructor(
         )
     }
 
-    @Suppress("Unused")
-    private inner class WebInterface {
-        private var findMatchStarted = false
-
-        @JavascriptInterface
-        fun onLoadSuccess(count: Int) = post {
-            pagesCount = count
-            setUpActualScaleValues {
-                scalePageTo(actualDefaultPageScale)
-            }
-            dispatchRotationChange(pageRotation, false)
-            dispatchSnapChange(snapPage, false)
-
-            dispatchSinglePageArrangement(singlePageArrangement, false)
-            dispatchPageAlignMode(pageAlignMode, false)
-            @OptIn(PdfUnstableApi::class)
-            dispatchScrollSpeedLimit(scrollSpeedLimit, false)
-
-            listeners.forEach { it.onPageLoadSuccess(count) }
-        }
-
-        @JavascriptInterface
-        fun onLoadFailed(error: String) = post {
-            listeners.forEach { it.onPageLoadFailed(error) }
-        }
-
-        @JavascriptInterface
-        fun onPageChange(pageNumber: Int) = post({ currentPage != pageNumber }) {
-            currentPage = pageNumber
-            listeners.forEach { it.onPageChange(pageNumber) }
-        }
-
-        @JavascriptInterface
-        fun onScaleChange(scale: Float, scaleValue: String) =
-            post({ currentPageScale != scale || currentPageScaleValue != scaleValue }) {
-                currentPageScale = scale
-                currentPageScaleValue = scaleValue
-                listeners.forEach { it.onScaleChange(scale) }
-            }
-
-        @JavascriptInterface
-        fun onFindMatchStart() = post {
-            findMatchStarted = true
-            listeners.forEach { it.onFindMatchStart() }
-        }
-
-        @JavascriptInterface
-        fun onFindMatchChange(current: Int, total: Int) = post {
-            if (findMatchStarted) listeners.forEach { it.onFindMatchChange(current, total) }
-        }
-
-        @JavascriptInterface
-        fun onFindMatchComplete(found: Boolean) = post {
-            if (findMatchStarted) listeners.forEach { it.onFindMatchComplete(found) }
-            findMatchStarted = false
-        }
-
-        @JavascriptInterface
-        fun onScroll(currentOffset: Int, totalOffset: Int, isHorizontal: Boolean) = post {
-            if (pageScrollMode != PageScrollMode.SINGLE_PAGE)
-                listeners.forEach { it.onScrollChange(currentOffset, totalOffset, isHorizontal) }
-        }
-
-        @JavascriptInterface
-        fun onPasswordDialogChange(isOpen: Boolean) = post {
-            listeners.forEach { it.onPasswordDialogChange(isOpen) }
-        }
-
-        @JavascriptInterface
-        fun onSpreadModeChange(ordinal: Int) = post {
-            listeners.forEach { it.onSpreadModeChange(PageSpreadMode.entries[ordinal]) }
-        }
-
-        @JavascriptInterface
-        fun onScrollModeChange(ordinal: Int) = post {
-            listeners.forEach { it.onScrollModeChange(PageScrollMode.entries[ordinal]) }
-        }
-
-        @JavascriptInterface
-        fun onSingleClick() = post {
-            listeners.forEach { it.onSingleClick() }
-        }
-
-        @JavascriptInterface
-        fun onDoubleClick() = post {
-            listeners.forEach { it.onDoubleClick() }
-        }
-
-        @JavascriptInterface
-        fun onLongClick() = post {
-            listeners.forEach { it.onLongClick() }
-        }
-
-        @JavascriptInterface
-        fun onLinkClick(link: String) = post {
-            if (!link.startsWith(PDF_VIEWER_URL))
-                listeners.forEach { it.onLinkClick(link) }
-        }
-
-        @JavascriptInterface
-        fun getHighlightEditorColorsString() = highlightEditorColors
-            .joinToString(separator = ",") { "${it.first}=${it.second.toJsHex()}" }
-
-        @JavascriptInterface
-        fun onLoadProperties(
-            title: String,
-            subject: String,
-            author: String,
-            creator: String,
-            producer: String,
-            creationDate: String,
-            modifiedDate: String,
-            keywords: String,
-            language: String,
-            pdfFormatVersion: String,
-            fileSize: Long,
-            isLinearized: Boolean,
-            encryptFilterName: String,
-            isAcroFormPresent: Boolean,
-            isCollectionPresent: Boolean,
-            isSignaturesPresent: Boolean,
-            isXFAPresent: Boolean,
-            customJson: String
-        ) = post {
-            properties = PdfDocumentProperties(
-                title = title,
-                subject = subject,
-                author = author,
-                creator = creator,
-                producer = producer,
-                creationDate = creationDate,
-                modifiedDate = modifiedDate,
-                keywords = keywords,
-                language = language,
-                pdfFormatVersion = pdfFormatVersion,
-                fileSize = fileSize,
-                isLinearized = isLinearized,
-                encryptFilterName = encryptFilterName,
-                isAcroFormPresent = isAcroFormPresent,
-                isCollectionPresent = isCollectionPresent,
-                isSignaturesPresent = isSignaturesPresent,
-                isXFAPresent = isXFAPresent,
-                customJson = customJson,
-            ).apply { listeners.forEach { it.onLoadProperties(this) } }
-        }
-
-        @JavascriptInterface
-        fun createPrintJob() = post {
-            pdfPrintAdapter?.let { pdfPrintAdapter ->
-                val printManager = context.getSystemService(Context.PRINT_SERVICE) as PrintManager
-                val jobName = "${context.packageName} Document"
-
-                if (pdfPrintAdapter is PdfPrintAdapter)
-                    pdfPrintAdapter.webView = webView
-
-                printManager.print(
-                    jobName,
-                    pdfPrintAdapter,
-                    PrintAttributes.Builder().build()
-                )
-            }
-        }
-
-        @JavascriptInterface
-        fun conveyMessage(message: String) = post {
-            pdfPrintAdapter?.let { pdfPrintAdapter ->
-                if (pdfPrintAdapter is PdfPrintAdapter)
-                    pdfPrintAdapter.onMessage(message)
-            }
-        }
-
-        @JavascriptInterface
-        fun getBase64FromBlobData(base64Data: String) {
-            val pdfAsBytes: ByteArray = Base64.decode(
-                base64Data.replaceFirst("^data:application/pdf;base64,".toRegex(), ""),
-                0
-            )
-
-            post { listeners.forEach { it.onSavePdf(pdfAsBytes) } }
-        }
-
-        fun getBase64StringFromBlobUrl(blobUrl: String): String? {
-            if (blobUrl.startsWith("blob")) {
-                return "var xhr = new XMLHttpRequest();" +
-                        "xhr.open('GET', '" + blobUrl + "', true);" +
-                        "xhr.setRequestHeader('Content-type','application/pdf');" +
-                        "xhr.responseType = 'blob';" +
-                        "xhr.onload = function(e) {" +
-                        "    if (this.status == 200) {" +
-                        "        var blobPdf = this.response;" +
-                        "        var reader = new FileReader();" +
-                        "        reader.readAsDataURL(blobPdf);" +
-                        "        reader.onloadend = function() {" +
-                        "            base64data = reader.result;" +
-                        "            JWI.getBase64FromBlobData(base64data);" +
-                        "        }" +
-                        "    }" +
-                        "};" +
-                        "xhr.send();"
-            }
-            return null
-        }
-
-        private inline fun post(
-            crossinline condition: () -> Boolean = { true },
-            runnable: Runnable
-        ) {
-            mainHandler.post {
-                if (condition()) runnable.run()
-            }
-        }
-    }
-
     private fun setPreviews(context: Context, containerBgColor: Int) {
         addView(
             LinearLayout(context).apply {
                 orientation = VERTICAL
                 if (containerBgColor == COLOR_NOT_FOUND) {
-                    if (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES)
+                    if (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES)
                         setBackgroundColor(Color.parseColor("#2A2A2E"))
                     else setBackgroundColor(Color.parseColor("#d4d4d7"))
                 } else setBackgroundColor(containerBgColor)
