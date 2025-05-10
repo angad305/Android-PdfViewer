@@ -21,6 +21,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -126,6 +127,40 @@ class PdfViewer @JvmOverloads constructor(
 //
 //                return true
 //            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                listeners.forEach {
+                    it.onReceivedError(
+                        WebViewError(
+                            errorCode = error?.errorCode,
+                            description = error?.description?.toString(),
+                            failingUrl = request?.url?.toString(),
+                            isForMainFrame = request?.isForMainFrame
+                        )
+                    )
+                }
+            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                errorCode: Int,
+                description: String?,
+                failingUrl: String?
+            ) {
+                listeners.forEach {
+                    it.onReceivedError(
+                        WebViewError(
+                            errorCode = errorCode,
+                            description = description?.toString(),
+                            failingUrl = failingUrl?.toString(),
+                        )
+                    )
+                }
+            }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)

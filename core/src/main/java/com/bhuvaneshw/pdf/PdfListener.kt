@@ -13,6 +13,7 @@ interface PdfListener {
     fun onPageLoadStart() {}
     fun onPageLoadSuccess(pagesCount: Int) {}
     fun onPageLoadFailed(errorMessage: String) {}
+    fun onReceivedError(error: WebViewError) {}
     fun onPageChange(pageNumber: Int) {}
     fun onScaleChange(scale: Float) {}
     fun onSavePdf(pdfAsBytes: ByteArray) {}
@@ -73,3 +74,10 @@ interface PdfListener {
     ): Boolean = false
 
 }
+
+data class WebViewError(
+    val errorCode: Int?,
+    val description: String?,
+    val failingUrl: String?,
+    val isForMainFrame: Boolean? = null,
+)

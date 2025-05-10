@@ -15,6 +15,7 @@ import com.bhuvaneshw.pdf.PdfDocumentProperties
 import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfViewer
+import com.bhuvaneshw.pdf.WebViewError
 import java.io.File
 
 @Composable
@@ -89,6 +90,7 @@ class PdfState(
     var source by mutableStateOf(source); internal set
     var pdfViewer: PdfViewer? by mutableStateOf(null); internal set
     var loadingState: PdfLoadingState by mutableStateOf(PdfLoadingState.Initializing); internal set
+    var webViewError: WebViewError? by mutableStateOf(null); internal set
 
     var pagesCount by mutableIntStateOf(0); internal set
     var currentPage by mutableIntStateOf(0); internal set
@@ -196,6 +198,10 @@ class PdfState(
 
         override fun onPageLoadFailed(errorMessage: String) {
             this@PdfState.loadingState = PdfLoadingState.Error(errorMessage)
+        }
+
+        override fun onReceivedError(error: WebViewError) {
+            this@PdfState.webViewError = error
         }
 
         override fun onPageChange(pageNumber: Int) {
