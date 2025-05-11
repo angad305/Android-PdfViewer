@@ -27,6 +27,11 @@ internal class ContentResourceLoader(
         return assetLoader.shouldInterceptRequest(uri)
     }
 
+    override fun createSharableUri(context: Context, authority: String, source: String): Uri? {
+        @SuppressLint("UseKtx")
+        return Uri.parse(Uri.parse(source).path?.substringAfter(path))
+    }
+
 }
 
 private class ContentUriPathHandler(

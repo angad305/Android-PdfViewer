@@ -1,6 +1,7 @@
 package com.bhuvaneshw.pdf.resource
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.webkit.WebResourceResponse
 import androidx.webkit.WebViewAssetLoader
@@ -26,6 +27,8 @@ internal class NetworkResourceLoader(
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
         return assetLoader.shouldInterceptRequest(uri)
     }
+
+    override fun createSharableUri(context: Context, authority: String, source: String): Uri? = null
 
 }
 

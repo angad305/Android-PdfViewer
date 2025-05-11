@@ -331,6 +331,38 @@ private fun Activity.ExtendedTooBarMenus(
 ) {
     var showZoomLimitDialog by remember { mutableStateOf(false) }
     val dropDownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
+    val authority = "${BuildConfig.APPLICATION_ID}.file.provider"
+
+    if (state.pdfViewer?.createSharableUri(authority) != null) {
+        DropdownMenuItem(
+            text = { Text(text = "Share", modifier = dropDownModifier) },
+            onClick = {
+                onDismiss()
+                state.pdfViewer
+                    ?.createSharableUri(authority)
+                    ?.let {
+                        startActivity(Intent(Intent.ACTION_SEND).apply {
+                            type = "application/pdf"
+                            putExtra(Intent.EXTRA_STREAM, it)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        })
+                    } ?: toast("Unable to share pdf!")
+            }
+        )
+        DropdownMenuItem(
+            text = { Text(text = "Open With", modifier = dropDownModifier) },
+            onClick = {
+                onDismiss()
+                state.pdfViewer
+                    ?.createSharableUri(authority)
+                    ?.let {
+                        startActivity(Intent(Intent.ACTION_VIEW, it).apply {
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        })
+                    } ?: toast("Unable to open pdf with other apps!")
+            }
+        )
+    }
 
     DropdownMenuItem(
         text = { Text(text = "Print", modifier = dropDownModifier) },

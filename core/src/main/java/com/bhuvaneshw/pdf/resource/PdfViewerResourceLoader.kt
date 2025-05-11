@@ -23,5 +23,8 @@ internal class PdfViewerResourceLoader(context: Context) : ResourceLoader {
         return assetLoader.shouldInterceptRequest(uri)
     }
 
+    // Should not create sharable uri with PdfViewerResourceLoader
+    override fun createSharableUri(context: Context, authority: String, source: String): Uri? = null
+
 }
 

@@ -490,6 +490,12 @@ class PdfViewer @JvmOverloads constructor(
         }
     }
 
+    fun createSharableUri(authority: String): Uri? {
+        return resourceLoaders
+            .firstOrNull { it.canHandle(Uri.parse(currentSource ?: return null)) }
+            ?.createSharableUri(context, authority, currentSource ?: return null)
+    }
+
     internal fun loadPage() {
         webView.loadUrl(PDF_VIEWER_URL)
     }

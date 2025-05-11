@@ -1,6 +1,7 @@
 package com.bhuvaneshw.pdfviewerdemo
 
 import android.content.Context
+import android.content.Intent
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.Menu
@@ -19,14 +20,20 @@ class ExtendedToolBar @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : PdfToolBar(context, attrs, defStyleAttr) {
 
+    private val authority = "${BuildConfig.APPLICATION_ID}.file.provider"
+
     @OptIn(PdfUnstableApi::class)
     override fun getPopupMenu(anchorView: View): PopupMenu {
         return PopupMenu(context, anchorView).apply {
             // Item ids 0-10 are already taken
-            menu.add(Menu.NONE, 11, Menu.NONE, "Zoom Limit")
+            if (pdfViewer.createSharableUri(authority) != null) {
+                menu.add(Menu.NONE, 11, Menu.NONE, "Share")
+                menu.add(Menu.NONE, 12, Menu.NONE, "Open With")
+            }
+            menu.add(Menu.NONE, 13, Menu.NONE, "Zoom Limit")
             menu.add(
                 Menu.NONE,
-                12,
+                14,
                 Menu.NONE,
                 (if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable" else "Disable")
                         + " scroll speed limit"
@@ -41,11 +48,35 @@ class ExtendedToolBar @JvmOverloads constructor(
 
         return when (item.itemId) {
             11 -> {
+                pdfViewer
+                    .createSharableUri(authority)
+                    ?.let {
+                        context.startActivity(Intent(Intent.ACTION_SEND).apply {
+                            type = "application/pdf"
+                            putExtra(Intent.EXTRA_STREAM, it)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        })
+                    } ?: context.toast("Unable to share pdf!")
+                return true
+            }
+
+            12 -> {
+                pdfViewer
+                    .createSharableUri(authority)
+                    ?.let {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, it).apply {
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        })
+                    } ?: context.toast("Unable to open pdf with other apps!")
+                return true
+            }
+
+            13 -> {
                 showZoomLimitDialog()
                 true
             }
 
-            12 -> {
+            14 -> {
                 if (pdfViewer.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
                     pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.AdaptiveFling()
                 else pdfViewer.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None

@@ -1,9 +1,11 @@
 package com.bhuvaneshw.pdf.resource
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import android.webkit.WebResourceResponse
+import androidx.core.content.FileProvider
 import androidx.webkit.WebViewAssetLoader
 import java.io.File
 
@@ -25,6 +27,15 @@ internal class FileResourceLoader(
 
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
         return assetLoader.shouldInterceptRequest(uri)
+    }
+
+    override fun createSharableUri(context: Context, authority: String, source: String): Uri? {
+        @SuppressLint("UseKtx")
+        return FileProvider.getUriForFile(
+            context,
+            authority,
+            File(Uri.parse(source).path?.substringAfter(path) ?: return null)
+        )
     }
 
 }
