@@ -101,7 +101,7 @@ internal fun PdfViewer.PdfJsWebView() = WebView(context).apply {
             if (!isInitialized) {
                 view callDirectly "setupHelper" {
                     post {
-                        this@PdfJsWebView.isInitialized = isInitialized
+                        isInitialized = true
                         tempBackgroundColor?.let { setContainerBackgroundColor(it) }
                         onReadyListeners.forEach { it(this@PdfJsWebView) }
                     }
