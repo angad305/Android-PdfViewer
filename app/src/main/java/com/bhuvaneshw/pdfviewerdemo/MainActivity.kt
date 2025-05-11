@@ -39,6 +39,15 @@ class MainActivity : AppCompatActivity() {
             isChecked = pref.getBoolean("use_compose", false)
             setOnCheckedChangeListener { _, isChecked ->
                 pref.edit { putBoolean("use_compose", isChecked) }
+                updateComponents(useCompose = isChecked)
+            }
+        }
+
+        view.enableBothViewers.run {
+            isChecked = pref.getBoolean("enable_both_viewers", false)
+            setOnCheckedChangeListener { _, isChecked ->
+                pref.edit { putBoolean("enable_both_viewers", isChecked) }
+                updateComponents(useCompose = view.useCompose.isChecked)
             }
         }
 
@@ -88,6 +97,17 @@ class MainActivity : AppCompatActivity() {
         view.librariesUsed.setOnClickListener {
             startActivity(Intent(this, UsedLibrariesActivity::class.java))
         }
+    }
+
+    private fun updateComponents(useCompose: Boolean) {
+        setComponentEnabled(
+            ComposePdfViewerActivity::class.java,
+            useCompose || view.enableBothViewers.isChecked
+        )
+        setComponentEnabled(
+            PdfViewerActivity::class.java,
+            !useCompose || view.enableBothViewers.isChecked
+        )
     }
 
     private fun getViewerActivityClass(): Class<*> {

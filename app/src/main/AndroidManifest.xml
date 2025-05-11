@@ -43,6 +43,7 @@
         <activity
             android:name=".ComposePdfViewerActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
+            android:enabled="false"
             android:exported="true"
             android:label="Compose Pdf Viewer">
             <intent-filter tools:ignore="AppLinkUrlError">

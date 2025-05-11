@@ -1,16 +1,18 @@
 package com.bhuvaneshw.pdfviewerdemo
 
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.net.toUri
 
 fun Activity.getDataFromIntent(): Pair<String, String>? {
     val filePath: String
@@ -24,8 +26,8 @@ fun Activity.getDataFromIntent(): Pair<String, String>? {
         // Path from asset, url or android uri
         filePath = intent.extras?.getString("filePath")
             ?: intent.extras?.getString("fileUrl")
-            ?: intent.extras?.getString("fileUri")
-            ?: return null
+                    ?: intent.extras?.getString("fileUri")
+                    ?: return null
 
         fileName = intent.extras?.getString("fileUri")?.toUri()?.getFileName(this)
             ?: intent.extras?.getString("fileName") ?: ""
@@ -72,6 +74,15 @@ fun Activity.setFullscreen(fullscreen: Boolean) {
         }
     }
 
+}
+
+fun <T> Activity.setComponentEnabled(componentClass: Class<T>, enable: Boolean) {
+    packageManager.setComponentEnabledSetting(
+        ComponentName(this, componentClass),
+        if (enable) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+        PackageManager.DONT_KILL_APP
+    )
 }
 
 fun Context.toast(msg: String) {
