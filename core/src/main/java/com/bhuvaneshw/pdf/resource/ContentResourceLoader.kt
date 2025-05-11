@@ -11,17 +11,20 @@ internal class ContentResourceLoader(
     onError: (String) -> Unit,
 ) : ResourceLoader {
 
-    private val path = "/content/"
+    companion object {
+        const val PATH = "/content/"
+    }
+
     private val assetLoader = WebViewAssetLoader.Builder()
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
-            path,
+            PATH,
             ContentUriPathHandler(context, onError)
         )
         .build()
 
     override fun canHandle(uri: Uri) =
-        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(path) == true
+        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(PATH) == true
 
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
         return assetLoader.shouldInterceptRequest(uri)
@@ -29,7 +32,7 @@ internal class ContentResourceLoader(
 
     override fun createSharableUri(context: Context, authority: String, source: String): Uri? {
         @SuppressLint("UseKtx")
-        return Uri.parse(Uri.parse(source).path?.substringAfter(path))
+        return Uri.parse(Uri.parse(source).path?.substringAfter(PATH))
     }
 
 }

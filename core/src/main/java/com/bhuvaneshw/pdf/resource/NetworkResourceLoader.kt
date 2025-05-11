@@ -12,17 +12,20 @@ internal class NetworkResourceLoader(
     onError: (String) -> Unit,
 ) : ResourceLoader {
 
-    private val path = "/network/"
+    companion object {
+        const val PATH = "/network/"
+    }
+
     private val assetLoader = WebViewAssetLoader.Builder()
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
-            path,
+            PATH,
             NetworkUriPathHandler(onError)
         )
         .build()
 
     override fun canHandle(uri: Uri) =
-        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(path) == true
+        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(PATH) == true
 
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
         return assetLoader.shouldInterceptRequest(uri)

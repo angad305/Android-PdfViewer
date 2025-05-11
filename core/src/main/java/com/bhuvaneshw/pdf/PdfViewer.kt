@@ -297,7 +297,7 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun loadFromAsset(assetPath: String) {
-        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/assets/$assetPath")
+        openUrl(urlFor(AssetResourceLoader.PATH, assetPath))
     }
 
     fun loadFromContentUri(contentUri: Uri) {
@@ -305,7 +305,7 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun loadFromContentUri(contentUri: String) {
-        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/content/${Uri.encode(contentUri)}")
+        openUrl(urlFor(ContentResourceLoader.PATH, Uri.encode(contentUri)))
     }
 
     fun loadFromFile(file: File) {
@@ -313,7 +313,7 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun loadFromFile(filePath: String) {
-        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/file/${Uri.encode(filePath)}")
+        openUrl(urlFor(FileResourceLoader.PATH, Uri.encode(filePath)))
     }
 
     fun loadFromUrl(url: Uri) {
@@ -321,7 +321,7 @@ class PdfViewer @JvmOverloads constructor(
     }
 
     fun loadFromUrl(url: String) {
-        openUrl("https://${ResourceLoader.RESOURCE_DOMAIN}/network/${Uri.encode(url)}")
+        openUrl(urlFor(NetworkResourceLoader.PATH, Uri.encode(url)))
     }
 
     private fun openUrl(url: String, originalUrl: String = url) {
@@ -870,7 +870,7 @@ class PdfViewer @JvmOverloads constructor(
 
     companion object {
         internal const val PDF_VIEWER_URL =
-            "https://${ResourceLoader.RESOURCE_DOMAIN}/pdfviewer/com/bhuvaneshw/mozilla/pdfjs/pdf_viewer.html"
+            "https://${ResourceLoader.RESOURCE_DOMAIN}${PdfViewerResourceLoader.PATH}com/bhuvaneshw/mozilla/pdfjs/pdf_viewer.html"
         private const val COLOR_NOT_FOUND = 11
         private val ZOOM_SCALE_RANGE = -4f..-1f
 
@@ -881,6 +881,10 @@ class PdfViewer @JvmOverloads constructor(
             "pink" to Color.parseColor("#FFCBE6"),
             "red" to Color.parseColor("#FF4F5F"),
         )
+
+        @Suppress("NOTHING_TO_INLINE")
+        private inline fun urlFor(path: String, source: String) =
+            "https://${ResourceLoader.RESOURCE_DOMAIN}$path$source"
     }
 
     private fun setPreviews(context: Context, containerBgColor: Int) {

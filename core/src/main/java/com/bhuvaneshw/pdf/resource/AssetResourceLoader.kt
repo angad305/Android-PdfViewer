@@ -7,20 +7,23 @@ import androidx.webkit.WebViewAssetLoader
 
 internal class AssetResourceLoader(context: Context) : ResourceLoader {
 
-    private val path = "/assets/"
+    companion object {
+        const val PATH = "/assets/"
+    }
+
     private val assetLoader = WebViewAssetLoader.Builder()
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
-            path,
+            PATH,
             WebViewAssetLoader.AssetsPathHandler(context)
         )
         .build()
 
     override fun canHandle(uri: Uri) =
-        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(path) == true
+        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(PATH) == true
 
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
-        if (uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith("${path}com/bhuvaneshw/mozilla") == true) {
+        if (uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith("${PATH}com/bhuvaneshw/mozilla") == true) {
             throw IllegalAccessException("Not allowed to load PdfViewer's internal files.")
         }
 

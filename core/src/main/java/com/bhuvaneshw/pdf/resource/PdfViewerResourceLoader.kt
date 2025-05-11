@@ -7,17 +7,20 @@ import androidx.webkit.WebViewAssetLoader
 
 internal class PdfViewerResourceLoader(context: Context) : ResourceLoader {
 
-    private val path = "/pdfviewer/"
+    companion object {
+        const val PATH = "/pdfviewer/"
+    }
+
     private val assetLoader = WebViewAssetLoader.Builder()
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
-            path,
+            PATH,
             WebViewAssetLoader.AssetsPathHandler(context)
         )
         .build()
 
     override fun canHandle(uri: Uri) =
-        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(path) == true
+        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(PATH) == true
 
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
         return assetLoader.shouldInterceptRequest(uri)

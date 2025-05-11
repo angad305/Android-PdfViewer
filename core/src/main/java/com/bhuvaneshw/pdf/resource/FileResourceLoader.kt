@@ -13,17 +13,20 @@ internal class FileResourceLoader(
     onError: (String) -> Unit,
 ) : ResourceLoader {
 
-    private val path = "/file/"
+    companion object {
+        const val PATH = "/file/"
+    }
+
     private val assetLoader = WebViewAssetLoader.Builder()
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
-            path,
+            PATH,
             FileUriPathHandler(onError)
         )
         .build()
 
     override fun canHandle(uri: Uri) =
-        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(path) == true
+        uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(PATH) == true
 
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
         return assetLoader.shouldInterceptRequest(uri)
@@ -34,7 +37,7 @@ internal class FileResourceLoader(
         return FileProvider.getUriForFile(
             context,
             authority,
-            File(Uri.parse(source).path?.substringAfter(path) ?: return null)
+            File(Uri.parse(source).path?.substringAfter(PATH) ?: return null)
         )
     }
 
