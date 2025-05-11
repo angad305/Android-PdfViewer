@@ -3,6 +3,7 @@ package com.bhuvaneshw.pdfviewerdemo
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.webkit.MimeTypeMap
 import android.webkit.URLUtil
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -55,7 +56,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(
                 Intent(this, getViewerActivityClass()).apply {
                     putExtra("fileName", "sample.pdf")
-                    putExtra("fileSize", 271804L)
                     putExtra("filePath", "asset://sample.pdf")
                 }
             )
@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
             promptUrl { url ->
                 startActivity(
                     Intent(this, getViewerActivityClass()).apply {
+                        putExtra("fileName", guessFileNameFromUrl(url))
                         putExtra("fileUrl", url)
                     }
                 )
@@ -98,6 +99,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, UsedLibrariesActivity::class.java))
         }
     }
+
+    private fun guessFileNameFromUrl(url: String): String? = URLUtil.guessFileName(
+        url,
+        null,
+        MimeTypeMap
+            .getSingleton()
+            .getMimeTypeFromExtension(url.substringAfterLast("."))
+    )
 
     private fun updateComponents(useCompose: Boolean) {
         setComponentEnabled(
