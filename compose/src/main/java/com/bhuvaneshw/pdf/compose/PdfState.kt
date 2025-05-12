@@ -32,7 +32,7 @@ fun rememberAssetPdfState(
 )
 
 @Composable
-fun rememberFilPdfState(
+fun rememberFilePdfState(
     file: File,
     highlightEditorColors: List<Pair<String, Color>> = PdfViewerDefaults.highlightEditorColors,
     defaultHighlightColor: Color = highlightEditorColors.firstOrNull()?.second
