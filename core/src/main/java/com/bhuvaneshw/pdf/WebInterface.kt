@@ -37,6 +37,11 @@ internal class WebInterface(private val pdfViewer: PdfViewer) {
     }
 
     @JavascriptInterface
+    fun onProgressChange(progress: Int) = post {
+        pdfViewer.listeners.forEach { it.onProgressChange(progress / 100f) }
+    }
+
+    @JavascriptInterface
     fun onPageChange(pageNumber: Int) = post({ pdfViewer.currentPage != pageNumber }) {
         pdfViewer.currentPage = pageNumber
         pdfViewer.listeners.forEach { it.onPageChange(pageNumber) }

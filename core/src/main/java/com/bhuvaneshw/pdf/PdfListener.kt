@@ -14,6 +14,7 @@ interface PdfListener {
     fun onPageLoadSuccess(pagesCount: Int) {}
     fun onPageLoadFailed(errorMessage: String) {}
     fun onReceivedError(error: WebViewError) {}
+    fun onProgressChange(@FloatRange(0.0, 1.0) progress: Float) {}
     fun onPageChange(pageNumber: Int) {}
     fun onScaleChange(scale: Float) {}
     fun onSavePdf(pdfAsBytes: ByteArray) {}

@@ -14,16 +14,26 @@ function openUrl(args) {
 let DOUBLE_CLICK_THRESHOLD = 300;
 let LONG_CLICK_THRESHOLD = 500;
 function doOnLast() {
-    const observerTarget = document.querySelector("#passwordDialog");
-    observerTarget.style.margin = "24px auto";
-    const observer = new MutationObserver((mutations) => {
+    const loadingBar = document.getElementById("loadingBar");
+    const loadingObserver = new MutationObserver(() => {
+        const progress = parseInt(getComputedStyle(loadingBar).getPropertyValue("--progressBar-percent"));
+        JWI.onProgressChange(progress);
+    });
+    loadingObserver.observe(loadingBar, {
+        attributes: true,
+        attributeFilter: ["style"],
+    });
+
+    const passwordDialog = document.querySelector("#passwordDialog");
+    passwordDialog.style.margin = "24px auto";
+    const passwordDialogObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === "attributes" && mutation.attributeName === "open") {
-                JWI.onPasswordDialogChange(observerTarget.getAttribute("open") !== null);
+                JWI.onPasswordDialogChange(passwordDialog.getAttribute("open") !== null);
             }
         });
     });
-    observer.observe(observerTarget, { attributes: true });
+    passwordDialogObserver.observe(passwordDialog, { attributes: true });
 
     const viewerContainer = $("#viewerContainer");
     let singleClickTimer;
@@ -100,13 +110,13 @@ function setupHelper() {
         let totalScrollable;
         let isHorizontalScroll = PDFViewerApplication.pdfViewer._scrollMode === ScrollMode.HORIZONTAL;
 
-       if (isHorizontalScroll) {
+        if (isHorizontalScroll) {
             currentOffset = viewerContainer.scrollLeft;
             totalScrollable = viewerContainer.scrollWidth - viewerContainer.clientWidth;
-       } else {
+        } else {
             currentOffset = viewerContainer.scrollTop;
             totalScrollable = viewerContainer.scrollHeight - viewerContainer.clientHeight;
-       }
+        }
 
         JWI.onScroll(Math.round(currentOffset), totalScrollable, isHorizontalScroll);
     });

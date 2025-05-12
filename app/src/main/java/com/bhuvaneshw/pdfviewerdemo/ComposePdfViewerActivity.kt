@@ -315,7 +315,11 @@ private fun Activity.MainScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                CircularProgressIndicator()
+                when (val loadingState = pdfState.loadingState) {
+                    is PdfLoadingState.Initializing -> CircularProgressIndicator()
+                    is PdfLoadingState.Loading -> CircularProgressIndicator(progress = { loadingState.progress })
+                    else -> {}
+                }
                 Text(text = "Loading...")
             }
         }

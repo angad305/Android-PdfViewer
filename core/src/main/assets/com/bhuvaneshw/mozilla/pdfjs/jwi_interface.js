@@ -11,6 +11,7 @@ try {
         },
         onLoadFailed() {},
         onLoadSuccess() {},
+        onProgressChange() {},
         onPasswordDialogChange() {},
         onLinkClick() {},
         onSingleClick() {},

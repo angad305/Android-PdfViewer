@@ -2,6 +2,7 @@ package com.bhuvaneshw.pdf.compose
 
 import android.net.Uri
 import androidx.annotation.ColorInt
+import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -136,11 +137,11 @@ class PdfState(
 
         this.pdfViewer = viewer
         viewer.addListener(Listener())
-        viewer.onReady { this@PdfState.loadingState = PdfLoadingState.Loading }
+        viewer.onReady { this@PdfState.loadingState = PdfLoadingState.Loading(0f) }
 
         if (viewer.isInitialized) {
             if (viewer.pagesCount == 0)
-                this@PdfState.loadingState = PdfLoadingState.Loading
+                this@PdfState.loadingState = PdfLoadingState.Loading(0f)
             else this@PdfState.loadingState = PdfLoadingState.Finished(viewer.pagesCount)
         } else this@PdfState.loadingState = PdfLoadingState.Initializing
 
@@ -187,7 +188,7 @@ class PdfState(
 
     inner class Listener internal constructor() : PdfListener {
         override fun onPageLoadStart() {
-            this@PdfState.loadingState = PdfLoadingState.Loading
+            this@PdfState.loadingState = PdfLoadingState.Loading(0f)
         }
 
         override fun onPageLoadSuccess(pagesCount: Int) {
@@ -202,6 +203,10 @@ class PdfState(
 
         override fun onReceivedError(error: WebViewError) {
             this@PdfState.webViewError = error
+        }
+
+        override fun onProgressChange(progress: Float) {
+            this@PdfState.loadingState = PdfLoadingState.Loading(progress)
         }
 
         override fun onPageChange(pageNumber: Int) {
@@ -332,7 +337,7 @@ class PdfState(
 
 sealed interface PdfLoadingState {
     data object Initializing : PdfLoadingState
-    data object Loading : PdfLoadingState
+    data class Loading(@FloatRange(0.0, 1.0) val progress: Float) : PdfLoadingState
     data class Finished(val pagesCount: Int) : PdfLoadingState
     data class Error(val errorMessage: String) : PdfLoadingState
 

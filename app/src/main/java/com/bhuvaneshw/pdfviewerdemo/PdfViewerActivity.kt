@@ -100,6 +100,10 @@ class PdfViewerActivity : AppCompatActivity() {
                 },
                 onLinkClick = { link ->
                     startActivity(Intent(Intent.ACTION_VIEW, link.toUri()))
+                },
+                onProgressChange = { progress ->
+                    view.progressBar.isIndeterminate = false
+                    view.progressBar.progress = (progress * 100).toInt()
                 }
             )
         }

@@ -41,6 +41,7 @@ fun PdfViewer.addListener(
     onPageLoadSuccess: ((pagesCount: Int) -> Unit)? = null,
     onPageLoadFailed: ((errorMessage: String) -> Unit)? = null,
     onReceivedError: ((error: WebViewError) -> Unit)? = null,
+    onProgressChange: ((progress: Float) -> Unit)? = null,
     onPageChange: ((pageNumber: Int) -> Unit)? = null,
     onScaleChange: ((scale: Float) -> Unit)? = null,
     onSavePdf: ((pdfAsBytes: ByteArray) -> Unit)? = null,
@@ -89,6 +90,10 @@ fun PdfViewer.addListener(
 
         override fun onReceivedError(error: WebViewError) {
             onReceivedError?.invoke(error)
+        }
+
+        override fun onProgressChange(progress: Float) {
+            onProgressChange?.invoke(progress)
         }
 
         override fun onPageChange(pageNumber: Int) {
