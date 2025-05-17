@@ -176,6 +176,9 @@ Then call load function
 > 14. PdfViewer.pageAlignMode
 > 15. PdfViewer.singlePageArrangement
 > 16. PdfViewer.scrollSpeedLimit
+> 17. PdfEditor.undo()
+> 18. PdfEditor.redo()
+> 19. All setters in PdfEditor
 
 ### 2.3 More Examples
 1. For Jetpack Compose examples see [Jetpack Compose Examples](docs/README_COMPOSE.md)
