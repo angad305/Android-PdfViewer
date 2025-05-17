@@ -345,11 +345,12 @@ private fun Activity.ExtendedTooBarMenus(
                 state.pdfViewer
                     ?.createSharableUri(authority)
                     ?.let {
-                        startActivity(Intent(Intent.ACTION_SEND).apply {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "application/pdf"
                             putExtra(Intent.EXTRA_STREAM, it)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        })
+                        }
+                        startActivity(Intent.createChooser(shareIntent, "Share PDF using"))
                     } ?: toast("Unable to share pdf!")
             }
         )

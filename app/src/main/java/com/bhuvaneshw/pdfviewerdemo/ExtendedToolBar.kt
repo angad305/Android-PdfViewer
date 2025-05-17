@@ -51,11 +51,12 @@ class ExtendedToolBar @JvmOverloads constructor(
                 pdfViewer
                     .createSharableUri(authority)
                     ?.let {
-                        context.startActivity(Intent(Intent.ACTION_SEND).apply {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "application/pdf"
                             putExtra(Intent.EXTRA_STREAM, it)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        })
+                        }
+                        context.startActivity(Intent.createChooser(shareIntent, "Share PDF using"))
                     } ?: context.toast("Unable to share pdf!")
                 return true
             }
