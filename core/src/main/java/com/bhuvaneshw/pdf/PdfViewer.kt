@@ -874,6 +874,15 @@ class PdfViewer @JvmOverloads constructor(
         private const val COLOR_NOT_FOUND = 11
         private val ZOOM_SCALE_RANGE = -4f..-1f
 
+        /**
+         * Controls suppression of WebView console logs.
+         *
+         * IMPORTANT: Set to 'false' *only* when debugging WebView behavior,
+         * as it will allow console logs to appear. Keep it 'true' in production
+         * or non-debug scenarios to avoid unnecessary log noise.
+         */
+        var preventWebViewConsoleLog = true
+
         val defaultHighlightEditorColors = listOf(
             "yellow" to Color.parseColor("#FFFF98"),
             "green" to Color.parseColor("#53FFBC"),

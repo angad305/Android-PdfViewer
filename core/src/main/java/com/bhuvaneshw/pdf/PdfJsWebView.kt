@@ -5,6 +5,7 @@ package com.bhuvaneshw.pdf
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.net.Uri
+import android.webkit.ConsoleMessage
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -42,6 +43,9 @@ internal fun PdfViewer.PdfJsWebView() = WebView(context).apply {
         ): Boolean {
             return listeners.any { it.onShowFileChooser(filePathCallback, fileChooserParams) }
         }
+
+        override fun onConsoleMessage(consoleMessage: ConsoleMessage?) =
+            PdfViewer.preventWebViewConsoleLog
     }
 
     webViewClient = object : WebViewClient() {
