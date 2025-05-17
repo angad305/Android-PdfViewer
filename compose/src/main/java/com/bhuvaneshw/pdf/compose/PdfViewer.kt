@@ -33,10 +33,10 @@ fun PdfViewer(
                     it.highlightEditorColors = pdfState.highlightEditorColors.map { colorPair ->
                         colorPair.first to colorPair.second.toArgb()
                     }
-                    it.editor.highlightColor = pdfState.defaultHighlightColor.toArgb()
                     pdfState.setPdfViewerTo(it)
                     onCreateViewer?.invoke(it)
                     it.onReady {
+                        it.editor.highlightColor = pdfState.defaultHighlightColor.toArgb()
                         onReady.onReady(this) { load(pdfState.source) }
                     }
                 } else pdfState.loadingState = PdfLoadingState.Finished(3)

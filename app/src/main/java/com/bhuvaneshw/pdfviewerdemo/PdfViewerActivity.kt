@@ -57,6 +57,7 @@ class PdfViewerActivity : AppCompatActivity() {
 //            minPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
 //            maxPageScale = 5f
 //            defaultPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
+            editor.highlightColor = Color.BLUE
             pdfSettingsManager.restore(this)
             load(filePath)
             if (filePath.isNotBlank())
@@ -92,7 +93,6 @@ class PdfViewerActivity : AppCompatActivity() {
 
         view.pdfViewer.run {
             highlightEditorColors = listOf("blue" to Color.BLUE, "black" to Color.BLACK)
-            editor.highlightColor = Color.BLUE
             addListener(
                 onPageLoadFailed = {
                     toast(it)
