@@ -2,10 +2,14 @@ package com.bhuvaneshw.pdf.resource
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.webkit.WebResourceResponse
 import androidx.webkit.WebViewAssetLoader
 
-internal class PdfViewerResourceLoader(context: Context) : ResourceLoader {
+internal class PdfViewerResourceLoader(
+    context: Context,
+    onError: (String) -> Unit,
+) : ResourceLoader {
 
     companion object {
         const val PATH = "/pdfviewer/"
@@ -15,7 +19,7 @@ internal class PdfViewerResourceLoader(context: Context) : ResourceLoader {
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
             PATH,
-            WebViewAssetLoader.AssetsPathHandler(context)
+            AssetsPathHandler(context, onError)
         )
         .build()
 
@@ -23,6 +27,10 @@ internal class PdfViewerResourceLoader(context: Context) : ResourceLoader {
         uri.host == ResourceLoader.RESOURCE_DOMAIN && uri.path?.startsWith(PATH) == true
 
     override fun shouldInterceptRequest(uri: Uri): WebResourceResponse? {
+        if (Uri.decode(uri.path) == "${PATH}com/bhuvaneshw/mozilla/pdfjs/sample.pdf") {
+            Log.i("PdfViewer", "It seems like no source is provided!")
+            return null
+        }
         return assetLoader.shouldInterceptRequest(uri)
     }
 

@@ -4,8 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.webkit.WebResourceResponse
 import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.WebViewAssetLoader.PathHandler
 
-internal class AssetResourceLoader(context: Context) : ResourceLoader {
+internal class AssetResourceLoader(
+    context: Context,
+    onError: (String) -> Unit,
+) : ResourceLoader {
 
     companion object {
         const val PATH = "/assets/"
@@ -15,7 +19,7 @@ internal class AssetResourceLoader(context: Context) : ResourceLoader {
         .setDomain(ResourceLoader.RESOURCE_DOMAIN)
         .addPathHandler(
             PATH,
-            WebViewAssetLoader.AssetsPathHandler(context)
+            AssetsPathHandler(context, onError)
         )
         .build()
 
@@ -32,4 +36,31 @@ internal class AssetResourceLoader(context: Context) : ResourceLoader {
 
     override fun createSharableUri(context: Context, authority: String, source: String): Uri? = null
 
+}
+
+internal class AssetsPathHandler(
+    private val context: Context,
+    private val onError: (String) -> Unit,
+    private val actualAssetLoader: PathHandler = WebViewAssetLoader.AssetsPathHandler(context)
+) : PathHandler by actualAssetLoader {
+
+    override fun handle(path: String): WebResourceResponse? {
+        val error = assetExists(context, path)
+        if (error != null) {
+            onError("$error")
+            return null
+        }
+
+        return actualAssetLoader.handle(path)
+    }
+}
+
+private fun assetExists(context: Context, path: String): Exception? {
+    return try {
+        context.assets.open(path).use {
+            null
+        }
+    } catch (e: Exception) {
+        e
+    }
 }

@@ -68,8 +68,8 @@ class PdfViewer @JvmOverloads constructor(
     internal var tempBackgroundColor: Int? = null
 
     internal val resourceLoaders = listOf(
-        PdfViewerResourceLoader(context),
-        AssetResourceLoader(context),
+        PdfViewerResourceLoader(context, webInterface::onLoadFailed),
+        AssetResourceLoader(context, webInterface::onLoadFailed),
         ContentResourceLoader(context, webInterface::onLoadFailed),
         FileResourceLoader(webInterface::onLoadFailed),
         NetworkResourceLoader(webInterface::onLoadFailed),

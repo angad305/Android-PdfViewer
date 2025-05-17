@@ -1,7 +1,9 @@
 function openUrl(args) {
     PDFViewerApplication.open(args)
         .then(() => sendDocumentProperties())
-        .catch((e) => JWI.onLoadFailed(e.message));
+        .catch((e) => {
+//            JWI.onLoadFailed(e.message)
+        });
 
     let callback = (event) => {
         const { pageNumber } = event;
