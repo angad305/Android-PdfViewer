@@ -32,6 +32,7 @@ import com.bhuvaneshw.pdf.PdfViewer
 import com.bhuvaneshw.pdf.PdfViewer.PageSpreadMode
 import androidx.core.view.isVisible
 import androidx.core.content.withStyledAttributes
+import com.bhuvaneshw.pdf.PdfUnstableApi
 
 open class PdfToolBar @JvmOverloads constructor(
     context: Context,
@@ -216,6 +217,7 @@ open class PdfToolBar @JvmOverloads constructor(
         inkBar.visibility = GONE
         stampBar.visibility = GONE
         showAllHighlights.isChecked = pdfViewer.editor.showAllHighlights
+        @OptIn(PdfUnstableApi::class)
         highlightColor.color = pdfViewer.editor.highlightColor
         setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
     }
@@ -244,6 +246,7 @@ open class PdfToolBar @JvmOverloads constructor(
         inkBar.visibility = if (visible) VISIBLE else GONE
         stampBar.visibility = GONE
         pdfViewer.editor.inkOn = visible
+        @OptIn(PdfUnstableApi::class)
         highlightColor.color = pdfViewer.editor.highlightColor
         inkColor.color = pdfViewer.editor.inkColor
         setEditorMainIconsVisible(mainIconsVisible = false, undoRedoVisible = true)
@@ -404,6 +407,7 @@ open class PdfToolBar @JvmOverloads constructor(
                 })
                 addView(
                     ColorItemGrid(context, pdfViewer.highlightEditorColors, contentColor) { color ->
+                        @OptIn(PdfUnstableApi::class)
                         pdfViewer.editor.highlightColor = color
                         highlightColor.color = color
                         dismiss()

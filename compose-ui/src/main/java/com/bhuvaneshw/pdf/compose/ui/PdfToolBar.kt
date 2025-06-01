@@ -82,6 +82,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfViewer
 import com.bhuvaneshw.pdf.PdfViewer.PageSpreadMode
 import com.bhuvaneshw.pdf.compose.MatchState
@@ -294,6 +295,7 @@ private fun PdfToolBarScope.HighlightOptions(popupY: Int, contentColor: Color) {
             popupY = popupY,
         )
 
+        @OptIn(PdfUnstableApi::class)
         ColorItemPicker(
             selectedColor = pdfState.editor.highlightColor,
             highlightEditorColors = pdfState.highlightEditorColors,

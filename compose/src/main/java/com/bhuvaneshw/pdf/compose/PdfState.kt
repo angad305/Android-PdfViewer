@@ -114,6 +114,7 @@ class PdfState(
     val editor = Editor()
 
     inner class Editor internal constructor() {
+        @PdfUnstableApi
         var highlightColor by mutableStateOf(
             highlightEditorColors.firstOrNull()?.second
                 ?: PdfViewerDefaults.highlightEditorColors.first().second
@@ -172,6 +173,7 @@ class PdfState(
         @OptIn(PdfUnstableApi::class)
         scrollSpeedLimit = viewer.scrollSpeedLimit
 
+        @OptIn(PdfUnstableApi::class)
         editor.highlightColor = Color(viewer.editor.highlightColor)
         editor.highlightThickness = viewer.editor.highlightThickness
         editor.showAllHighlights = viewer.editor.showAllHighlights
@@ -302,6 +304,7 @@ class PdfState(
         }
 
         override fun onEditorHighlightColorChange(@ColorInt highlightColor: Int) {
+            @OptIn(PdfUnstableApi::class)
             this@PdfState.editor.highlightColor = Color(highlightColor)
         }
 
