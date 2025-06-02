@@ -268,6 +268,7 @@ private fun Activity.MainScreen(
                 exit = fadeOut() + slideOutVertically { -it },
             ) {
                 var onPickColorCallback by remember { mutableStateOf<((Color) -> Unit)?>(null) }
+                var showZoomLimitDialog by remember { mutableStateOf(false) }
 
                 PdfToolBar(
                     title = title,
@@ -277,9 +278,10 @@ private fun Activity.MainScreen(
                     showEditor = true,
                     dropDownMenu = { onDismiss, defaultMenus ->
                         ExtendedTooBarMenus(
-                            pdfState,
-                            onDismiss,
-                            defaultMenus
+                            pdfState = pdfState,
+                            showZoomLimitDialog = { showZoomLimitDialog = it },
+                            onDismiss = onDismiss,
+                            defaultMenus = defaultMenus
                         )
                     },
                     pickColor = { onPickColor ->
@@ -298,6 +300,12 @@ private fun Activity.MainScreen(
                         onPickColorCallback = null
                     }
                 )
+
+                if (showZoomLimitDialog)
+                    ZoomLimitDialog(
+                        state = pdfState,
+                        onDismiss = { showZoomLimitDialog = false }
+                    )
             }
         },
         pdfScrollBar = { parentSize ->
@@ -329,20 +337,19 @@ private fun Activity.MainScreen(
 @OptIn(PdfUnstableApi::class)
 @Composable
 private fun Activity.ExtendedTooBarMenus(
-    state: PdfState,
+    pdfState: PdfState,
+    showZoomLimitDialog: (Boolean) -> Unit,
     onDismiss: () -> Unit,
-    defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit
+    defaultMenus: @Composable (filtered: List<PdfToolBarMenuItem>) -> Unit
 ) {
-    var showZoomLimitDialog by remember { mutableStateOf(false) }
     val dropDownModifier = Modifier.padding(start = 6.dp, end = 18.dp)
     val authority = "${BuildConfig.APPLICATION_ID}.file.provider"
 
-    if (state.pdfViewer?.createSharableUri(authority) != null) {
+    if (pdfState.pdfViewer?.createSharableUri(authority) != null) {
         DropdownMenuItem(
             text = { Text(text = "Share", modifier = dropDownModifier) },
             onClick = {
-                onDismiss()
-                state.pdfViewer
+                pdfState.pdfViewer
                     ?.createSharableUri(authority)
                     ?.let {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
@@ -352,19 +359,20 @@ private fun Activity.ExtendedTooBarMenus(
                         }
                         startActivity(Intent.createChooser(shareIntent, "Share PDF using"))
                     } ?: toast("Unable to share pdf!")
+                onDismiss()
             }
         )
         DropdownMenuItem(
             text = { Text(text = "Open With", modifier = dropDownModifier) },
             onClick = {
-                onDismiss()
-                state.pdfViewer
+                pdfState.pdfViewer
                     ?.createSharableUri(authority)
                     ?.let {
                         startActivity(Intent(Intent.ACTION_VIEW, it).apply {
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         })
                     } ?: toast("Unable to open pdf with other apps!")
+                onDismiss()
             }
         )
     }
@@ -372,34 +380,34 @@ private fun Activity.ExtendedTooBarMenus(
     DropdownMenuItem(
         text = { Text(text = "Print", modifier = dropDownModifier) },
         onClick = {
+            pdfState.pdfViewer?.printFile()
             onDismiss()
-            state.pdfViewer?.printFile()
         }
     )
     DropdownMenuItem(
         text = { Text(text = "Zoom Limit", modifier = dropDownModifier) },
-        onClick = { showZoomLimitDialog = true }
+        onClick = {
+            showZoomLimitDialog(true)
+            onDismiss()
+        }
     )
     DropdownMenuItem(
         text = {
             Text(
                 text = (
-                        if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable"
+                        if (pdfState.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None) "Enable"
                         else "Disable"
                         ) + " scroll speed limit", modifier = dropDownModifier
             )
         },
         onClick = {
-            if (state.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
-                state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.AdaptiveFling()
-            else state.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
+            if (pdfState.pdfViewer?.scrollSpeedLimit == PdfViewer.ScrollSpeedLimit.None)
+                pdfState.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.AdaptiveFling()
+            else pdfState.pdfViewer?.scrollSpeedLimit = PdfViewer.ScrollSpeedLimit.None
             onDismiss()
         }
     )
-    defaultMenus { true }
-
-    if (showZoomLimitDialog)
-        ZoomLimitDialog(state = state, onDismiss = { showZoomLimitDialog = false; onDismiss() })
+    defaultMenus(PdfToolBarMenuItem.entries)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

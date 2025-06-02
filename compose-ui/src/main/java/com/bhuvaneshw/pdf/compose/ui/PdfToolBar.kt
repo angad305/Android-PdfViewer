@@ -99,13 +99,10 @@ fun PdfToolBar(
     onBack: (() -> Unit)? = null,
     fileName: (() -> String)? = null,
     contentColor: Color? = null,
-    backIcon: (@Composable PdfToolBarScope.() -> Unit)? = defaultToolBarBackIcon(
-        contentColor,
-        onBack
-    ),
+    backIcon: (PdfToolBarBackIcon)? = defaultToolBarBackIcon(contentColor, onBack),
     showEditor: Boolean = false,
-    pickColor: ((onPickColor: (color: Color) -> Unit) -> Unit)? = null,
-    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
+    pickColor: PickColor? = null,
+    dropDownMenu: PdfToolBarMenu = defaultToolBarDropDownMenu(),
 ) {
     val toolBarScope = PdfToolBarScope(
         pdfState = pdfState,
@@ -167,26 +164,167 @@ fun PdfToolBar(
         )
         Box {
             var showMoreOptions by remember { mutableStateOf(false) }
+
+            var showZoom by remember { mutableStateOf(false) }
+            var showGoToPage by remember { mutableStateOf(false) }
+            var showScrollMode by remember { mutableStateOf(false) }
+            var showPageSingleArrangement by remember { mutableStateOf(false) }
+            var showSplitMode by remember { mutableStateOf(false) }
+            var showAlignMode by remember { mutableStateOf(false) }
+            var showSnapPage by remember { mutableStateOf(false) }
+            var showDocumentProperties by remember { mutableStateOf(false) }
+            val onDismiss = { showMoreOptions = false }
+
             toolBarScope.ToolBarIcon(
                 icon = Icons.Default.MoreVert,
                 isEnabled = !pdfState.loadingState.isLoading,
                 onClick = { showMoreOptions = true },
                 tint = contentColor ?: Color.Unspecified,
             )
+
             DropdownMenu(
                 expanded = showMoreOptions,
-                onDismissRequest = { showMoreOptions = false },
+                onDismissRequest = onDismiss,
                 shape = RoundedCornerShape(12.dp),
             ) {
-                dropDownMenu({ showMoreOptions = false }) { filter ->
-                    MoreOptions(
-                        state = pdfState,
-                        fileName = fileName,
-                        onDismiss = { showMoreOptions = false },
-                        filter = filter,
-                    )
+                dropDownMenu(onDismiss) { filtered ->
+                    filtered.forEach { filteredItem ->
+                        val pdfViewer = pdfState.pdfViewer ?: return@forEach
+
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.SAVE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                pdfViewer.downloadFile()
+                                onDismiss()
+                            }
+                        )
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.ZOOM,
+                            filteredItem = filteredItem,
+                            text = pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
+                            onClick = {
+                                showZoom = true
+                                onDismiss()
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.GO_TO_PAGE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                showGoToPage = true
+                                onDismiss()
+                            }
+                        )
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.ROTATE_CLOCK_WISE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                pdfViewer.rotateClockWise()
+                                onDismiss()
+                            }
+                        )
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                pdfViewer.rotateCounterClockWise()
+                                onDismiss()
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.SCROLL_MODE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                showScrollMode = true
+                                onDismiss()
+                            }
+                        )
+
+                        val showSingleArrangementMenu = remember {
+                            pdfState.scrollMode.let { it == PdfViewer.PageScrollMode.VERTICAL || it == PdfViewer.PageScrollMode.HORIZONTAL }
+                                    && pdfState.spreadMode == PageSpreadMode.NONE
+                        }
+                        if (showSingleArrangementMenu)
+                            DropdownMenuItem(
+                                menuItem = PdfToolBarMenuItem.CUSTOM_PAGE_ARRANGEMENT,
+                                filteredItem = filteredItem,
+                                onClick = {
+                                    showPageSingleArrangement = true
+                                    onDismiss()
+                                }
+                            )
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.SPREAD_MODE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                showSplitMode = true
+                                onDismiss()
+                            }
+                        )
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.ALIGN_MODE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                showAlignMode = true
+                                onDismiss()
+                            }
+                        )
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.SNAP_PAGE,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                showSnapPage = true
+                                onDismiss()
+                            }
+                        )
+                        DropdownMenuItem(
+                            menuItem = PdfToolBarMenuItem.PROPERTIES,
+                            filteredItem = filteredItem,
+                            onClick = {
+                                showDocumentProperties = true
+                                onDismiss()
+                            }
+                        )
+                    }
                 }
             }
+
+            if (showZoom)
+                ZoomDialog(pdfState = pdfState, onDismiss = { showZoom = false })
+            if (showGoToPage)
+                GoToPageDialog(
+                    pdfState = pdfState,
+                    onDismiss = { showGoToPage = false })
+            if (showScrollMode)
+                ScrollModeDialog(
+                    pdfState = pdfState,
+                    onDismiss = { showScrollMode = false })
+            if (showPageSingleArrangement)
+                SinglePageArrangementDialog(
+                    pdfState = pdfState,
+                    onDismiss = { showPageSingleArrangement = false }
+                )
+            if (showSplitMode)
+                SplitModeDialog(
+                    pdfState = pdfState,
+                    onDismiss = { showSplitMode = false })
+            if (showAlignMode)
+                AlignModeDialog(
+                    pdfState = pdfState,
+                    onDismiss = { showAlignMode = false })
+            if (showSnapPage)
+                SnapPageDialog(
+                    pdfState = pdfState,
+                    onDismiss = { showSnapPage = false })
+            if (showDocumentProperties)
+                DocumentPropertiesDialog(
+                    pdfState = pdfState,
+                    fileName = fileName,
+                    onDismiss = { showDocumentProperties = false },
+                )
         }
     }
 }
@@ -195,7 +333,7 @@ fun PdfToolBar(
 private fun PdfToolBarScope.Editor(
     contentColor: Color,
     modifier: Modifier,
-    pickColor: ((onPickColor: (color: Color) -> Unit) -> Unit)?,
+    pickColor: PickColor?,
 ) {
     val density = LocalDensity.current
     val popupY = remember { with(density) { 60.dp.toPx() }.roundToInt() }
@@ -334,7 +472,7 @@ private fun PdfToolBarScope.HighlightOptions(popupY: Int, contentColor: Color) {
 private fun PdfToolBarScope.FreeTextOptions(
     popupY: Int,
     contentColor: Color,
-    pickColor: ((onPickColor: (color: Color) -> Unit) -> Unit)?,
+    pickColor: PickColor?,
 ) {
     Row(
         modifier = Modifier
@@ -379,7 +517,7 @@ private fun PdfToolBarScope.FreeTextOptions(
 private fun PdfToolBarScope.InkOptions(
     popupY: Int,
     contentColor: Color,
-    pickColor: ((onPickColor: (color: Color) -> Unit) -> Unit)?,
+    pickColor: PickColor?,
 ) {
     Row(
         modifier = Modifier
@@ -740,138 +878,7 @@ private fun PdfToolBarScope.FindBar(contentColor: Color, modifier: Modifier) {
 }
 
 @Composable
-private fun MoreOptions(
-    state: PdfState,
-    fileName: (() -> String)?,
-    onDismiss: () -> Unit,
-    filter: (PdfToolBarMenuItem) -> Boolean,
-) {
-    val pdfViewer = state.pdfViewer ?: return
-
-    var showZoom by remember { mutableStateOf(false) }
-    var showGoToPage by remember { mutableStateOf(false) }
-    var showScrollMode by remember { mutableStateOf(false) }
-    var showPageSingleArrangement by remember { mutableStateOf(false) }
-    var showSplitMode by remember { mutableStateOf(false) }
-    var showAlignMode by remember { mutableStateOf(false) }
-    var showSnapPage by remember { mutableStateOf(false) }
-    var showDocumentProperties by remember { mutableStateOf(false) }
-
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.DOWNLOAD,
-        filter = filter,
-        onClick = {
-            pdfViewer.downloadFile()
-            onDismiss()
-        }
-    )
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.ZOOM,
-        filter = filter,
-        text = pdfViewer.currentPageScaleValue.formatZoom(pdfViewer.currentPageScale),
-        onClick = {
-            showZoom = true
-        }
-    )
-
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.GO_TO_PAGE,
-        filter = filter,
-        onClick = {
-            showGoToPage = true
-        }
-    )
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.ROTATE_CLOCK_WISE,
-        filter = filter,
-        onClick = {
-            pdfViewer.rotateClockWise()
-            onDismiss()
-        }
-    )
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.ROTATE_ANTI_CLOCK_WISE,
-        filter = filter,
-        onClick = {
-            pdfViewer.rotateCounterClockWise()
-            onDismiss()
-        }
-    )
-
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.SCROLL_MODE,
-        filter = filter,
-        onClick = {
-            showScrollMode = true
-        }
-    )
-
-    val showSingleArrangementMenu = remember {
-        state.scrollMode.let { it == PdfViewer.PageScrollMode.VERTICAL || it == PdfViewer.PageScrollMode.HORIZONTAL }
-                && state.spreadMode == PageSpreadMode.NONE
-    }
-    if (showSingleArrangementMenu)
-        DropdownMenuItem(
-            menuItem = PdfToolBarMenuItem.CUSTOM_PAGE_ARRANGEMENT,
-            filter = filter,
-            onClick = { showPageSingleArrangement = true }
-        )
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.SPREAD_MODE,
-        filter = filter,
-        onClick = {
-            showSplitMode = true
-        }
-    )
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.ALIGN_MODE,
-        filter = filter,
-        onClick = {
-            showAlignMode = true
-        }
-    )
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.SNAP_PAGE,
-        filter = filter,
-        onClick = {
-            showSnapPage = true
-        }
-    )
-    DropdownMenuItem(
-        menuItem = PdfToolBarMenuItem.PROPERTIES,
-        filter = filter,
-        onClick = {
-            showDocumentProperties = true
-        }
-    )
-
-    if (showZoom)
-        ZoomDialog(state = state, onDismiss = { showZoom = false; onDismiss() })
-    if (showGoToPage)
-        GoToPageDialog(state = state, onDismiss = { showGoToPage = false; onDismiss() })
-    if (showScrollMode)
-        ScrollModeDialog(state = state, onDismiss = { showScrollMode = false; onDismiss() })
-    if (showPageSingleArrangement)
-        SinglePageArrangementDialog(
-            state = state,
-            onDismiss = { showPageSingleArrangement = false; onDismiss() }
-        )
-    if (showSplitMode)
-        SplitModeDialog(state = state, onDismiss = { showSplitMode = false; onDismiss() })
-    if (showAlignMode)
-        AlignModeDialog(state = state, onDismiss = { showAlignMode = false; onDismiss() })
-    if (showSnapPage)
-        SnapPageDialog(state = state, onDismiss = { showSnapPage = false; onDismiss() })
-    if (showDocumentProperties)
-        DocumentPropertiesDialog(
-            state = state,
-            fileName = fileName,
-            onDismiss = { showDocumentProperties = false; onDismiss() },
-        )
-}
-
-@Composable
-private fun ZoomDialog(state: PdfState, onDismiss: () -> Unit) {
+private fun ZoomDialog(pdfState: PdfState, onDismiss: () -> Unit) {
     val displayOptions = arrayOf(
         "Automatic", "Page Fit", "Page Width", "Actual Size",
         "50%", "75%", "100%", "125%", "150%", "200%", "300%", "400%"
@@ -881,7 +888,7 @@ private fun ZoomDialog(state: PdfState, onDismiss: () -> Unit) {
         Zoom.PAGE_WIDTH.value, Zoom.ACTUAL_SIZE.value,
         "0.5", "0.75", "1", "1.25", "1.5", "2", "3", "4"
     )
-    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+    val pdfViewer = pdfState.pdfViewer ?: run { onDismiss(); return }
     val selectedIndex = findSelectedOption(options, pdfViewer.currentPageScaleValue)
 
     AlertDialog(
@@ -920,11 +927,11 @@ private fun ZoomDialog(state: PdfState, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun GoToPageDialog(state: PdfState, onDismiss: () -> Unit) {
+private fun GoToPageDialog(pdfState: PdfState, onDismiss: () -> Unit) {
     var pageNumber by remember { mutableStateOf("") }
 
     val select: () -> Unit = {
-        pageNumber.toIntOrNull()?.let { state.pdfViewer?.goToPage(it) }
+        pageNumber.toIntOrNull()?.let { pdfState.pdfViewer?.goToPage(it) }
         onDismiss()
     }
 
@@ -979,7 +986,7 @@ private fun GoToPageDialog(state: PdfState, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun ScrollModeDialog(state: PdfState, onDismiss: () -> Unit) {
+private fun ScrollModeDialog(pdfState: PdfState, onDismiss: () -> Unit) {
     val displayOptions = arrayOf(
         "Vertical", "Horizontal", "Wrapped", "Single Page"
     )
@@ -989,7 +996,7 @@ private fun ScrollModeDialog(state: PdfState, onDismiss: () -> Unit) {
         PdfViewer.PageScrollMode.WRAPPED.name,
         PdfViewer.PageScrollMode.SINGLE_PAGE.name
     )
-    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+    val pdfViewer = pdfState.pdfViewer ?: run { onDismiss(); return }
     val selectedIndex = findSelectedOption(options, pdfViewer.pageScrollMode.name)
 
     AlertDialog(
@@ -1021,8 +1028,8 @@ private fun ScrollModeDialog(state: PdfState, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun SinglePageArrangementDialog(state: PdfState, onDismiss: () -> Unit) {
-    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+private fun SinglePageArrangementDialog(pdfState: PdfState, onDismiss: () -> Unit) {
+    val pdfViewer = pdfState.pdfViewer ?: run { onDismiss(); return }
     var isChecked by remember { mutableStateOf(pdfViewer.singlePageArrangement) }
 
     AlertDialog(
@@ -1061,7 +1068,7 @@ private fun SinglePageArrangementDialog(state: PdfState, onDismiss: () -> Unit) 
 }
 
 @Composable
-private fun SplitModeDialog(state: PdfState, onDismiss: () -> Unit) {
+private fun SplitModeDialog(pdfState: PdfState, onDismiss: () -> Unit) {
     val displayOptions = arrayOf(
         "None", "Odd", "Even"
     )
@@ -1070,7 +1077,7 @@ private fun SplitModeDialog(state: PdfState, onDismiss: () -> Unit) {
         PageSpreadMode.ODD.name,
         PageSpreadMode.EVEN.name
     )
-    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+    val pdfViewer = pdfState.pdfViewer ?: run { onDismiss(); return }
     val selectedIndex = findSelectedOption(options, pdfViewer.pageSpreadMode.name)
 
     AlertDialog(
@@ -1102,8 +1109,8 @@ private fun SplitModeDialog(state: PdfState, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun AlignModeDialog(state: PdfState, onDismiss: () -> Unit) {
-    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+private fun AlignModeDialog(pdfState: PdfState, onDismiss: () -> Unit) {
+    val pdfViewer = pdfState.pdfViewer ?: run { onDismiss(); return }
     val displayOptions = buildList {
         add("Default")
         if (pdfViewer.singlePageArrangement || (pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.VERTICAL && pdfViewer.pageScrollMode != PdfViewer.PageScrollMode.WRAPPED))
@@ -1153,8 +1160,8 @@ private fun AlignModeDialog(state: PdfState, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun SnapPageDialog(state: PdfState, onDismiss: () -> Unit) {
-    val pdfViewer = state.pdfViewer ?: run { onDismiss(); return }
+private fun SnapPageDialog(pdfState: PdfState, onDismiss: () -> Unit) {
+    val pdfViewer = pdfState.pdfViewer ?: run { onDismiss(); return }
     var isChecked by remember { mutableStateOf(pdfViewer.snapPage) }
 
     AlertDialog(
@@ -1194,11 +1201,11 @@ private fun SnapPageDialog(state: PdfState, onDismiss: () -> Unit) {
 
 @Composable
 private fun DocumentPropertiesDialog(
-    state: PdfState,
+    pdfState: PdfState,
     fileName: (() -> String)?,
     onDismiss: () -> Unit
 ) {
-    val properties = state.pdfViewer?.properties ?: run { onDismiss(); return }
+    val properties = pdfState.pdfViewer?.properties ?: run { onDismiss(); return }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1306,7 +1313,7 @@ internal fun PdfToolBarScope.ToolBarIcon(
 internal fun defaultToolBarBackIcon(
     contentColor: Color?,
     onBack: (() -> Unit)?
-): @Composable PdfToolBarScope.() -> Unit {
+): PdfToolBarBackIcon {
     return {
         ToolBarIcon(
             icon = Icons.AutoMirrored.Default.ArrowBack,
@@ -1329,20 +1336,24 @@ internal fun defaultToolBarBackIcon(
     }
 }
 
-internal fun defaultToolBarDropDownMenu(): @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit {
+internal fun defaultToolBarDropDownMenu(): PdfToolBarMenu {
     return { _, defaultMenus ->
-        defaultMenus { true }
+        defaultMenus(PdfToolBarMenuItem.entries)
     }
 }
+
+typealias PdfToolBarBackIcon = @Composable PdfToolBarScope.() -> Unit
+typealias PdfToolBarMenu = @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (filtered: List<PdfToolBarMenuItem>) -> Unit) -> Unit
+typealias PickColor = ((color: Color) -> Unit) -> Unit
 
 @Composable
 private fun DropdownMenuItem(
     menuItem: PdfToolBarMenuItem,
     onClick: () -> Unit,
-    filter: (PdfToolBarMenuItem) -> Boolean,
+    filteredItem: PdfToolBarMenuItem,
     text: String = menuItem.displayName,
 ) {
-    if (filter(menuItem)) DropdownMenuItem(
+    if (filteredItem == menuItem) DropdownMenuItem(
         text = {
             Text(
                 text = text,

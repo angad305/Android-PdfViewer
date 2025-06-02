@@ -1,7 +1,7 @@
 package com.bhuvaneshw.pdf.compose.ui
 
 enum class PdfToolBarMenuItem(internal val displayName: String) {
-    DOWNLOAD("Download"),
+    SAVE("Save"),
     ZOOM("Zoom"),
     GO_TO_PAGE("Go to page"),
     ROTATE_CLOCK_WISE("Rotate Clockwise"),

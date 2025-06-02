@@ -55,9 +55,10 @@ fun PdfViewerContainer(
     Column(modifier = modifier) {
         pdfToolBar?.invoke(PdfContainerScope(pdfState))
 
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .onGloballyPositioned { parentSize = it.size }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { parentSize = it.size }
         ) {
             pdfViewer(PdfContainerBoxScope(pdfState, this))
             pdfScrollBar?.let { scrollBar ->
@@ -100,10 +101,10 @@ fun PdfContainerScope.PdfToolBar(
     onBack: (() -> Unit)? = null,
     fileName: (() -> String)? = null,
     contentColor: Color? = null,
-    backIcon: (@Composable PdfToolBarScope.() -> Unit)? = defaultToolBarBackIcon(contentColor, onBack),
+    backIcon: (PdfToolBarBackIcon)? = defaultToolBarBackIcon(contentColor, onBack),
     showEditor: Boolean = false,
     pickColor: ((onPickColor: (color: Color) -> Unit) -> Unit)? = null,
-    dropDownMenu: @Composable (onDismiss: () -> Unit, defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit) -> Unit = defaultToolBarDropDownMenu(),
+    dropDownMenu: PdfToolBarMenu = defaultToolBarDropDownMenu(),
 ) {
     PdfToolBar(
         pdfState = pdfState,
@@ -182,7 +183,10 @@ private fun PasswordDialog(pdfState: PdfState) {
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardActions = KeyboardActions(onDone = { select() }),
                 singleLine = true,
-                textStyle = TextStyle(fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier
                     .fillMaxWidth()
