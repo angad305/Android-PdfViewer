@@ -216,7 +216,7 @@ fun ExtendedToolBar() {
 @Composable
 private fun ExtendedTooBarMenus(
     onDismiss: () -> Unit,
-    defaultMenus: @Composable (filter: (PdfToolBarMenuItem) -> Boolean) -> Unit
+    defaultMenus: @Composable (filtered: List<PdfToolBarMenuItem>) -> Unit
 ) {
     DropdownMenuItem(
         text = { Text(text = "Extended Menu") },
@@ -225,9 +225,8 @@ private fun ExtendedTooBarMenus(
             onDismiss()
         }
     )
-    defaultMenus { menuItem -> // Default menus
-        true // or filter like, menuItem != PdfToolBarMenuItem.CUSTOM_PAGE_ARRANGEMENT
-    }
+    defaultMenus(PdfToolBarMenuItem.entries)
+    // or defaultMenus(PdfToolBarMenuItem.entries.filter { it != PdfToolBarMenuItem.CUSTOM_PAGE_ARRANGEMENT })
 }
 ```
 
