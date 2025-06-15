@@ -183,10 +183,14 @@ class PdfScrollBar @JvmOverloads constructor(
     }
 
     fun setContentColor(@ColorInt contentColor: Int, @ColorInt handleColor: Int) {
-        pageNumberInfo.setTextColor(contentColor)
-        pageNumberInfo.setBgTintModes(handleColor)
-        dragHandle.setTintModes(contentColor)
-        dragHandle.setBgTintModes(handleColor)
+        rootVertical.findViewById<TextView>(R.id.page_number_info).setTextColor(contentColor)
+        rootHorizontal.findViewById<TextView>(R.id.page_number_info).setTextColor(contentColor)
+        rootVertical.findViewById<TextView>(R.id.page_number_info).setBgTintModes(handleColor)
+        rootHorizontal.findViewById<TextView>(R.id.page_number_info).setBgTintModes(handleColor)
+        rootVertical.findViewById<ImageView>(R.id.drag_handle).setTintModes(contentColor)
+        rootHorizontal.findViewById<ImageView>(R.id.drag_handle).setTintModes(contentColor)
+        rootVertical.findViewById<ImageView>(R.id.drag_handle).setBgTintModes(handleColor)
+        rootHorizontal.findViewById<ImageView>(R.id.drag_handle).setBgTintModes(handleColor)
     }
 
     private fun startTimer() {
