@@ -986,7 +986,11 @@ function setInkOpacity(opacity) {
 }
 
 function selectHighlighterColor(color) {
-    $(`[data-color="${color.toLowerCase()}"]`).click();
+    try {
+        $(`[data-color="${color.toLowerCase()}"]`).click();
+    } catch (e) {
+        console.log("Unable to set highlight color! If this affects the behaviour, please raise an issue!");
+    }
 
     $all(".editToolbar .colorPicker").forEach((colorPicker) => {
         if (!colorPicker.parentElement.parentElement.classList.contains("hidden")) {
