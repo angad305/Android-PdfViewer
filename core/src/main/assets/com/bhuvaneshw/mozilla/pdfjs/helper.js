@@ -16,6 +16,8 @@ function openUrl(args) {
 let DOUBLE_CLICK_THRESHOLD = 300;
 let LONG_CLICK_THRESHOLD = 500;
 function doOnLast() {
+    hideAllControls();
+
     const loadingBar = document.getElementById("loadingBar");
     const loadingObserver = new MutationObserver(() => {
         const progress = parseInt(getComputedStyle(loadingBar).getPropertyValue("--progressBar-percent"));
@@ -145,6 +147,15 @@ function setupHelper() {
     observer.observe(searchInput, {
         attributes: true,
         attributeFilter: ["data-status"],
+    });
+}
+
+function hideAllControls() {
+    const ids = ["#sidebarContainer", ".hiddenSmallView", "#editorModeButtons", ".hiddenMediumView", "#secondaryOpenFile", "#viewBookmark"];
+
+    setToolbarEnabled(false);
+    ids.forEach((id) => {
+        $(id).style.display = "none";
     });
 }
 
