@@ -47,7 +47,16 @@ internal class AssetsPathHandler(
     override fun handle(path: String): WebResourceResponse? {
         val error = assetExists(context, path)
         if (error != null) {
-            onError("$error")
+            when ("$error") {
+                "java.io.FileNotFoundException: com/bhuvaneshw/mozilla/web/wasm/openjpeg.wasm",
+                "java.io.FileNotFoundException: com/bhuvaneshw/mozilla/web/wasm/openjpeg_nowasm_fallback.js"
+                    -> onError("JPEG2000 not found. Please include jp2 module!")
+
+                "java.io.FileNotFoundException: com/bhuvaneshw/mozilla/web/wasm/qcms_bg.wasm"
+                    -> onError("Color profile not found. Please include icc module!")
+
+                else -> onError("$error")
+            }
             return null
         }
 

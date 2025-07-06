@@ -69,6 +69,8 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":compose"))
     implementation(project(":compose-ui"))
+    implementation(project(":icc"))
+    implementation(project(":jp2"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
