@@ -62,7 +62,6 @@ import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.PdfUnstablePrintApi
 import com.bhuvaneshw.pdf.PdfViewer
-import com.bhuvaneshw.pdf.SimplePdfPrintAdapter
 import com.bhuvaneshw.pdf.addListener
 import com.bhuvaneshw.pdf.callIfScrollSpeedLimitIsEnabled
 import com.bhuvaneshw.pdf.callSafely
@@ -77,6 +76,7 @@ import com.bhuvaneshw.pdf.compose.ui.PdfToolBarMenuItem
 import com.bhuvaneshw.pdf.compose.ui.PdfViewer
 import com.bhuvaneshw.pdf.compose.ui.PdfViewerContainer
 import com.bhuvaneshw.pdf.compose.ui.rememberToolBarState
+import com.bhuvaneshw.pdf.print.DefaultPdfPrintAdapter
 import com.bhuvaneshw.pdf.setting.PdfSettingsManager
 import com.bhuvaneshw.pdf.sharedPdfSettingsManager
 import com.bhuvaneshw.pdfviewerdemo.ui.theme.PdfViewerComposeDemoTheme
@@ -232,7 +232,7 @@ private fun Activity.MainScreen(
                 onReady = DefaultOnReadyCallback {
                     pdfSettingsManager?.restore(this)
                     setPdfViewer(this)
-                    pdfPrintAdapter = SimplePdfPrintAdapter()
+                    pdfPrintAdapter = DefaultPdfPrintAdapter(context)
 
                     addListener(downloadPdfListener)
                     addListener(imagePickerListener)

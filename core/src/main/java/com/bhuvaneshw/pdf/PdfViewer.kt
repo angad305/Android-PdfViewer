@@ -437,6 +437,7 @@ class PdfViewer @JvmOverloads constructor(
 
     @PdfUnstableApi
     fun printFile() {
+        pdfPrintAdapter ?: throw RuntimeException("PdfPrintAdapter has not been set!")
         webView callDirectly "printFile"()
     }
 

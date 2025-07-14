@@ -9,6 +9,7 @@ import com.bhuvaneshw.pdf.PdfViewer.Companion.PDF_VIEWER_URL
 import com.bhuvaneshw.pdf.PdfViewer.PageScrollMode
 import com.bhuvaneshw.pdf.PdfViewer.PageSpreadMode
 import com.bhuvaneshw.pdf.js.toJsHex
+import com.bhuvaneshw.pdf.print.PdfPrintBridge
 
 @Suppress("Unused")
 internal class WebInterface(private val pdfViewer: PdfViewer) {
@@ -174,8 +175,12 @@ internal class WebInterface(private val pdfViewer: PdfViewer) {
                 pdfViewer.context.getSystemService(Context.PRINT_SERVICE) as PrintManager
             val jobName = "${pdfViewer.context.packageName} Document"
 
-            if (pdfPrintAdapter is PdfPrintAdapter)
+            if (pdfPrintAdapter is PdfPrintBridge) {
                 pdfPrintAdapter.webView = pdfViewer.webView
+                pdfPrintAdapter.onProgress = { progress ->
+                    // TODO: publish progress
+                }
+            }
 
             printManager.print(
                 jobName,
@@ -186,10 +191,10 @@ internal class WebInterface(private val pdfViewer: PdfViewer) {
     }
 
     @JavascriptInterface
-    fun conveyMessage(message: String) = post {
+    fun conveyMessage(message: String?, type: String?, pageNum: String?) = post {
         pdfViewer.pdfPrintAdapter?.let { pdfPrintAdapter ->
-            if (pdfPrintAdapter is PdfPrintAdapter)
-                pdfPrintAdapter.onMessage(message)
+            if (pdfPrintAdapter is PdfPrintBridge)
+                pdfPrintAdapter.onMessage(message, type, pageNum?.toIntOrNull())
         }
     }
 

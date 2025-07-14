@@ -15,6 +15,7 @@ import com.bhuvaneshw.pdf.PdfUnstableApi
 import com.bhuvaneshw.pdf.addListener
 import com.bhuvaneshw.pdf.callIfScrollSpeedLimitIsEnabled
 import com.bhuvaneshw.pdf.callSafely
+import com.bhuvaneshw.pdf.print.DefaultPdfPrintAdapter
 import com.bhuvaneshw.pdf.setting.PdfSettingsManager
 import com.bhuvaneshw.pdf.sharedPdfSettingsManager
 import com.bhuvaneshw.pdfviewerdemo.databinding.ActivityPdfViewerBinding
@@ -59,6 +60,7 @@ class PdfViewerActivity : AppCompatActivity() {
 //            defaultPageScale = PdfViewer.Zoom.PAGE_WIDTH.floatValue
             editor.highlightColor = Color.BLUE
             pdfSettingsManager.restore(this)
+            pdfPrintAdapter = DefaultPdfPrintAdapter(context)
             load(filePath)
             if (filePath.isNotBlank())
                 view.pdfToolBar.setFileName(fileName)

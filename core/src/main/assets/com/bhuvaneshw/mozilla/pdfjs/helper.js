@@ -164,6 +164,28 @@ window.print = () => {
     JWI.createPrintJob();
 };
 
+function extractPrintImages() {
+    let pages = document.querySelector("#printContainer").querySelectorAll("img");
+    JWI.conveyMessage(null, "PRINT_START", null);
+
+    pages.forEach((page, index) => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = page.naturalWidth;
+        canvas.height = page.naturalHeight;
+
+        ctx.drawImage(page, 0, 0);
+
+        const base64Data = canvas.toDataURL("image/png");
+
+        JWI.conveyMessage(base64Data, "PAGE_DATA", `${index + 1}`);
+    });
+
+    document.querySelector("#printContainer").textContent = "";
+    JWI.conveyMessage(null, "PRINT_END", null);
+}
+
 function setEditorModeButtonsEnabled(enabled) {
     $("#editorModeButtons").style.display = enabled ? "inline flex" : "none";
 }
@@ -303,6 +325,7 @@ function downloadFile() {
 }
 
 function printFile() {
+    document.querySelector("#printContainer").textContent = "";
     $("#secondaryPrint").click();
 }
 

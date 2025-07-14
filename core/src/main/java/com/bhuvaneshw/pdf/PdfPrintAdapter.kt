@@ -3,27 +3,24 @@ package com.bhuvaneshw.pdf
 import android.os.ParcelFileDescriptor
 import android.print.PageRange
 import android.print.PrintAttributes
-import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
 import android.util.Base64
 import android.util.Log
-import android.webkit.ValueCallback
-import android.webkit.WebView
+import com.bhuvaneshw.pdf.print.PdfPrintBridge
 import org.json.JSONArray
 import java.io.FileOutputStream
 
-abstract class PdfPrintAdapter : PrintDocumentAdapter() {
-    internal lateinit var webView: WebView
-
-    fun evaluateJavascript(script: String, resultCallback: ValueCallback<String>?) =
-        webView.evaluateJavascript(script, resultCallback)
-
-    abstract fun onMessage(message: String)
-}
-
+// TODO: Remove in future version
 @PdfUnstablePrintApi
-class SimplePdfPrintAdapter : PdfPrintAdapter() {
-
+@Deprecated(
+    message = "Deprecated and will be removed. Use DefaultPdfPrintAdapter instead.",
+    replaceWith = ReplaceWith(
+        "DefaultPdfPrintAdapter",
+        "com.bhuvaneshw.pdf.print.DefaultPdfPrintAdapter"
+    ),
+    level = DeprecationLevel.ERROR
+)
+class SimplePdfPrintAdapter : PdfPrintBridge() {
     override fun onLayout(
         oldAttributes: PrintAttributes?,
         newAttributes: PrintAttributes?,
@@ -78,14 +75,14 @@ class SimplePdfPrintAdapter : PdfPrintAdapter() {
         }
     }
 
-    override fun onMessage(message: String) {
+    override fun onMessage(message: String?, type: String?, pageNum: Int?) {
         if (cancellationSignal?.isCanceled == true) {
             callback?.onWriteCancelled()
             return
         }
 
         try {
-            val pdfData = decodeBase64OrByteArray(message)
+            val pdfData = decodeBase64OrByteArray(message!!)
 
             FileOutputStream(destination?.fileDescriptor).use { outputStream ->
                 outputStream.write(pdfData)

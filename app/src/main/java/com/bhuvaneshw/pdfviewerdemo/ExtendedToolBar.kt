@@ -26,6 +26,7 @@ class ExtendedToolBar @JvmOverloads constructor(
     override fun getPopupMenu(anchorView: View): PopupMenu {
         return PopupMenu(context, anchorView).apply {
             // Item ids 0-10 are already taken
+            menu.add(Menu.NONE, 15, Menu.NONE, "Print")
             if (pdfViewer.createSharableUri(authority) != null) {
                 menu.add(Menu.NONE, 11, Menu.NONE, "Share")
                 menu.add(Menu.NONE, 12, Menu.NONE, "Open With")
@@ -47,6 +48,11 @@ class ExtendedToolBar @JvmOverloads constructor(
         if (super.handlePopupMenuItemClick(item)) return true
 
         return when (item.itemId) {
+            15 -> {
+                pdfViewer.printFile()
+                return true
+            }
+
             11 -> {
                 pdfViewer
                     .createSharableUri(authority)
