@@ -26,6 +26,7 @@ try {
         onFindMatchStart() {},
         onFindMatchComplete() {},
         onLoadProperties() {},
-        createWebPrintJob() {},
+        createPrintJob() {},
+        conveyMessage() {},
     };
 }
