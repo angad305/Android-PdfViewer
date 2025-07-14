@@ -7622,7 +7622,7 @@ class PDFPrintService {
     if (activeService !== this) {
       return;
     }
-    this.printContainer.textContent = "";
+    // this.printContainer.textContent = "";
     const body = document.querySelector("body");
     body.removeAttribute("data-pdfjsprinting");
     if (this.pageStyleSheet) {
