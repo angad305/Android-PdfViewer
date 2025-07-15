@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.bhuvaneshw.pdf.compose"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 23

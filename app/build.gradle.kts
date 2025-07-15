@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.bhuvaneshw.pdfviewerdemo"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.bhuvaneshw.pdfviewerdemo"
         minSdk = 23
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 110
         versionName = "1.1.2"
 
