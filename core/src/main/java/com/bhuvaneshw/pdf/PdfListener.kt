@@ -42,6 +42,10 @@ interface PdfListener {
     fun onEditorInkThicknessChange(@IntRange(from = 1, to = 20) thickness: Int) {}
     fun onEditorInkOpacityChange(@IntRange(from = 1, to = 100) opacity: Int) {}
     fun onRenderProcessGone(detail: RenderProcessGoneDetail?): Boolean = false
+    fun onPrintProcessStart() {}
+    fun onPrintProcessProgress(@FloatRange(0.0, 1.0) progress: Float) {}
+    fun onPrintProcessEnd() {}
+    fun onPrintCancelled() {}
 
     fun onScaleLimitChange(
         @FloatRange(-4.0, 10.0) minPageScale: Float,

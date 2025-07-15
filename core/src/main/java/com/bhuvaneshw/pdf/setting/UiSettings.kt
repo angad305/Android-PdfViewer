@@ -206,11 +206,18 @@ class UiSettings internal constructor(private val webView: WebView) {
         }
     }
 
+    inner class PrintDialog internal constructor() {
+        fun cancel() {
+            webView callDirectly "cancelPrinting"()
+        }
+    }
+
     val toolbarLeft = ToolbarLeft()
     val toolbarMiddle = ToolbarMiddle()
     val toolbarRight = ToolbarRight()
     val toolBarSecondary = ToolbarSecondary()
     val passwordDialog = PasswordDialog()
+    val printDialog = PrintDialog()
 
     var toolbarEnabled: Boolean = false
         set(value) {

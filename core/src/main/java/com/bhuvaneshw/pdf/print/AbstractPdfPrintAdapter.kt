@@ -29,8 +29,6 @@ abstract class AbstractPdfPrintAdapter(private var context: Context) : PdfPrintB
         callback: LayoutResultCallback?,
         metadata: android.os.Bundle?
     ) {
-        onProgress(0f)
-
         evaluateJavascript("PDFViewerApplication.pdfViewer.pagesCount;") { result ->
             if (cancellationSignal?.isCanceled == true) {
                 callback?.onLayoutCancelled()
@@ -62,7 +60,6 @@ abstract class AbstractPdfPrintAdapter(private var context: Context) : PdfPrintB
         callback: WriteResultCallback
     ) {
         try {
-            onProgress(0f)
             this.writer = FileOutputStream(destination.fileDescriptor)
             this.cancellationSignal = cancellationSignal
             this.callback = callback
@@ -101,8 +98,6 @@ abstract class AbstractPdfPrintAdapter(private var context: Context) : PdfPrintB
 
                     pdfDocument.finishPage(page)
                     bitmap.recycle()
-
-                    onProgress(pageNum / pageCount.toFloat())
                 }
 
                 "PRINT_END" -> {

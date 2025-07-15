@@ -6,7 +6,6 @@ import android.webkit.WebView
 
 abstract class PdfPrintBridge : PrintDocumentAdapter() {
     internal lateinit var webView: WebView
-    internal lateinit var onProgress: (progress: Float) -> Unit
 
     internal fun evaluateJavascript(script: String, resultCallback: ValueCallback<String>?) =
         webView.evaluateJavascript(script, resultCallback)

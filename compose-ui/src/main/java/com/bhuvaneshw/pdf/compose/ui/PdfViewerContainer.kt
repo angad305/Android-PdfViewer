@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.bhuvaneshw.pdf.PdfViewer
 import com.bhuvaneshw.pdf.compose.DefaultOnReadyCallback
 import com.bhuvaneshw.pdf.compose.OnReadyCallback
+import com.bhuvaneshw.pdf.compose.PdfPrintState
 import com.bhuvaneshw.pdf.compose.PdfState
 
 @Composable
@@ -75,6 +78,8 @@ fun PdfViewerContainer(
 
     if (pdfState.passwordRequired)
         PasswordDialog(pdfState)
+    if (pdfState.printState.isLoading)
+        PrintDialog(pdfState)
 }
 
 @Composable
@@ -191,9 +196,9 @@ private fun PasswordDialog(pdfState: PdfState) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 6.dp),
-                decorationBox = {
+                decorationBox = { field ->
                     Box(Modifier.fillMaxWidth()) {
-                        it()
+                        field()
                         AnimatedVisibility(
                             visible = password.isEmpty(),
                             enter = slideIn { IntOffset(0, -it.height) } + fadeIn(),
@@ -208,6 +213,51 @@ private fun PasswordDialog(pdfState: PdfState) {
                     }
                 }
             )
+        }
+    )
+}
+
+@Composable
+private fun PrintDialog(pdfState: PdfState) {
+    AlertDialog(
+        onDismissRequest = { pdfState.pdfViewer?.ui?.passwordDialog?.cancel() },
+        title = {
+            Text(
+                text = "Preparing to print…",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    pdfState.pdfViewer?.ui?.printDialog?.cancel()
+                }
+            ) {
+                Text("Cancel")
+            }
+        },
+        text = {
+            Column {
+                val progress = pdfState.printState.let {
+                    if (it is PdfPrintState.Loading) it.progress else 0f
+                }
+
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp),
+                )
+
+                Text(
+                    text = "${(progress * 100).toInt()}%",
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .padding(horizontal = 6.dp)
+                        .align(Alignment.End)
+                )
+            }
         }
     )
 }

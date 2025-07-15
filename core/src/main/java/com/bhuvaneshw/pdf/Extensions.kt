@@ -69,6 +69,10 @@ fun PdfViewer.addListener(
     onEditorInkThicknessChange: ((thickness: Int) -> Unit)? = null,
     onEditorInkOpacityChange: ((opacity: Int) -> Unit)? = null,
     onRenderProcessGone: ((detail: RenderProcessGoneDetail?) -> Boolean)? = null,
+    onPrintProcessStart: (() -> Unit)? = null,
+    onPrintProcessProgress: ((progress: Float) -> Unit)? = null,
+    onPrintProcessEnd: (() -> Unit)? = null,
+    onPrintCancelled: (() -> Unit)? = null,
     onScaleLimitChange: ((minPageScale: Float, maxPageScale: Float, defaultPageScale: Float) -> Unit)? = null,
     onActualScaleLimitChange: ((minPageScale: Float, maxPageScale: Float, defaultPageScale: Float) -> Unit)? = null,
     onAlignModeChange: ((requestedMode: PdfViewer.PageAlignMode, appliedMode: PdfViewer.PageAlignMode) -> Unit)? = null,
@@ -209,6 +213,22 @@ fun PdfViewer.addListener(
 
         override fun onRenderProcessGone(detail: RenderProcessGoneDetail?): Boolean {
             return onRenderProcessGone?.invoke(detail) == true
+        }
+
+        override fun onPrintProcessStart() {
+            onPrintProcessStart?.invoke()
+        }
+
+        override fun onPrintProcessProgress(progress: Float) {
+            onPrintProcessProgress?.invoke(progress)
+        }
+
+        override fun onPrintProcessEnd() {
+            onPrintProcessEnd?.invoke()
+        }
+
+        override fun onPrintCancelled() {
+            onPrintCancelled?.invoke()
         }
 
         override fun onScaleLimitChange(

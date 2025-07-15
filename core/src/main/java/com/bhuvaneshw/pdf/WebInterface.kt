@@ -126,6 +126,21 @@ internal class WebInterface(private val pdfViewer: PdfViewer) {
         .joinToString(separator = ",") { "${it.first}=${it.second.toJsHex()}" }
 
     @JavascriptInterface
+    fun onPrintProcessStart() = post {
+        pdfViewer.listeners.forEach { it.onPrintProcessStart() }
+    }
+
+    @JavascriptInterface
+    fun onPrintProcessEnd() = post {
+        pdfViewer.listeners.forEach { it.onPrintProcessEnd() }
+    }
+
+    @JavascriptInterface
+    fun onPrintProcessProgress(progress: Float) = post {
+        pdfViewer.listeners.forEach { it.onPrintProcessProgress(progress) }
+    }
+
+    @JavascriptInterface
     fun onLoadProperties(
         title: String,
         subject: String,
@@ -177,9 +192,6 @@ internal class WebInterface(private val pdfViewer: PdfViewer) {
 
             if (pdfPrintAdapter is PdfPrintBridge) {
                 pdfPrintAdapter.webView = pdfViewer.webView
-                pdfPrintAdapter.onProgress = { progress ->
-                    // TODO: publish progress
-                }
             }
 
             printManager.print(

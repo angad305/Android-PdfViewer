@@ -28,7 +28,7 @@ function doOnLast() {
         attributeFilter: ["style"],
     });
 
-    const passwordDialog = document.querySelector("#passwordDialog");
+    const passwordDialog = $("#passwordDialog");
     passwordDialog.style.margin = "24px auto";
     const passwordDialogObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -38,6 +38,31 @@ function doOnLast() {
         });
     });
     passwordDialogObserver.observe(passwordDialog, { attributes: true });
+
+    const printDialog = $("#printServiceDialog");
+    const printDialogObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === "attributes" && mutation.attributeName === "open") {
+                printDialog.style.display = "none";
+                if (printDialog.open) {
+                    JWI.onPrintProcessStart();
+                } else {
+                    JWI.onPrintProcessEnd();
+                }
+            }
+        });
+    });
+    printDialogObserver.observe(printDialog, { attributes: true });
+
+    const printProgress = printDialog.querySelector("progress");
+    const printProgressObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === "attributes" && mutation.attributeName === "value") {
+                JWI.onPrintProcessProgress(parseFloat(printProgress.value) / 100);
+            }
+        });
+    });
+    printProgressObserver.observe(printProgress, { attributes: true });
 
     const viewerContainer = $("#viewerContainer");
     let singleClickTimer;
@@ -165,7 +190,7 @@ window.print = () => {
 };
 
 function extractPrintImages() {
-    let pages = document.querySelector("#printContainer").querySelectorAll("img");
+    let pages = $("#printContainer").querySelectorAll("img");
     JWI.conveyMessage(null, "PRINT_START", null);
 
     pages.forEach((page, index) => {
@@ -182,7 +207,7 @@ function extractPrintImages() {
         JWI.conveyMessage(base64Data, "PAGE_DATA", `${index + 1}`);
     });
 
-    document.querySelector("#printContainer").textContent = "";
+    $("#printContainer").textContent = "";
     JWI.conveyMessage(null, "PRINT_END", null);
 }
 
@@ -325,8 +350,12 @@ function downloadFile() {
 }
 
 function printFile() {
-    document.querySelector("#printContainer").textContent = "";
+    $("#printContainer").textContent = "";
     $("#secondaryPrint").click();
+}
+
+function cancelPrinting() {
+    $("#printCancel").click();
 }
 
 function startPresentationMode() {
@@ -646,7 +675,7 @@ function removeSinglePageArrangement() {
 }
 
 function limitScroll(maxSpeed = 100, flingThreshold = 0.5, canFling = false, adaptiveFling = false) {
-    const viewerContainer = document.querySelector("#viewerContainer");
+    const viewerContainer = $("#viewerContainer");
     if (!viewerContainer) return;
 
     let lastTouchX = 0;
@@ -779,7 +808,7 @@ function limitScroll(maxSpeed = 100, flingThreshold = 0.5, canFling = false, ada
 }
 
 function removeScrollLimit() {
-    const viewerContainer = document.querySelector("#viewerContainer");
+    const viewerContainer = $("#viewerContainer");
     if (!viewerContainer || !viewerContainer._scrollHandlers) return;
 
     const { touchStartHandler, touchMoveHandler, touchEndHandler, resizeAndScaleListener } = viewerContainer._scrollHandlers;
@@ -805,7 +834,7 @@ function setScrollToNextPage() {
 
 function setScrollToCurrentPage() {
     let targetPage = PDFViewerApplication.pdfViewer.getPageView(PDFViewerApplication._touchStartCurrentPage - 1);
-    const viewerContainer = document.querySelector("#viewerContainer");
+    const viewerContainer = $("#viewerContainer");
 
     const isVerticalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.VERTICAL;
     const isHorizontalScroll = PDFViewerApplication.pdfViewer.scrollMode == ScrollMode.HORIZONTAL;

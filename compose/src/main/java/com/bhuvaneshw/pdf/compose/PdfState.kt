@@ -108,6 +108,7 @@ class PdfState(
     var snapPage by mutableStateOf(false); internal set
     var singlePageArrangement by mutableStateOf(false); internal set
     var alignMode by mutableStateOf(PdfViewer.PageAlignMode.DEFAULT); internal set
+    var printState: PdfPrintState by mutableStateOf(PdfPrintState.Idle); internal set
 
     @PdfUnstableApi
     var scrollSpeedLimit: PdfViewer.ScrollSpeedLimit by mutableStateOf(PdfViewer.ScrollSpeedLimit.None); internal set
@@ -335,6 +336,22 @@ class PdfState(
         override fun onEditorInkOpacityChange(opacity: Int) {
             this@PdfState.editor.inkOpacity = opacity
         }
+
+        override fun onPrintProcessStart() {
+            this@PdfState.printState = PdfPrintState.Loading(0f)
+        }
+
+        override fun onPrintProcessProgress(progress: Float) {
+            this@PdfState.printState = PdfPrintState.Loading(progress)
+        }
+
+        override fun onPrintProcessEnd() {
+            this@PdfState.printState = PdfPrintState.Idle
+        }
+
+        override fun onPrintCancelled() {
+            this@PdfState.printState = PdfPrintState.Idle
+        }
     }
 }
 
@@ -363,4 +380,11 @@ sealed class MatchState(val current: Int = 0, val total: Int = 0) {
     class Completed(val found: Boolean, current: Int, total: Int) : MatchState(current, total)
 
     val isLoading: Boolean get() = this is Started || this is Progress
+}
+
+sealed interface PdfPrintState {
+    data object Idle : PdfPrintState
+    data class Loading(@FloatRange(0.0, 1.0) val progress: Float) : PdfPrintState
+
+    val isLoading: Boolean get() = this is Loading
 }

@@ -28,5 +28,8 @@ try {
         onLoadProperties() {},
         createPrintJob() {},
         conveyMessage() {},
+        onPrintProcessStart() {},
+        onPrintProcessEnd() {},
+        onPrintProcessProgress() {},
     };
 }

@@ -14,7 +14,9 @@ import android.view.ViewGroup
 import android.view.ViewPropertyAnimator
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.bhuvaneshw.pdf.PdfListener
 import com.bhuvaneshw.pdf.PdfViewer
@@ -36,6 +38,7 @@ class PdfViewerContainer : RelativeLayout {
             is PdfViewer -> {
                 this.pdfViewer = child
                 child.addListener(PasswordDialogListener())
+                child.addListener(PrintDialogListener())
                 setup()
 
                 pdfToolBar?.let { toolBar ->
@@ -122,7 +125,7 @@ class PdfViewerContainer : RelativeLayout {
                     val root =
                         LayoutInflater.from(context).inflate(R.layout.pdf_go_to_page_dialog, null)
                     val field: EditText =
-                        root.findViewById<EditText?>(R.id.go_to_page_field).apply {
+                        root.findViewById<EditText>(R.id.go_to_page_field).apply {
                             inputType =
                                 InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                             imeOptions = EditorInfo.IME_ACTION_DONE
@@ -158,6 +161,57 @@ class PdfViewerContainer : RelativeLayout {
                     dialog?.show()
                 }
             }
+        }
+    }
+
+    @Suppress("NOTHING_TO_INLINE", "FunctionName")
+    private inline fun PrintDialogListener() = object : PdfListener {
+        var dialog: AlertDialog? = null
+        var progressBar: ProgressBar? = null
+        var progressText: TextView? = null
+
+        override fun onPrintProcessStart() {
+            pdfViewer?.let { pdfViewer ->
+                @SuppressLint("InflateParams")
+                val root = LayoutInflater.from(context).inflate(R.layout.pdf_print_dialog, null)
+                progressBar = root.findViewById(R.id.progress)
+                progressText = root.findViewById(R.id.progress_text)
+
+                dialog = alertDialogBuilder()
+                    .setTitle("Preparing to print…")
+                    .setView(root)
+                    .setNegativeButton("Cancel") { dialog, _ ->
+                        pdfViewer.ui.printDialog.cancel()
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
+        }
+
+        @SuppressLint("SetTextI18n")
+        override fun onPrintProcessProgress(progress: Float) {
+            progressBar?.let {
+                if (it.isIndeterminate)
+                    it.isIndeterminate = false
+                it.progress = (progress * 100).toInt()
+            }
+            progressText?.text = "${(progress * 100).toInt()}%"
+        }
+
+        override fun onPrintProcessEnd() {
+            dismissAndClear()
+        }
+
+        override fun onPrintCancelled() {
+            dismissAndClear()
+        }
+
+        @Suppress("NOTHING_TO_INLINE")
+        private inline fun dismissAndClear() {
+            dialog?.dismiss()
+            progressBar = null
+            progressText = null
+            dialog = null
         }
     }
 
