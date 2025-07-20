@@ -3,6 +3,9 @@
 
 A lightweight **Android PDF Viewer Library** powered by Mozilla's [PDF.js](https://github.com/mozilla/pdf.js), offering seamless PDF rendering and interactive features. Supports both **Jetpack Compose** and **XML**.
 
+---
+## 📢 We're running a poll!** Help decide the future of this library — [click here to vote](https://github.com/Bhuvaneshw/PdfViewer/discussions/25).
+
 ## Screenshots
 <img src="screenshots/1.png" width="190" alt="ScreenShot1"/> <img src="screenshots/2.png" width="190" alt="ScreenShot2"/>
 <img src="screenshots/3.png" width="190" alt="ScreenShot3"/> <img src="screenshots/4.png" width="190" alt="ScreenShot4"/> <img src="screenshots/5.png" width="190" alt="ScreenShot5"/>
