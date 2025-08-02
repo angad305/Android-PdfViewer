@@ -16,19 +16,38 @@ internal class WebInterface(private val pdfViewer: PdfViewer) {
     private var findMatchStarted = false
 
     @JavascriptInterface
+    @JavascriptInterface
     fun onLoadSuccess(count: Int) = post {
         pdfViewer.pagesCount = count
+        pdfViewer.isInitialized = true  // Make sure this is set
+        
         pdfViewer.setUpActualScaleValues {
             pdfViewer.scalePageTo(pdfViewer.actualDefaultPageScale)
         }
         pdfViewer.dispatchRotationChange(pdfViewer.pageRotation, false)
         pdfViewer.dispatchSnapChange(pdfViewer.snapPage, false)
-
+    
         pdfViewer.dispatchSinglePageArrangement(pdfViewer.singlePageArrangement, false)
         pdfViewer.dispatchPageAlignMode(pdfViewer.pageAlignMode, false)
         @OptIn(PdfUnstableApi::class)
         pdfViewer.dispatchScrollSpeedLimit(pdfViewer.scrollSpeedLimit, false)
-
+    
+        // Apply stored preferences when PDF is loaded and ready
+        pdfViewer.tempBackgroundColor?.let { 
+            pdfViewer.setContainerBackgroundColor(it)
+            pdfViewer.tempBackgroundColor = null
+        }
+        
+        pdfViewer.tempDarkMode?.let { 
+            // Apply dark mode after a short delay to ensure DOM is ready
+            pdfViewer.mainHandler.postDelayed({
+                pdfViewer.applyDarkModeInternal(it)
+            }, 500)
+            pdfViewer.tempDarkMode = null
+        }
+    
+        // Call ready listeners
+        pdfViewer.onReadyListeners.forEach { it(pdfViewer) }
         pdfViewer.listeners.forEach { it.onPageLoadSuccess(count) }
     }
 
