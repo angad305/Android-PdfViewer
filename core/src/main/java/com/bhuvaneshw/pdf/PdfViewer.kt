@@ -883,64 +883,65 @@ fun setDarkMode(enabled: Boolean) {
         return
     }
     
+    // Clear temp setting and apply immediately
     tempDarkMode = null
-    mainHandler.post {
+    mainHandler.postDelayed({
         applyDarkModeInternal(enabled)
-    }
+    }, 200)
 }
 
-private fun applyDarkModeInternal(enabled: Boolean) {
+internal fun applyDarkModeInternal(enabled: Boolean) {
     if (enabled) {
         setContainerBackgroundColor(Color.parseColor("#1a1a1a"))
         
         val darkModeCSS = """
             (function() {
-                console.log('Applying dark mode...');
+                console.log('=== LIBRARY DARK MODE START ===');
                 
-                // Remove existing dark mode styles
                 var existingStyle = document.getElementById('pdf-dark-mode-style');
                 if (existingStyle) existingStyle.remove();
                 
-                // Wait for PDF.js to be ready
-                function applyDarkMode() {
+                function applyDarkStyles() {
                     var style = document.createElement('style');
                     style.id = 'pdf-dark-mode-style';
                     style.textContent = \`
-                        /* Main viewer container */
-                        #viewerContainer {
+                        body, html {
+                            background: #1a1a1a !important;
+                            color: #ffffff !important;
+                        }
+                        
+                        #outerContainer, #mainContainer, #viewerContainer {
                             background: #1a1a1a !important;
                         }
                         
-                        /* PDF viewer */
                         .pdfViewer {
                             background: #1a1a1a !important;
                         }
                         
-                        /* Individual pages - use CSS filter for inversion */
                         .page {
                             background: #1a1a1a !important;
+                            box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) !important;
                         }
                         
-                        /* Canvas elements (where PDF content is rendered) */
+                        /* Invert PDF canvas - this is the main content */
                         .page canvas {
-                            filter: invert(1) hue-rotate(180deg) brightness(1.1) contrast(0.9) !important;
-                            background: #1a1a1a !important;
+                            filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.1) !important;
                         }
                         
-                        /* Text layer */
+                        /* Handle text layer with mix-blend-mode for better readability */
                         .textLayer {
-                            filter: invert(1) hue-rotate(180deg) !important;
+                            mix-blend-mode: difference !important;
+                            color: white !important;
                         }
                         
-                        /* Annotation layer */
+                        /* Invert annotations */
                         .annotationLayer {
                             filter: invert(1) hue-rotate(180deg) !important;
                         }
                         
-                        /* Toolbar if present */
-                        #toolbarContainer, .toolbar {
-                            background: #2d2d2d !important;
-                            color: #ffffff !important;
+                        /* Loading spinner */
+                        .loadingIcon {
+                            filter: invert(1) !important;
                         }
                         
                         /* Scrollbars */
@@ -951,45 +952,20 @@ private fun applyDarkModeInternal(enabled: Boolean) {
                         ::-webkit-scrollbar-thumb {
                             background: #555555 !important;
                         }
-                        
-                        /* Loading indicator */
-                        .loading {
-                            background: #1a1a1a !important;
-                        }
                     \`;
                     
                     document.head.appendChild(style);
-                    document.body.style.backgroundColor = '#1a1a1a';
-                    console.log('Dark mode applied');
+                    console.log('Dark mode styles applied, pages found:', document.querySelectorAll('.page').length);
                 }
                 
-                // Apply immediately if PDF is already loaded
-                if (document.querySelector('.page')) {
-                    applyDarkMode();
+                // Apply immediately if pages exist, otherwise wait a bit
+                if (document.querySelectorAll('.page').length > 0) {
+                    applyDarkStyles();
                 } else {
-                    // Wait for PDF to load
-                    var observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(mutation) {
-                            if (mutation.addedNodes.length > 0) {
-                                if (document.querySelector('.page')) {
-                                    applyDarkMode();
-                                    observer.disconnect();
-                                }
-                            }
-                        });
-                    });
-                    
-                    observer.observe(document.body, {
-                        childList: true,
-                        subtree: true
-                    });
-                    
-                    // Fallback timeout
-                    setTimeout(() => {
-                        applyDarkMode();
-                        observer.disconnect();
-                    }, 3000);
+                    setTimeout(applyDarkStyles, 1000);
                 }
+                
+                console.log('=== LIBRARY DARK MODE END ===');
             })();
         """.trimIndent()
         
@@ -1002,9 +978,8 @@ private fun applyDarkModeInternal(enabled: Boolean) {
             (function() {
                 var darkStyle = document.getElementById('pdf-dark-mode-style');
                 if (darkStyle) darkStyle.remove();
-                
                 document.body.style.backgroundColor = '#ffffff';
-                console.log('Dark mode removed');
+                document.body.style.color = '#000000';
             })();
         """.trimIndent()
         
