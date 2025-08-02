@@ -66,7 +66,8 @@ class PdfViewer @JvmOverloads constructor(
     internal val mainHandler = Handler(Looper.getMainLooper())
     internal var onReadyListeners = mutableListOf<PdfViewer.() -> Unit>()
     internal var tempBackgroundColor: Int? = null
-
+    internal var tempDarkMode: Boolean? = null
+    
     internal val resourceLoaders = listOf(
         PdfViewerResourceLoader(context, webInterface::onLoadFailed),
         AssetResourceLoader(context, webInterface::onLoadFailed),
@@ -867,6 +868,118 @@ class PdfViewer @JvmOverloads constructor(
             @FloatRange(from = 0.0, fromInclusive = false) val flingThreshold: Float = 0.5f,
         ) : ScrollSpeedLimit()
     }
+
+    /**
+ * Enables or disables dark mode for the PDF viewer
+ * @param enabled true to enable dark mode, false to disable
+ */
+fun setDarkMode(enabled: Boolean) {
+    if (!isInitialized) {
+        // Store dark mode preference for when viewer is ready
+        tempDarkMode = enabled
+        return
+    }
+    
+    if (enabled) {
+        // Apply dark container background
+        setContainerBackgroundColor(Color.parseColor("#1a1a1a"))
+        
+        // Inject dark mode CSS for PDF content
+        val darkModeCSS = """
+            (function() {
+                // Remove existing dark mode styles
+                var existingStyle = document.getElementById('pdf-dark-mode-style');
+                if (existingStyle) existingStyle.remove();
+                
+                // Create new dark mode styles
+                var style = document.createElement('style');
+                style.id = 'pdf-dark-mode-style';
+                style.textContent = `
+                    /* Invert PDF page colors */
+                    .page, .page canvas {
+                        filter: invert(1) hue-rotate(180deg) brightness(1.1) contrast(0.9) !important;
+                        background: #1a1a1a !important;
+                    }
+                    
+                    /* Fix images (double invert to make them normal) */
+                    .page img {
+                        filter: invert(1) hue-rotate(180deg) !important;
+                    }
+                    
+                    /* Dark viewer background */
+                    #viewer, #viewerContainer, .pdfViewer {
+                        background: #1a1a1a !important;
+                        background-color: #1a1a1a !important;
+                    }
+                    
+                    /* Dark toolbar and UI elements */
+                    #toolbarContainer, .toolbar {
+                        background: #2d2d2d !important;
+                        background-color: #2d2d2d !important;
+                        color: #ffffff !important;
+                    }
+                    
+                    /* Dark buttons and controls */
+                    .toolbarButton, .secondaryToolbarButton {
+                        color: #ffffff !important;
+                    }
+                    
+                    /* Dark text layer */
+                    .textLayer {
+                        color: #ffffff !important;
+                    }
+                    
+                    /* Dark scrollbars */
+                    ::-webkit-scrollbar {
+                        background: #2d2d2d !important;
+                    }
+                    
+                    ::-webkit-scrollbar-thumb {
+                        background: #555555 !important;
+                    }
+                    
+                    /* Dark annotation layer */
+                    .annotationLayer {
+                        filter: invert(1) hue-rotate(180deg) !important;
+                    }
+                `;
+                
+                document.head.appendChild(style);
+                
+                // Also apply to body
+                document.body.style.backgroundColor = '#1a1a1a';
+                document.body.style.color = '#ffffff';
+            })();
+        """.trimIndent()
+        
+        webView.evaluateJavascript(darkModeCSS, null)
+        
+    } else {
+        // Remove dark mode and restore light theme
+        setContainerBackgroundColor(Color.WHITE)
+        
+        val removeDarkModeCSS = """
+            (function() {
+                // Remove dark mode styles
+                var darkStyle = document.getElementById('pdf-dark-mode-style');
+                if (darkStyle) darkStyle.remove();
+                
+                // Restore light theme
+                document.body.style.backgroundColor = '#ffffff';
+                document.body.style.color = '#000000';
+            })();
+        """.trimIndent()
+        
+        webView.evaluateJavascript(removeDarkModeCSS, null)
+    }
+}
+
+/**
+ * Checks if dark mode is currently enabled
+ */
+fun isDarkModeEnabled(): Boolean {
+    return tempDarkMode ?: false
+}
 
     companion object {
         internal const val PDF_VIEWER_URL =
