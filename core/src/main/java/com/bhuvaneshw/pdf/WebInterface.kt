@@ -16,7 +16,6 @@ internal class WebInterface(private val pdfViewer: PdfViewer) {
     private var findMatchStarted = false
 
     @JavascriptInterface
-    @JavascriptInterface
     fun onLoadSuccess(count: Int) = post {
         pdfViewer.pagesCount = count
         pdfViewer.isInitialized = true  // Make sure this is set
